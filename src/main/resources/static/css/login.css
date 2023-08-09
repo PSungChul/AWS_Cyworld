@@ -1,0 +1,67 @@
+           *{font-family: 'Jua', sans-serif;}
+     /* https://projects.verou.me/css3patterns/#blueprint-grid
+           배경 격자무늬 생성  */
+        body { height: 100vh;
+            background-color: rgb(103, 106, 109);
+            background-image: linear-gradient(rgba(255, 255, 255, .3) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(255, 255, 255, .3) 3px, transparent 3px),
+                linear-gradient(rgba(255, 255, 255, .3) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(255, 255, 255, .3) 3px, transparent 3px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+            overflow: hidden;
+            color: skyblue; font-weight: bold;
+        }
+   /* position */
+   .container { 
+    padding-top: 10px;
+     height:860px;
+     width: 1800px;
+    margin: auto;
+    border-radius: 100px;
+    display: flex;
+    position: relative;
+    font-size: 25px;
+      top:30px;
+    }
+    .section { width:30%; background-color: rgb(158, 218, 241); border-radius: 80px; position: relative; left: 640px; }
+
+   
+    .dashed-line {width:96%; height: 800px; border-radius: 50px; margin: 30px; border: 3px dashed white; position: absolute; left: -22px; }
+  
+    
+    .gray-background {width:98%; height: 780px; background-color: rgb(235, 232, 232); border-radius: 50px; margin: 10px; 
+        position: absolute;  left: -5px;
+    }
+  
+   .main {width:90%; background-color: white; height: 730px; border-radius: 30px; margin: 10px;  position: absolute; left: 15px; top: 15px;
+    box-shadow: 10px 10px  10px rgba(0, 0, 0, 0.356);}
+
+   /* content detail */
+   .logo-main {  position: absolute; width: 280px; height: 80px;
+    left: 80px; top:30px;
+}
+.login-minimi { position: absolute; width: 220px; height: 220px; top:110px; left:115px;}
+.userID { position: absolute; width: 360px; height: 30px; top:350px; left:62px; }
+.userID > input { width: 230px; height: 40px; font-size:25px;}
+.userPW { position: absolute; width: 360px; height: 30px; top:410px; left:48px;}    
+.userPW > input { width: 230px; height: 40px; font-size:25px;}    
+.login {position: absolute; top:485px; left: 130px; }
+.login > input { width: 185px; height: 45px; font-size: 25px;}
+   
+.join {position: absolute; top:663px; left: 130px; width:70px;}
+.naver { position: absolute; top:535px; left:130px;}
+.kakao {position: absolute; top:580px; left:130px;}
+.findID {position: absolute; top:628px; left:130px; width:80px; }
+.findPW {position: absolute; top:628px; left:217px; width:98px;}
+.none-join {position: absolute; width:123px; top:667px; left:193px; height:30px; margin-bottom:5px;}
+#btn-cover {  border: 1px solid skyblue;
+            background-color: rgba(0,0,0,0);
+            color: skyblue;
+            padding: 5px;
+            border-radius: 5px; font-weight: bold;   }
+#btn-cover:hover{
+            color:white;
+            background-color: skyblue;
+            
+        }

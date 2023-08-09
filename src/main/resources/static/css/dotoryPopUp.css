@@ -1,0 +1,171 @@
+
+/* https://projects.verou.me/css3patterns/#blueprint-grid
+           배경 격자무늬 생성  */
+body {
+   height: 100vh;
+   background-color: rgb(103, 106, 109);
+   background-image: linear-gradient(rgba(255, 255, 255, .3) 3px,
+      transparent 3px), linear-gradient(90deg, rgba(255, 255, 255, .3) 3px,
+      transparent 3px), linear-gradient(rgba(255, 255, 255, .3) 3px,
+      transparent 3px), linear-gradient(90deg, rgba(255, 255, 255, .3) 3px,
+      transparent 3px);
+   background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+   background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+   padding: 20px;
+   font-family: 'Jua', sans-serif;
+   overflow: hidden;
+}
+/* position */
+.container {
+   width: 560px;
+   height: 760px;
+   background-color: rgb(101 175 245/ 35%);
+   border-radius: 20px;
+   border: 2px solid black;
+   position: relative;
+}
+
+.title {
+   padding-top: 30px;
+   text-align: center;
+   font-size: 40px;
+}
+
+.subTitle {
+   font-size: 34px;
+   text-align: center;
+   padding-top: 10px;
+}
+
+.myDotory {
+   font-size: 20px;
+   padding-top: 30px;
+   padding-left: 80px;
+}
+
+.dotory {
+   width: 30px;
+   height: 30px;
+   position: absolute;
+   left: 40px;
+   top: 166px;
+}
+
+.list>img {
+   background-size: cover;
+   width: 160px;
+   height: 160px;
+    border-radius:20px;
+}
+
+
+.buy {
+   position: absolute;
+   left: 170px;
+   width: 100px;
+   height: 30px;
+   top:690px;
+}
+
+.close {
+   position: absolute;
+   left: 290px;
+   width: 100px;
+   height: 30px;
+   top:690px;
+}
+/* content */
+.price {
+   font-size: 20px;
+   margin-left: 30px;
+   margin-top:10px;
+}
+.price4{width:170px;
+margin-left: 10px;
+}
+/* tabs */
+.tabs {
+   width: 500px;
+   height: 250px;
+}
+
+.tabs>.btn {
+   display: none;
+}
+
+.tab-btns>label {
+   position: relative;
+   background-color: white;
+   left: 20px;
+   top: 30px;
+   width: 160px;
+   height: 160px;
+   box-shadow: 10px 10px 20px rgba(0, 0, 0, 25%);
+   margin-left: 50px;
+   margin-bottom: 50px;
+   display: inline-block;
+   border-radius:20px;
+
+}
+
+.tab-btns>.active {
+   border: 10px solid transparent;
+    background-image: linear-gradient(#fff, #fff), 
+    linear-gradient(45deg, #ffafc8cb,#b595ffcd,#E4F7D2,#FDD785,#DFF980,#F9AA80);
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+    border-radius:20px;
+}
+
+.tabs>#tab1:checked ~.tab-btns>#btn1 {
+   border: 10px solid #b595ffcd;
+    border-radius:20px;
+}
+
+.tabs>#tab2:checked ~.tab-btns>#btn2 {
+   border: 10px solid #b595ffcd;
+    border-radius:20px;
+}
+
+.tabs>#tab3:checked ~.tab-btns>#btn3 {
+   border: 10px solid #b595ffcd;
+    border-radius:20px;
+}
+
+.tabs>#tab4:checked ~.tab-btns>#btn4 {
+   border: 10px solid #b595ffcd;
+    border-radius:20px;
+}
+
+/* button */
+#btn-cover {
+   border: 1px solid black;
+   background-color: rgba(0, 0, 0, 0);
+   color: rgb(26, 27, 28);
+   padding: 5px;
+   border-radius: 5px;
+   font-weight: bold;
+   font-family: 'Jua', sans-serif;
+   font-size: 20px;
+}
+
+#btn-cover:hover {
+   color: white;
+   background-color: skyblue;
+   border: 1px solid skyblue;
+}
+
+/* scroll-bar */
+#scrollBar::-webkit-scrollbar {
+   width: 8px; /* 스크롤바의 너비 */
+}
+
+#scrollBar::-webkit-scrollbar-thumb {
+   height: 30%; /* 스크롤바의 길이 */
+   background: #79aaee; /* 스크롤바의 색상 */
+   border-radius: 10px;
+}
+
+#scrollBar::-webkit-scrollbar-track {
+   background: rgba(141, 184, 244, 0.481); /*스크롤바 뒷 배경 색상*/
+}

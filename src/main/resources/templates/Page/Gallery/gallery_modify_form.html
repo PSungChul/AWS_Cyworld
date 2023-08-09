@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>사진첩 수정</title>
+	<link rel="stylesheet" href="/css/gallery_modify.css">
+	<link rel="stylesheet" href="/css/reset.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<body>
+	<div class="container ">
+		<section class="section">
+			<div class="dashed-line">
+				<div class="gray-background">
+					<div class="main">
+						<form method="POST" enctype="multipart/form-data" th:object="${galleryDTO}">
+							<input th:field="*{galleryIdx}" type="hidden">
+							<input th:field="*{idx}" type="hidden">
+							<input th:field="*{galleryFileExtension}" type="hidden">
+							<table>
+								<caption>사진첩 수정</caption>
+								
+								<tr>
+									<th>제목</th>
+									<td><input th:field="*{galleryTitle}"></td>
+								</tr>
+								
+								<tr>
+									<th>내용</th>
+									<td><pre><textarea rows="5" cols="50" th:field="*{galleryContent}"></textarea></pre></td>
+								</tr>
+								
+								<tr>
+									<th>파일</th>
+									<td>
+										<!-- 첨부된 이미지가 있는 경우에만 image 및 video태그를 보여주자! -->
+										<th:block th:if="${ galleryDTO.galleryFileName ne 'no_file' }">
+											<!-- 확장자가 image일 경우 -->
+											<th:block th:if="${ galleryDTO.galleryFileExtension eq 'image' }">
+												<img th:src="@{/filePath/gallery/} + ${ galleryDTO.galleryFileName }" width="100"/>
+											</th:block>
+											<!-- 확장자가 video일 경우 -->
+											<th:block th:if="${ galleryDTO.galleryFileExtension eq 'video' }">
+												<!-- video태그 autoplay : 자동 재생 / controls loop : 반복 재생 / muted : 음소거 -->
+												<video autoplay controls loop muted th:src="@{/filePath/gallery/} + ${ galleryDTO.galleryFileName }" width="100"/>
+											</th:block>
+										</th:block>
+										<input th:field="*{galleryFileName}" readonly>
+									</td>
+								</tr>
+								
+								<tr>
+									<th>파일첨부</th>
+									<td><input type="file" th:field="*{galleryFile}"></td>
+								</tr>
+								
+								<tr>
+									<td colspan="2" >
+										<input id="btn-cover" class="modify" type="button" value="수정" onclick="modify(this.form);">
+										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{gallery.do(idx=${ galleryDTO.galleryIdx })}'|">
+									</td>
+								</tr>
+							</table>
+						</form>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->	
+	<script>
+		// 게시글 수정
+		function modify(f) {
+			f.action = "gallery_modify.do";
+			f.submit();
+		}
+	</script>
+</body>
+</html>

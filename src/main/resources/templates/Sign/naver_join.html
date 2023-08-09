@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>NAVER 회원가입</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/animate.css">
+	<link rel="stylesheet" href="/css/naverJoin.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+		<section class="section">
+			<div class="dashed-line">
+				<div class="gray-background">
+					<div class="main">
+					
+						<img class="logo-main box animate__animated animate__rubberBand animate__" src="/images/logo_cyworld.png" alt="">
+						
+						<form>
+							<input name="platform" type="hidden" th:value="${ sign.platform }">
+							<input name="name" type="hidden" th:value="${ sign.name }">
+							<input name="gender" type="hidden" th:value="${ sign.gender }">
+							<input name="email" type="hidden" th:value="${ sign.email }">
+							<input name="phoneNumber" type="hidden" th:value="${ sign.phoneNumber }">
+							<p class="address">주소 <br> <input class="address_kakao" name="address" type="text">
+								<div class="findAddress"><input id="btn-cover" class="address_kakao" type="button" value="주소찾기"></div>
+							</p>
+							<p class="rAddress">상세 주소 <br> <input class="address_kakao" name="addressDetail" type="text"></p>
+							<input id="btn-cover" class="join" type="button" value="가입" onclick="join(this.form)">
+							<input id="btn-cover" class="cancel" type="button" value="취소" onclick="naverLogout();">
+						</form>
+						
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
+	<!-- Ajax사용을 위한 js를 추가 -->
+	<script src="/js/httpRequest.js"></script>
+	<!-- 다음 주소 api -->
+	<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+	<script>
+		window.onload = function(){
+			document.getElementsByClassName("address_kakao")[0].addEventListener("click", function(){ //주소 입력칸을 클릭하면
+				new daum.Postcode({
+					oncomplete: function(data) { //선택시 입력값 세팅
+						document.getElementsByClassName("address_kakao")[0].value = data.address; // 주소 넣기
+						document.getElementsByClassName("address_kakao")[2].focus(); //상세입력 포커싱
+					}
+				}).open();
+			});
+			document.getElementsByClassName("address_kakao")[1].addEventListener("click", function(){ //주소 버튼을 클릭
+				new daum.Postcode({
+					oncomplete: function(data) { //선택시 입력값 세팅
+						document.getElementsByClassName("address_kakao")[0].value = data.address; // 주소 넣기
+						document.getElementsByClassName("address_kakao")[2].focus(); //상세입력 포커싱
+					}
+				}).open();
+			});
+		}
+		
+		// DB저장하러 이동
+		function join(f) {
+			// 회원가입 정보
+			let name = f.name.value;
+			let gender = f.gender.value;
+			let email = f.email.value;
+			let phoneNumber = f.phoneNumber.value;
+			let address = f.address.value;
+			let addressDetail = f.addressDetail.value;
+			let platform = f.platform.value;
+			
+			// 유효성 검사
+
+			if ( address == '' ) {
+				alert("주소를 입력하세요");
+				return;
+			}
+			if ( addressDetail == '' ) {
+				alert("상세 주소를 입력하세요");
+				return;
+			}
+			
+			url = "welcome.do";
+			param = "name=" + name +
+					"&gender=" + gender +
+					"&email=" + email +
+					"&phoneNumber=" + phoneNumber +
+					"&address=" + address +
+					"&addressDetail=" + addressDetail +
+					"&platform=" + platform;
+			sendRequest(url, param, resultJoin, "POST");
+		}
+		// 회원가입 콜백메소드
+		function resultJoin() {
+			if ( xhr.readyState == 4 && xhr.status == 200 ) {
+				
+				let data = xhr.responseText;
+				
+				if ( data == "no" ) {
+					alert("가입된 회원정보가 있습니다");
+					alert("로그인 혹은 아이디/비밀번호 찾기를 이용해주세요");
+					location.href = "login.do";
+				} else {
+					alert("가입이 완료되었습니다");
+					alert("로그인 페이지로 이동합니다");
+					location.href = "login.do";
+				}
+			}
+		}
+	</script>
+	
+	<!-- 네이버 로그아웃 -->
+	<script>
+		let naverLogoutPopUp; // 팝업창 만들기
+		function naverOpenPopUp() { // 팝업 열기 메소드
+			// 팝업에 로그아웃 실행 기능 추가 - 네이버 로그아웃이 가능한 주소를 가져다 사용
+			naverLogoutPopUp = window.open("https://nid.naver.com/nidlogin.logout", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,width=1,height=1");
+		}
+		function naverClosePopUp(){ // 팝업 닫기 메소드
+			naverLogoutPopUp.close(); // 열린 팝업창을 다시 닫는 기능
+		}
+		function naverLogout() {
+			naverOpenPopUp(); // 팝업 열기
+			setTimeout(function() {
+				naverClosePopUp(); // 팝업 닫기
+				location.href = "logout.do"; // 첫 페이지로 이동
+			}, 500); // 팝업 여는거부터 순차적으로 0.5초 간격으로 실행
+		}
+	</script>
+</body>
+</html>

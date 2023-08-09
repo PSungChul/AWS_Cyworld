@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>유저 검색</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/searchPopUp.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<body>
+	<div class="container" id="scrollBar">
+		<form>
+			<div class="searchBox">
+				<!-- 검색 유형 -->
+				<select class="searchList" name="searchType">
+					<option value="name">이름</option>
+					<option value="id">아이디</option>
+				</select>
+				<!-- 검색어 작성 -->
+				<input  class="searchtext" type="text" name="searchValue"></input>
+				<!-- 검색 버튼 -->
+				<input id="btn-cover" class="search" type="button" value="검색" onclick="search(this.form);"></input>
+			</div>
+		</form>
+		
+		<div class="memberBox">
+			<div class="memberInfo">
+				<!-- 이름 검색 결과 -->
+				<th:block th:if="${ searchType eq 'name' }">
+					<th:block th:each="name : ${list}">
+						<div class="wantSearch">
+							<figure>
+								<!-- 검색된 유저의 미니미 -->
+								<input class="memberMinimi" type="image" th:src="@{/filePath/minimi/} + ${ name.minimi }" th:value="${ name.name }" th:onclick="|opener.location.href='@{main.do(idx=${ name.idx })}'; searchClick();|">
+								<!-- 검색된 유저의 이메일 -->
+								<a class="myname" th:onclick="|opener.location.href='@{main.do(idx=${ name.idx })}'; searchClick();|"><span th:text="${ name.name }"></span></a><span class="info1" th:text="'Email: ' + ${ name.email }"></span>
+								<!-- 검색된 유저의 플랫폼 -->
+								<span class="platform" th:text="'Platform: ' + ${ name.platform }"></span>
+							</figure>
+						</div>
+					</th:block>
+				</th:block>
+				<!-- 아이디 검색 결과 -->
+				<th:block th:if="${ searchType eq 'id' }">
+					<th:block th:each="id : ${list}">
+						<div class="wantSearch">
+							<figure>
+								<!-- 검색된 유저의 플랫폼이 싸이월드일 경우 -->
+								<th:block th:if="${ id.platform eq 'cyworld' }">
+									<!-- 검색된 유저의 미니미 -->
+									<input class="memberMinimi" type="image" th:src="@{/filePath/minimi/} + ${ id.minimi }" th:value="${ id.userId }"  th:onclick="|opener.location.href='@{main.do(idx=${ id.idx })}'; searchClick();|">
+									<!-- 검색된 유저의 아이디 - 싸이월드 가입자는 아이디가 존재하기에 아이디로 작성 -->
+									<a class="myname" th:onclick="|opener.location.href='@{main.do(idx=${ id.idx })}'; searchClick();|"><span th:text="${ id.name }"></span></a><span class="info1" th:text="'ID: ' + ${ id.userId }"></span>
+									<!-- 검색된 유저의 플랫폼 -->
+									<span class="platform" th:text="'Platform: ' + ${ id.platform }"></span>
+								</th:block>
+								<!-- 검색된 유저의 플랫폼이 소셜일 경우 -->
+								<th:block th:if="${ id.platform ne 'cyworld' }">
+									<!-- 검색된 유저의 미니미 -->
+									<input class="memberMinimi" type="image" th:src="@{/filePath/minimi/} + ${ id.minimi }" value="socialUser"  th:onclick="|opener.location.href='@{main.do(idx=${ id.idx })}'; searchClick();|">
+									<!-- 검색된 유저의 이메일 - 소셜 가입자는 아이디가 존재하지 않기에 이메일로 대체하여 작성 -->
+									<a class="myname" th:onclick="|opener.location.href='@{main.do(idx=${ id.idx })}'; searchClick();|"><span th:text="${ id.name }"></span></a><span class="info1" th:text="'Email: ' + ${ id.email }"></span>
+									<!-- 검색된 유저의 플랫폼 -->
+									<span class="platform" th:text="'Platform: ' + ${ id.platform }"></span>
+								</th:block>
+							</figure>
+						</div>
+					</th:block>
+				</c:if>
+			</th:block>
+		</div>
+	</div>
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
+	<script>
+		// 유저 검색
+		function search(f) {
+			f.action = "main_search.do";
+			f.method = "GET";
+			f.submit();
+		}
+		
+		// 팝업창 닫기
+		function searchClick() {
+			return window.close();
+		}
+	</script>
+</body>
+</html>

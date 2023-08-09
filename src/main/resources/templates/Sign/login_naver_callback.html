@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+	<!-- 네이버 회원가입에 미리 작성될 정보들 -->
+	<form id="nf" action="naver_join_form.do" method="POST">
+		<input name="platform" type="hidden" value="naver">
+		<input name="name" id="name" type="hidden">
+		<input name="gender" id="gender" type="hidden">
+		<input name="email" id="email" type="hidden">
+		<input name="phoneNumber" id="phoneNumber" type="hidden">
+	</form>
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
+	<script type="text/javascript" src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js" charset="utf-8"></script>
+	<script th:inline="javascript">
+		const naverLogin = new naver.LoginWithNaverId(
+				{
+					clientId: [[${naverClientId}]],
+					isPopup: false,
+					callbackHandle: true
+				}
+		);
+		naverLogin.init();
+		// 로그인 유효성 검사
+		window.addEventListener('load', function () {
+			naverLogin.getLoginStatus(function (status) {
+				if (status) {
+					// naver API 필수정보값
+					const name = naverLogin.user.getName(); // 이름
+					const gender = naverLogin.user.getGender(); // 성별
+					const email = naverLogin.user.getEmail(); // 이메일
+					const phoneNumber = naverLogin.user.getMobile(); // 휴대폰 번호
+
+					fetch('naver_authentication.do', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded'
+						},
+						body: 'phoneNumber=' + phoneNumber
+					})
+						.then(response => response.text()) // JSON 형식으로 파싱
+						.then(data => {
+							if ( data == '0' ) {
+								// form태그
+								let nf = document.getElementById("nf");
+								// input태그 hidden타입
+								const h_name = document.getElementById("name"); // 이름
+								const h_gender = document.getElementById("gender"); // 성별
+								const h_email = document.getElementById("email"); // 이메일
+								const h_phoneNumber = document.getElementById("phoneNumber"); // 휴대폰 번호
+
+								// input value에 naver API 필수정보값 넣기
+								h_name.value = name; // 이름
+								h_gender.value = gender; // 성별
+								h_email.value = email; // 이메일
+								h_phoneNumber.value = phoneNumber; // 휴대폰 번호
+
+								// 다음 인증페이지 이동
+								nf.submit();
+								return;
+							} else if ( data == '1' ) {
+								alert('싸이월드로 가입한 이력이 있습니다.\n싸이월드로 로그인을 이용해주세요.');
+								location.href = 'login.do';
+								return;
+							} else if ( data == '2' ) {
+								alert('카카오로 가입한 이력이 있습니다.\n카카오로 로그인을 이용해주세요.');
+								location.href = 'login.do';
+								return;
+							} else {
+								location.href = 'main.do?idx=' + data;
+								return;
+							}
+						})
+						.catch(error => console.error(error)); // 오류 처리
+				} else {
+					console.log("callback 처리에 실패하였습니다.")
+				}
+			});
+		});
+	</script>
+</body>
+</html>

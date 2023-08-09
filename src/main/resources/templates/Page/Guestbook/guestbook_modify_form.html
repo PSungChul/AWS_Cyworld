@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>방명록 수정</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/guestbook_modify.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<body>
+	<div class="container ">
+		<section class="section">
+			<div class="dashed-line">
+				<div class="gray-background">
+					<div class="main">
+						<form>
+							<input type="hidden" name="guestbookIdx" th:value="${ updateGuestbook.guestbookIdx }">
+							<input type="hidden" name="idx" th:value="${ updateGuestbook.idx }">
+							<input type="hidden" name="guestbookSessionIdx" th:value="${ updateGuestbook.guestbookSessionIdx }">
+							<table >
+								<caption>:::방명록 수정:::</caption>
+								
+								<tr>
+									<th>미니미</th>
+									<td>
+										<!-- 수정할때는 전에 작성한 미니미가 나오는게 아닌 새로 바뀐 미니미가 나오게 하기 위해 미니미만 따로 잡아온다 -->
+										<img class="myImg" th:src="@{/filePath/minimi/} + ${ minimi }"/>
+										<input name="guestbookMinimi" type="hidden" th:value="${ minimi }">
+									</td>
+								</tr>
+								
+								<tr>
+									<th>내용</th>
+									<td><pre><textarea rows="5" cols="50" name="guestbookContent" th:text="${ updateGuestbook.guestbookContent }"></textarea></pre></td>
+								</tr>
+								
+								<tr>
+									<th>작성자</th>
+									<td><input type="text" name="guestbookName" th:value="${ updateGuestbook.guestbookName }" readonly></td>
+								</tr>
+								
+								<tr>
+									<td colspan="2" class="lastTd">
+										<input id="btn-cover"type="button" class="write" value="수정" onclick="send(this.form)">
+										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{guestbook.do(idx=${ updateGuestbook.guestbookIdx })}'|">
+										<select class="textChoice" name="guestbookSecretCheck" onchange="selectbox">
+											<!-- 수정할 방명록이 공개글일 경우 -->
+											<th:block th:if="${ updateGuestbook.guestbookSecretCheck eq 0 }">
+												<option value="0" selected>전체 공개</option>
+												<option value="1">비밀글</option> 
+											</th:block>
+											<!-- 수정할 방명록이 비밀글일 경우 -->
+											<th:block th:if="${ updateGuestbook.guestbookSecretCheck eq 1 }">
+												<option value="0">전체 공개</option>
+												<option value="1" selected>비밀글</option>
+											</th:block>
+										</select>
+									</td>
+								</tr>
+							</table>
+						</form>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
+	<!-- Ajax활용을 위한 js파일 로드 -->
+	<script src="/js/httpRequest.js"></script>
+	<script th:inline="javascript">
+		// 방명록 수정
+		function send(f) {
+			var url = "guestbook_modify.do";
+			var param = "guestbookIdx=" + f.guestbookIdx.value +
+						"&idx=" + f.idx.value +
+						"&guestbookContent=" + encodeURIComponent(f.guestbookContent.value) +
+						"&guestbookName=" + encodeURIComponent(f.guestbookName.value) +
+						"&guestbookSecretCheck=" + f.guestbookSecretCheck.value +
+						"&guestbookSessionIdx=" + f.guestbookSessionIdx.value +
+						"&guestbookMinimi=" + f.guestbookMinimi.value;
+			sendRequest( url, param, sendCallback, "GET");
+		}
+		// 방명록 수정 콜백메소드
+		function sendCallback() {
+			if ( xhr.readyState == 4 && xhr.status == 200 ) {
+				var data = xhr.responseText;
+				
+				var json = (new Function('return'+data))();
+				
+				if ( json.result == 'no' ) {
+					alert("수정실패");
+					return;
+				}
+				
+				alert("수정성공");
+				location.href="guestbook.do?idx=" + [[${ updateGuestbook.guestbookIdx }]];
+			}
+		}
+	</script>
+</body>
+</html>

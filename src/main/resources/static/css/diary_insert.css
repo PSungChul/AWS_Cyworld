@@ -1,0 +1,66 @@
+  *{font-family: 'Jua', sans-serif; }
+  /* https://projects.verou.me/css3patterns/#blueprint-grid
+           배경 격자무늬 생성  */
+           body { height: 100vh;
+            background-color: rgb(103, 106, 109);
+            background-image: linear-gradient(rgba(255, 255, 255, .3) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(255, 255, 255, .3) 3px, transparent 3px),
+                linear-gradient(rgba(255, 255, 255, .3) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(255, 255, 255, .3) 3px, transparent 3px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+            overflow: hidden;
+            color: skyblue; font-weight: bold;
+            font-family: 'Jua', sans-serif;
+        }
+   /* position */
+   .container { 
+    padding-top: 10px;
+     height:860px;
+     width: 1800px;
+    margin: auto;
+    border-radius: 100px;
+    display: flex;
+    position: relative;
+    font-size: 25px;
+    left:-30px;
+    color:skyblue;
+    }
+    .section { width:32%; height:500px; background-color: rgb(158, 218, 241); border-radius: 80px; position: relative; left: 640px; top:170px; }
+
+   
+    .dashed-line {width:96%; height: 430px; border-radius: 50px; margin: 30px; border: 3px dashed white; position: absolute; left: -22px; }
+  
+    
+    .gray-background {width:98%; height: 410px; background-color: rgb(235, 232, 232); border-radius: 50px; margin: 10px; 
+        position: absolute;  left: -5px;
+    }
+  
+   .main {width:90%; background-color: white; height: 360px; border-radius: 30px; margin: 10px;  position: absolute; left: 15px; top: 15px;
+    box-shadow: 10px 10px  10px rgba(0, 0, 0, 0.356);}
+
+    /* table */
+    caption  { position: absolute; top:-60px;  left:150px; font-size: 30px; }
+    table { position: absolute; top:100px; left:40px; border-collapse: collapse;}
+    table, th, td {  border: 1px solid black;}
+    th,td {font-size: 20px; }
+    #myIdx { position: absolute; width: 100px; left:20px; top:10px; background-color: skyblue; border-radius: 5px;}
+    .galleryTitle { position: absolute; left:120px;}
+    .write { position: absolute; left:80px; top:170px; width: 120px; height: 40px; font-size: 20px;}
+    .cancel { position: absolute; left:220px; top:170px; width: 120px; height: 40px; font-size: 20px;}
+    
+    /* button */
+    #btn-cover {  border: 1px solid skyblue;
+            background-color: rgba(0,0,0,0);
+            color: skyblue;
+            padding: 5px;
+            border-radius: 5px; font-weight: bold; 
+            position: absolute; 
+            font-family: 'Jua', sans-serif;
+            letter-spacing: 0.15em;
+        }
+    #btn-cover:hover{
+            color:white;
+            background-color: skyblue;
+            
+        }

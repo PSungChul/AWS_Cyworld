@@ -1,0 +1,70 @@
+@charset "utf-8";
+
+/* reset.css */
+* {
+    margin: 0;
+    padding: 0;
+    /* box-sizing: border-box; */
+}
+
+html, body { cursor: url('../images/HeartCursor1.cur'), auto;} 
+
+a, 
+a:link,
+a:active,
+a:visited,
+a:hover, 
+a:focus,
+input:active,
+input:visited,
+input:hover,
+input:focus,
+label:active,
+label:visited,
+label:hover,
+label:focus,
+select:active,
+select:visited,
+select:hover,
+select:focus,
+.img:hover,
+summary:hover{
+    text-decoration: none;
+    color: inherit;
+    cursor: url('../images/HeartCursor2.cur'), auto;
+}
+
+a:hover {
+    color: inherit;
+    text-decoration: underline;
+}
+
+li {
+    list-style-type: none;
+}
+
+body {
+    color: #333;
+    /* font-size: 12px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif, '돋움'; */
+    /* background-color: red; */
+}
+
+.clearFix::after {
+    content: '';
+    display: block;
+    clear: both;
+}
+/* float된 자식을 가진 부모한테 사용 */
+
+.flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.span { display: block;
+    width: 100%; height: 100%;
+    background-color: thistle;
+}
+textarea { resize:none;}
