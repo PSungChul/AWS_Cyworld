@@ -43,6 +43,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	휴대폰 문자 인증
 	인증번호 암호화
 	비밀번호 암호화
+ 	Token 및 Redis를 추가하여 로그인 보안 강화
 
 #
 
