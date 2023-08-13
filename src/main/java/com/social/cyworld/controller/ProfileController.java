@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -15,7 +14,13 @@ import com.social.cyworld.entity.Sign;
 import com.social.cyworld.service.MainService;
 import com.social.cyworld.service.ProfileService;
 import com.social.cyworld.service.SignService;
+import com.social.cyworld.util.JwtUtil;
+import com.social.cyworld.util.PhoneKey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,11 +28,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+@PropertySource("classpath:application-information.properties")
 @Controller
 public class ProfileController {
 	// @Autowired
 	@Autowired
 	HttpServletRequest request;
+	@Autowired
+	HttpHeaders headers;
+	@Autowired
+	JwtUtil jwtUtil;
 	@Autowired
 	PasswordEncoder passwordEncoder;
 	@Autowired
@@ -36,58 +46,189 @@ public class ProfileController {
 	MainService mainService;
 	@Autowired
 	ProfileService profileService;
+
+	// properties - sens
+	@Value("${naverAccessKey:naverAccessKey}")
+	private String naverAccessKey;
+	@Value("${naverSecretKey:naverSecretKey}")
+	private String naverSecretKey;
+	@Value("${naverSensKey:naverSensKey}")
+	private String naverSensKey;
+	@Value("${smsPhoneNumber:smsPhoneNumber}")
+	private String smsPhoneNumber;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 프로필 조회
 	@RequestMapping("/profile.do")
 	public String profile(int idx, Model model) {
-		// 프로필에 들어오면 가장 먼저 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + idx;
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 메인 페이지로 이동
+			return "Page/main";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 메인 페이지로 이동
+					return "Page/main";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 		
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 프로필 변경창은 오로지 미니홈피 주인만 들어갈 수 있다
-		if ( (Integer) session.getAttribute("login") != idx ) {
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
 			return "redirect:main.do?idx=" + idx;
 		}
-		
-		// 그 다음 idx에 해당하는 프로필 조회
+
+		// 미니홈피 유저 정보 조회
 		Sign sign = signService.findByIdx(idx);
-		// 조회된 프로필 정보를 바인딩
+		// 조회된 유저 정보를 바인딩
 		model.addAttribute("sign", sign);
-		// 추가로 세션값도 바인딩
-		model.addAttribute("sessionIdx", session.getAttribute("login"));
-		
-		// 그 다음 일촌 관계를 알아보기 위해 IlchonVO를 생성
+		// 로그인 유저 idx를 바인딩
+		model.addAttribute("loginIdx", loginIdx);
+
+		// 일촌 관계를 알아보기 위해 Ilchon 생성
 		Ilchon ilchon = new Ilchon();
+
 		// 맞일촌 상태를 알리는 ilchonUp을 2로 지정
 		ilchon.setIlchonUp(2);
-		// 일촌 idx에 idx를 지정
-		ilchon.setIlchonSessionIdx((Integer) session.getAttribute("login"));
-		// 그 다음 idx에 해당하는 일촌 조회
+		// 일촌 idx에 로그인 유저 idx를 지정
+		ilchon.setIlchonSessionIdx(loginIdx);
+		// 로그인 유저 idx에 해당하는 일촌 조회
 		List<Ilchon> ilchonList = mainService.findByIlchonSessionIdxAndIlchonUp(ilchon);
-		// 조회된 맞일촌을 리스트 형태로 바인딩
+		// 조회된 맞일촌 리스트를 바인딩
 		model.addAttribute("ilchonList", ilchonList);
 
 		// 좌측 프로필 DTO에 좌측 프로필 정보 전달
 		LeftProfileDTO leftProfileDTO = new LeftProfileDTO(sign);
-		// 좌측 프로필 DTO 바인딩
+		// 좌측 프로필 DTO를 바인딩
 		model.addAttribute("leftProfileDTO", leftProfileDTO);
 
 		// 프로필 페이지로 이동
 		return "Page/profile";
 	}
 	
-	// 미니미 수정 팝업 페이지 이동
+	// 미니미 팝업 이동
 	@RequestMapping("/profile_minimi_popup.do")
-	public String popup(Integer idx, Model model) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String popup(int idx, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + idx;
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 미니미 팝업으로 이동
+			return "Page/minimiPopUp";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 미니미 팝업으로 이동
+				return "Page/minimiPopUp";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 미니미 팝업으로 이동
+					return "Page/minimiPopUp";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
+
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != idx ) {
+			// 해당 미니홈피 유저의 메인 페이지로 이동
+			return "redirect:main.do?idx=" + idx;
 		}
 		
 		// idx에 해당하는 프로필 조회
@@ -101,24 +242,87 @@ public class ProfileController {
 		List<BuyMinimi> buyMinimiList = profileService.findByBuyIdx(idx);
 		// 조회된 구매한 미니미를 리스트 형태로 바인딩
 		model.addAttribute("buyMinimi", buyMinimiList);
-		
-		// 미니미 팝업 페이지로 이동
+
+		// 미니미 팝업으로 이동
 		return "Page/minimiPopUp";
 	}
 	
 	// 미니미 변경
 	@RequestMapping("/profile_minimi_change.do")
-	public String minimiChange(Sign sign) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String minimiChange(Sign sign, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + sign.getIdx();
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 미니미 팝업으로 이동
+			return "Page/minimiPopUp";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 미니미 팝업으로 이동
+				return "Page/minimiPopUp";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 미니미 팝업으로 이동
+					return "Page/minimiPopUp";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
+
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != sign.getIdx() ) {
+			// 해당 미니홈피 유저의 메인 페이지로 이동
+			return "redirect:main.do?idx=" + sign.getIdx();
 		}
 		
 		// 변경할 미니미 정보로 갱신
 		profileService.updateSetMinimiByIdx(sign);
-		// idx를 들고 미니미 팝업 페이지 URL로 이동
+
+		// idx를 들고 미니미 팝업으로 URL로 이동
 		return "redirect:profile_minimi_popup.do?idx=" + sign.getIdx();
 	}
 	
@@ -126,16 +330,69 @@ public class ProfileController {
 	@RequestMapping("/profile_minimi_buy.do")
 	@ResponseBody
 	public String minimiBuy(Sign sign, BuyMinimi buyMinimi) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != sign.getIdx() ) {
+			// 에러 코드를 반환한다.
+			return "-4";
 		}
 
 		// 미니미 Idx에 AUTO_INCREMENT로 null 지정
 		buyMinimi.setIdx(null);
-		
 		// 미니미를 구매한 idx를 지정
 		buyMinimi.setBuyIdx(sign.getIdx());
 		
@@ -159,12 +416,74 @@ public class ProfileController {
 	
 	// 프로필 좌측 - 메인 사진 및 메인 소개글 수정
 	@RequestMapping("/profile_modify_main.do")
-	public String profileModifyMain(LeftProfileDTO leftProfileDTO) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인페이지로 이동
-			return "redirect:login.do";
+	public String profileModifyMain(LeftProfileDTO leftProfileDTO, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + leftProfileDTO.getIdx();
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 프로필 페이지로 이동
+			return "Page/profile";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 프로필 페이지로 이동
+				return "Page/profile";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 프로필 페이지로 이동
+					return "Page/profile";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
+
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != leftProfileDTO.getIdx() ) {
+			// 해당 미니홈피 유저의 메인 페이지로 이동
+			return "redirect:main.do?idx=" + leftProfileDTO.getIdx();
 		}
 		
 		// 메인 사진 업로드를 위해 절대 경로를 생성
@@ -208,8 +527,10 @@ public class ProfileController {
 				e.printStackTrace();
 			}
 		}
+
 		// 업로드된 사진 정보로 갱신
 		profileService.updateSetMainPhotoAndMainTextByIdx(leftProfileDTO.toEntity());
+
 		// idx를 들고 프로필 페이지 URL로 이동
 		return "redirect:profile.do?idx=" + leftProfileDTO.getIdx();
 	}
@@ -218,11 +539,65 @@ public class ProfileController {
 	@RequestMapping("/profile_modify_userdata.do")
 	@ResponseBody
 	public String profileModifyUserData(Sign sign) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != sign.getIdx() ) {
+			// 에러 코드를 반환한다.
+			return "4";
 		}
 		
 		// 수정 실패할 경우
@@ -258,18 +633,246 @@ public class ProfileController {
 		}
 	}
 
+	// 휴대폰 인증 - 회원가입 및 휴대폰 번호 변경
+	@RequestMapping("/profile_phone_send.do")
+	@ResponseBody
+	public String phoneSend(int idx, String phoneNumber) throws JSONException {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != idx ) {
+			// 에러 코드를 반환한다.
+			return "4";
+		}
+
+		// 휴대폰 번호 하이픈 제거
+		phoneNumber = phoneNumber.replaceAll("-", "");
+		// 가입자가 아닐 경우
+		String result = "no";
+
+		// 인증 전 가입자인지 체크
+		Sign join = signService.findByPhoneNumber(phoneNumber);
+
+		// 조회한 값이 있을 경우 - 가입자
+		if ( join != null ) {
+			// 콜백 메소드에 전달
+			return result;
+			// 조회한 값이 없을 경우 - 비가입자
+		} else {
+			// 인증번호 생성 및 전송
+			String smsKey = PhoneKey.randomSmsKey(phoneNumber, smsPhoneNumber, naverAccessKey, naverSecretKey, naverSensKey);
+			// 생성된 인증번호 암호화
+			result = passwordEncoder.encode(smsKey);
+			// 콜백 메소드에 전달
+			return result;
+		}
+	}
+
+	// 휴대폰 인증 체크
+	@RequestMapping("/profile_phone_check.do")
+	@ResponseBody
+	public String phoneCheck(int idx, String phoneKey, String hPhoneKey) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != idx ) {
+			// 에러 코드를 반환한다.
+			return "4";
+		}
+
+		boolean isMatch = passwordEncoder.matches(phoneKey, hPhoneKey);
+		// 반환된 결과 값(true/false)에 따른 값을 반환한다.
+		if (isMatch) {
+			return "1";
+		} else {
+			return "2";
+		}
+	}
+
 	// 휴대폰 번호 변경
-	@RequestMapping("/phone_update.do")
+	@RequestMapping("/profile_phone_update.do")
 	@ResponseBody
 	public String phoneUpdate(Sign sign) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		if ( loginIdx != sign.getIdx() ) {
+			// 에러 코드를 반환한다.
+			return "4";
+		}
+
+		// 휴대폰 번호 하이픈 제거
+		sign.setPhoneNumber(sign.getPhoneNumber().replaceAll("-", ""));
+
 		// 수정 실패할 경우
 		String result = "no";
+
 		// 휴대폰 번호만 수정
 		int res = profileService.updateSetPhoneNumberByIdx(sign);
 		if ( res == 1 ) {
 			// 수정 성공할 경우
 			result = "yes";
 		}
+
 		// 콜백 메소드에 전달
 		return result;
 	}

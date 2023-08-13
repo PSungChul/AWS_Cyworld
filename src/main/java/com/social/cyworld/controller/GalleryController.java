@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -17,7 +16,9 @@ import com.social.cyworld.entity.GalleryLike;
 import com.social.cyworld.entity.Sign;
 import com.social.cyworld.service.GalleryService;
 import com.social.cyworld.service.SignService;
+import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,25 +31,81 @@ public class GalleryController {
 	@Autowired
 	HttpServletRequest request;
 	@Autowired
+	HttpHeaders headers;
+	@Autowired
+	JwtUtil jwtUtil;
+	@Autowired
 	SignService signService;
 	@Autowired
 	GalleryService galleryService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 사진첩 조회
 	@RequestMapping("/gallery.do")
-	public String gallery(Integer idx, Model model) {
-		// 사진첩에 들어오면 가장 먼저 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String gallery(int idx, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + idx;
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
-		
-		// 비회원이 접근할 경우
-		if ( (Integer) session.getAttribute("login") < 0 ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + idx;
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 메이 페이지로 이동
+			return "Page/main";
 		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 메인 페이지로 이동
+					return "Page/main";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 		
 		// 그 다음 idx에 해당하는 사진첩의 모든 게시물 조회
 		List<Gallery> galleryList = galleryService.findByGalleryIdxOrderByIdxDesc(idx);
@@ -60,40 +117,40 @@ public class GalleryController {
 		// 조회된 모든 댓글을 리스트 형태로 바인딩
 		model.addAttribute("commentList", commentList);
 		
-		// 그 다음 idx에 해당하는 유저정보를 조회
+		// 그 다음 idx에 해당하는 유저 정보를 조회
 		Sign sign = signService.findByIdx(idx);
 		// 조회된 유저 정보를 바인딩
 		model.addAttribute("sign", sign);
-		// 추가로 세션값도 바인딩
-		model.addAttribute("sessionIdx", session.getAttribute("login"));
+		// 로그인 유저 idx를 바인딩
+		model.addAttribute("loginIdx", loginIdx);
 		
-		// 그 다음 사진첩에 댓글 작성자를 만들기 위해 세션값에 해당하는 유저 정보를 조회
-		Sign sessionUser = signService.findByIdx((Integer) session.getAttribute("login"));
+		// 그 다음 사진첩에 댓글 작성자를 만들기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
+		Sign loginUser = signService.findByIdx(loginIdx);
 		
-		// 조회한 유저정보에서 댓글 작성자를 만들어 담을 String변수
+		// 조회한 유저 정보에서 댓글 작성자를 만들어 담을 String변수
 		String galleryCommentName = "";
 		
-		if ( sessionUser.getPlatform().equals("cyworld") ) {
+		if ( loginUser.getPlatform().equals("cyworld") ) {
 			// 플랫폼이 cyworld일 경우 - ID + @ + cyworld = qwer@cyworld
-			// galleryCommentName = (sessionUser.getUserID() + "@" + sessionUser.getPlatform());
+			// galleryCommentName = (loginUser.getUserID() + "@" + loginUser.getPlatform());
 			
 			// 플랫폼이 cyworld일 경우 - ( + 이름 + / + ID + ) = ( 관리자 / qwer ) - 변경
-			galleryCommentName = ( "( " + sessionUser.getName() + " / " + sessionUser.getUserId() + " )" );
+			galleryCommentName = ( "( " + loginUser.getName() + " / " + loginUser.getUserId() + " )" );
 		} else {
 			/* 플랫폼이 소셜일 경우 - 이메일 @부분까지 잘라낸 뒤 플랫폼명 추가 - 폐기
 			 * 네이버 - qwer@ + naver = qwer@naver
 			 * 카카오 - qwer@ + kakao = qwer@kakao
 			 */
-			// galleryCommentName = (sessionUser.getEmail().substring( 0, sessionUser.getEmail().indexOf("@") + 1 ) + sessionUser.getPlatform());
+			// galleryCommentName = (loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") + 1 ) + loginUser.getPlatform());
 			
 			/* 플랫폼이 소셜일 경우 ID가 없으므로 이메일로 대체 - 이름 + 이메일 @부분부터 뒤쪽을 다 잘라낸다 - 변경
 			 * 네이버 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
 			 * 카카오 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
 			 */
-			galleryCommentName = ( "( " + sessionUser.getName() + " / " + sessionUser.getEmail().substring( 0, sessionUser.getEmail().indexOf("@") ) + " )" );
+			galleryCommentName = ( "( " + loginUser.getName() + " / " + loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") ) + " )" );
 		}
 		// 만들어진 댓글 작성자를 바인딩
-		model.addAttribute("sessionName", galleryCommentName);
+		model.addAttribute("loginName", galleryCommentName);
 		
 		// 사진첩 페이지로 이동
 		return "Page/Gallery/gallery_list";
@@ -102,40 +159,161 @@ public class GalleryController {
 	// 사진첩 글 작성 페이지로 이동
 	@RequestMapping("/gallery_insert_form.do")
 	public String gallery_insert_form(int idx, Model model) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + idx;
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 사진첩 페이지로 이동
+			return "Page/Gallery/gallery_list";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 사진첩 페이지로 이동
+				return "Page/Gallery/gallery_list";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 사진첩 페이지로 이동
+					return "Page/Gallery/gallery_list";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 게시글은 오로지 미니홈피 주인만 작성할 수 있다.
-		if ( (Integer) session.getAttribute("login") != idx ) {
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
+		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
 			return "redirect:gallery.do?idx=" + idx;
 		}
 
+		// 게시글 DTO 생성
+		GalleryDTO galleryDTO = new GalleryDTO();
+		// 미니홈피 유저 idx 지정
+		galleryDTO.setGalleryIdx(idx);
+
 		// 게시글 DTO 바인딩
-		model.addAttribute("galleryDTO", new GalleryDTO());
+		model.addAttribute("galleryDTO", galleryDTO);
 		
-		// 세션값이 있다면 작성 페이지로 이동
+		// 사진첩 작성 페이지로 이동
 		return "Page/Gallery/gallery_insert_form";
 	}
 	
 	// 사진첩 새 글 작성
 	@RequestMapping("/gallery_insert.do")
-	public String insert(int idx, GalleryDTO galleryDTO) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String insert(GalleryDTO galleryDTO, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + galleryDTO.getGalleryIdx();
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 사진첩 작성 페이지로 이동
+			return "Page/Gallery/gallery_insert_form";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 사진첩 작성 페이지로 이동
+				return "Page/Gallery/gallery_insert_form";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 사진첩 작성 페이지로 이동
+					return "Page/Gallery/gallery_insert_form";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 게시글은 오로지 미니홈피 주인만 작성할 수 있다.
-		if ( (Integer) session.getAttribute("login") != idx ) {
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
+		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:gallery.do?idx=" + idx;
+			return "redirect:gallery.do?idx=" + galleryDTO.getGalleryIdx();
 		}
 		
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
@@ -146,8 +324,6 @@ public class GalleryController {
 		galleryDTO.setGalleryFileName("no_file");
 		// 업로드된 파일이 없는 경우 확장자에 파일 없음 지정
 		galleryDTO.setGalleryFileExtension("no_file");
-		// 사진첩의 idx 지정
-		galleryDTO.setGalleryIdx(idx);
 		
 		// 업로드된 파일이 있을 경우
 		if ( !galleryFile.isEmpty() ) {
@@ -205,32 +381,81 @@ public class GalleryController {
 		galleryService.insertIntoGallery(galleryDTO.toInsertEntity());
 
 		// idx를 들고 사진첩 페이지 URL로 이동
-		return "redirect:gallery.do?idx=" + idx;
+		return "redirect:gallery.do?idx=" + galleryDTO.getGalleryIdx();
 	}
 	
 	// 사진첩 글 삭제
 	@RequestMapping("/gallery_delete.do")
 	@ResponseBody // Ajax로 요청된 메서드는 결과를 콜백 메서드로 돌려주기 위해 반드시 @ResponseBody가 필요!!
-	public String delete(int galleryIdx, Gallery gallery) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String delete(Gallery gallery) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 삭제할 수 있다.
+		if ( loginIdx != gallery.getGalleryIdx() ) {
+			// 에러 코드를 반환한다.
+			return "-4";
 		}
 
 		// 삭제 실패할 경우
 		String result = "no";
-
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 게시글은 오로지 미니홈피 주인만 삭제할 수 있다.
-		if ( (Integer) session.getAttribute("login") != galleryIdx ) {
-			// 콜백 메소드에 전달
-			return result;
-		}
 		
 		// DB에 저장된 게시글 중 가져온 정보에 해당하는 게시글 삭제
 		int res = galleryService.deleteByGalleryIdxAndIdx(gallery);
-		
 		if (res == 1) {
 			// 삭제 성공할 경우
 			result = "yes";
@@ -242,18 +467,76 @@ public class GalleryController {
 	
 	// 사진첩 게시글 수정 페이지로 이동
 	@RequestMapping("/gallery_modify_form.do")
-	public String modify_form(int galleryIdx, Gallery gallery, Model model) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String modify_form(Gallery gallery, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + gallery.getGalleryIdx();
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 사진첩 페이지로 이동
+			return "Page/Gallery/gallery_list";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 사진첩 페이지로 이동
+				return "Page/Gallery/gallery_list";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 사진첩 페이지로 이동
+					return "Page/Gallery/gallery_list";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 게시글은 오로지 미니홈피 주인만 수정할 수 있다.
-		if ( (Integer) session.getAttribute("login") != galleryIdx ) {
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
+		if ( loginIdx != gallery.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:gallery.do?idx=" + galleryIdx;
+			return "redirect:gallery.do?idx=" + gallery.getGalleryIdx();
 		}
 		
 		// 해당 idx의 사진첩에 수정할 게시글을 조회
@@ -265,24 +548,82 @@ public class GalleryController {
 			model.addAttribute("galleryDTO", galleryDTO);
 		}
 		
-		// 수정 페이지로 이동
+		// 사진첩 수정 페이지로 이동
 		return "Page/Gallery/gallery_modify_form";
 	}
 	
 	// 게시글 수정하기
 	@RequestMapping("/gallery_modify.do")
-	public String modify(int galleryIdx, GalleryDTO galleryDTO) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String modify(GalleryDTO galleryDTO, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + galleryDTO.getGalleryIdx();
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 사진첩 수정 페이지로 이동
+			return "Page/Gallery/gallery_modify_form";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 사진첩 수정 페이지로 이동
+				return "Page/Gallery/gallery_modify_form";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 사진첩 수정 페이지로 이동
+					return "Page/Gallery/gallery_modify_form";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 게시글은 오로지 미니홈피 주인만 수정할 수 있다.
-		if ( (Integer) session.getAttribute("login") != galleryIdx ) {
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
+		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:gallery.do?idx=" + galleryIdx;
+			return "redirect:gallery.do?idx=" + galleryDTO.getGalleryIdx();
 		}
 
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
@@ -358,15 +699,69 @@ public class GalleryController {
 	@RequestMapping("/comment_insert.do")
 	@ResponseBody
 	public String gallery_reply(GalleryComment galleryComment) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
 		}
-		
-		// 세션값을 사용하기 위해 Integer타입으로 형변환
-		Integer sessionIdx = (Integer) session.getAttribute("login");
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+
+		// 토큰에서 추출한 로그인 유저 idx와 댓글에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
+		if ( loginIdx != galleryComment.getGalleryCommentSessionIdx() ) {
+			// 에러 코드를 반환한다.
+			return "-4";
+		}
+
 		// 작성 시간을 기록하기 위해 Date객체 사용
 		Date date = new Date();
 		// Date객체를 원하는 모양대로 재조합
@@ -376,16 +771,14 @@ public class GalleryController {
 		galleryComment.setIdx(null);
 		// 댓글의 삭제 여부 0 지정
 		galleryComment.setGalleryCommentDeleteCheck(0);
-		// 댓글의 작성자 idx 지정
-		galleryComment.setGalleryCommentSessionIdx(sessionIdx);
 		// 댓글에 작성 시간 지정
 		galleryComment.setGalleryCommentRegDate(today.format(date));
 
-		// 작성한 댓글을 저장
-		GalleryComment res = galleryService.insertIntoGalleryComment(galleryComment);
-
 		// 저장 실패할 경우
 		String result = "no";
+
+		// 작성한 댓글을 저장
+		GalleryComment res = galleryService.insertIntoGalleryComment(galleryComment);
 		if ( res != null ) {
 			// 저장 성공할 경우
 			result = "yes";
@@ -398,15 +791,76 @@ public class GalleryController {
 	// 댓글 삭제 - 완전 삭제가 아닌 삭제된 것처럼 만들기
 	@RequestMapping("/gcomment_delete.do")
 	@ResponseBody
-	public String gcomment_delete(GalleryComment galleryComment) {
+	public String comment_delete(GalleryComment galleryComment) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+				}
+			}
+		}
+
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 댓글은 미니홈피 유저 혹은 작성자만 삭제할 수 있다.
+		if ( loginIdx != galleryComment.getGalleryCommentIdx() && loginIdx != galleryComment.getGalleryCommentSessionIdx() ) {
+			// 에러 코드를 반환한다.
+			return "-4";
+		}
+
 		// 댓글의 삭제 여부 -1 지정
 		galleryComment.setGalleryCommentDeleteCheck(-1);
 
-		// 삭제할 댓글의 삭제 여부만 갱신
-		int res = galleryService.updateSetGalleryCommentDeleteCheckByGalleryCommentIdxAndGalleryIdxCommentAndIdx(galleryComment);
-
 		// 삭제 실패할 경우
 		String result = "no";
+
+		// 삭제할 댓글의 삭제 여부만 갱신
+		int res = galleryService.updateSetGalleryCommentDeleteCheckByGalleryCommentIdxAndGalleryIdxCommentAndIdx(galleryComment);
 		if (res == 1) {
 			// 삭제 성공할 경우
 			result = "yes";
@@ -419,25 +873,87 @@ public class GalleryController {
 	/////////////// 사진첩 좋아요 구역 ///////////////
 	
 	@RequestMapping("/gallery_like.do")
-	@ResponseBody // 콜백메소드에 VO를 전달
+	@ResponseBody
 	public Gallery gallery_like(Gallery gallery, GalleryLike galleryLike) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 콜백메소드에 null을 전달
-			return null;
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 게시글 내용에 에러 코드 지정
+				gallery.setGalleryContent("-4");
+				// 갱신된 게시글 전달
+				return gallery;
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 게시글 내용에 에러 코드 지정
+				gallery.setGalleryContent("0");
+				// 갱신된 게시글 전달
+				return gallery;
+			}
 		}
-		System.out.println(session.getAttribute("login"));
-		// 세션값을 사용하기 위해 Integer타입으로 형변환
-		Integer sessionIdx = (Integer) session.getAttribute("login");
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 게시글 내용에 에러 코드 지정
+			gallery.setGalleryContent("-99");
+			// 갱신된 게시글 전달
+			return gallery;
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 게시글 내용에 에러 코드 지정
+				gallery.setGalleryContent("-100");
+				// 갱신된 게시글 전달
+				return gallery;
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 게시글 내용에 에러 코드 지정
+					gallery.setGalleryContent("-1");
+					// 갱신된 게시글 전달
+					return gallery;
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
 
+		// 토큰에서 추출한 로그인 유저 idx와 좋아요에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
+		if ( loginIdx != galleryLike.getGalleryLikeSessionIdx() ) {
+			// 게시글 내용에 에러 코드 지정
+			gallery.setGalleryContent("-4");
+			// 갱신된 게시글 전달
+			return gallery;
+		}
 
-		// 좋아요를 누른 로그인한 유저의 세션값 지정
-		galleryLike.setGalleryLikeSessionIdx(sessionIdx);
-		// 사진첩의 idx 지정
-		galleryLike.setGalleryLikeIdx(gallery.getGalleryIdx());
-		// 좋아요를 누른 게시글의 번호
-		galleryLike.setGalleryLikeRef(gallery.getIdx());
+		// 미니홈피 유저 idx 지정
+		gallery.setGalleryIdx(galleryLike.getGalleryLikeIdx());
+		// 좋아요를 누른 게시글의 번호 지정
+		gallery.setIdx(galleryLike.getGalleryLikeRef());
 
 		// 먼저 DB에 로그인한 유저가 해당 idx의 사진첩 게시글에 좋아요를 눌렀는지 조회
 		GalleryLike galleryLikeCheck = galleryService.findByGalleryLikeIdxAndGalleryLikeRefAndGalleryLikeSessionIdx(galleryLike);
@@ -466,7 +982,7 @@ public class GalleryController {
 			gallery.setGalleryLikeNum(likeCount);
 			// 조회된 좋아요 개수로 갱신
 			galleryService.updateSetGalleryLikeNumByGalleryIdxIdxAndIdx(gallery);
-			// 콜백 메소드에 VO를 전달
+			// 콜백 메소드에 갱신된 게시글 전달
 			return gallery;
 		}
 	}

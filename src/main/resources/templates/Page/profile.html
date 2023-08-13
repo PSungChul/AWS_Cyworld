@@ -2,13 +2,23 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="UTF-8">
-	<title th:text="${ sign.name } + '님의 프로필'"></title>
+	<title th:if="${ errMsg eq null }" th:text="${ sign.name } + '님의 프로필'"></title>
 	<link rel="stylesheet" href="/css/reset.css">
 	<link rel="stylesheet" href="/css/animate.css">
 	<link rel="stylesheet" href="/css/yourProfile.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout.do";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container">
 		<section class="left-section">
 			<div class="left-dashed-line">
@@ -162,9 +172,9 @@
 				<form>
 					<div class="tab-btns">
 						<!-- 해당 미니홈피 유저의 idx -->
-						<input name="idx" type="hidden" th:value="${ sign.idx }" readonly>
+						<input id="idx" name="idx" type="hidden" th:value="${ sign.idx }" readonly>
 						<!-- 로그인한 유저의 idx -->
-						<input id="sessionIdx" name="sessionIdx" type="hidden" th:value="${ sessionIdx }" readonly>
+						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
 						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main.do(idx=${ sign.idx })}'|">
@@ -186,27 +196,9 @@
 		</section>
 	</div>
 <!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
-	<script>
-		// 프로필 탭
-		function profile(f) {
-			let sessionIdx = document.getElementById("sessionIdx").value;
-			let idx = document.getElementById("idx").value;
-			
-			// 타 유저 접근 불가
-			if ( sessionIdx != idx ) {
-				alert("프로필은 본인만 들어갈 수 있습니다");
-				return;
-			}
-			
-			f.action = "profile.do";
-			f.method = "POST";
-			f.submit();
-		}
-	</script>
-	
 	<!-- Ajax 사용을 위한 js를 로드 -->
 	<script src="/js/httpRequest.js"></script>
-	<script th:inline="javascript">
+	<script>
 		// 비밀번호 수정 폼 ON/OFF
 		function pwUpdateForm() {
 			const pwUpdateForms = document.querySelectorAll(".pwUpdateForm");
@@ -227,7 +219,7 @@
 			// 유효성 검사
 			
 			// 메인 타이틀이 공백일시
-			if ( mainTitle =='' ) {
+			if ( mainTitle == '' ) {
 				alert("메인 타이틀을 작성해주세요");
 				return;
 			}
@@ -282,16 +274,42 @@
 		// 수정 콜백메소드
 		function resultModify() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
-				// "{'result':'no'}"
 				let data = xhr.responseText;
-				
+				let idx = document.getElementById("idx").value;
+
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+
+				// 작성 에러
 				if ( data == "no" ) {
 					alert("작성 실패");
 					return;
 				}
 				
 				alert("수정 완료");
-				location.href = "profile.do?idx=" + [[${ sign.idx }]];
+				location.href = "profile.do?idx=" + idx;
 			}
 		}
 	</script>
@@ -304,7 +322,7 @@
 			// 유효성 검사
 			
 			// 메인 소개글이 공백일시
-			if ( mainText =='' ) {
+			if ( mainText == '' ) {
 				alert("메인 소개글을 작성하세요");
 				return;
 			}
@@ -398,7 +416,7 @@
 	</script>
 
 	<!-- 휴대폰 번호 변경 -->
-	<script th:inline="javascript">
+	<script>
 		// 휴대폰 수정 폼 ON/OFF
 		function phoneUpdateForm() {
 			const phoneUpdateForms = document.querySelectorAll(".phoneUpdateForm");
@@ -409,30 +427,58 @@
 
 		// 휴대폰 인증 번호 전송
 		function phoneSend() {
-			let phoneNumber = document.getElementById('phoneNumber');
+			let idx = document.getElementById('idx').value;
+			let phoneNumber = document.getElementById('phoneNumber').value;
 
-			if ( phoneNumber.value == '' ) {
-				alert("휴대폰 번호를 입력하세요");
+			if ( phoneNumber == '' ) {
+				alert('휴대폰 번호를 입력하세요.');
 				return;
 			}
 
-			let url = "phone_send.do";
-			let param = "phoneNumber=" + phoneNumber.value;
+			let url = "profile_phone_send.do";
+			let param = "idx=" + idx +
+						"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultPhoneSend, "POST");
 		}
 		// 휴대폰 인증 번호 전송 콜백메소드
 		function resultPhoneSend() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				let data = xhr.responseText;
-				let h_phone_key = document.getElementById('h_phone_key');
-				let h_phone_check = document.getElementById('h_phone_check'); // 이메일 중복 체크 값
+				let idx = document.getElementById("idx").value;
+				let h_phone_key = document.getElementById("h_phone_key");
+				let h_phone_check = document.getElementById("h_phone_check"); // 휴대폰 중복 체크 값
 
-				if ( data == 'no' ) {
-					alert('이미 가입된 휴대폰 번호입니다.');
-					h_phone_check.value = 'false';
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+
+				if ( data == "no" ) {
+					alert("이미 가입된 휴대폰 번호입니다.");
+					h_phone_check.value = "false";
 					return;
 				} else {
-					alert('인증번호가 발송되었습니다.');
+					alert("인증번호가 발송되었습니다.");
 					h_phone_key.value = data;
 					return;
 				}
@@ -441,37 +487,65 @@
 
 		// 휴대폰 인증 번호 체크
 		function phoneCheck() {
-			let i_phoneNumber = document.getElementById("i_phoneNumber");
-			let h_phone_key = document.getElementById("h_phone_key");
+			let idx = document.getElementById('idx').value;
+			let i_phoneNumber = document.getElementById('i_phoneNumber').value;
+			let h_phone_key = document.getElementById('h_phone_key').value;
 
 			if ( phoneNumber.value == '' ) {
-				alert('인증 번호를 입력하세요');
+				alert('인증 번호를 입력하세요.');
 				return;
 			}
 
-			let url = "phone_check.do";
-			let param = "phoneKey=" + i_phoneNumber.value +
-						"&hPhoneKey=" + h_phone_key.value;
+			let url = "profile_phone_check.do";
+			let param = "idx=" + idx +
+						"&phoneKey=" + i_phoneNumber +
+						"&hPhoneKey=" + h_phone_key;
 			sendRequest(url, param, resultPhoneCheck, "POST");
 		}
 		// 휴대폰 인증 번호 체크 콜백메소드
 		function resultPhoneCheck() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				let data = xhr.responseText;
-				let phoneNumber = document.getElementById('phoneNumber');
-				let i_phoneNumber = document.getElementById('i_phoneNumber');
-				let h_phone_check = document.getElementById('h_phone_check');
+				let idx = document.getElementById("idx").value;
+				let phoneNumber = document.getElementById("phoneNumber");
+				let i_phoneNumber = document.getElementById("i_phoneNumber");
+				let h_phone_check = document.getElementById("h_phone_check");
 
-				if ( data == 'true' ) {
-					alert('인증 되었습니다.');
-					h_phone_check.value = 'true'; // 휴대폰 중복 체크 값에 true를 전달한다.
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+
+				if ( data == "1" ) {
+					alert("인증 되었습니다.");
+					h_phone_check.value = "true"; // 휴대폰 중복 체크 값에 true를 전달한다.
 					phoneNumber.readOnly = true; // 인증된 휴대폰을 변경하지 못하도록 막는다.
 					i_phoneNumber.readOnly = true; // 작성한 휴대폰 인증 번호를 변경하지 못하도록 막는다.
 					return;
 				} else {
-					alert('인증 번호를 다시 확인해주세요.');
-					h_phone_check.value = 'false'; // 휴대폰 중복 체크 값에 false를 전달한다.
-					i_phoneNumber.value = ''; // 작성한 휴대폰 인증 번호를 초기화한다.
+					alert("인증 번호를 다시 확인해주세요.");
+					h_phone_check.value = "false"; // 휴대폰 중복 체크 값에 false를 전달한다.
+					i_phoneNumber.value = ""; // 작성한 휴대폰 인증 번호를 초기화한다.
 					return;
 				}
 			}
@@ -481,41 +555,67 @@
 		function phoneUpdate() {
 			let idx = document.getElementById('idx').value;
 
-			// 이메일 인증 체크
-			let phoneNumber = document.getElementById('phoneNumber');
-			let i_phoneNumber = document.getElementById('i_phoneNumber'); // 인증번호 입력값
-			let h_phone_check = document.getElementById('h_phone_check'); // 인증번호 체크용
+			// 휴대폰 인증 체크
+			let phoneNumber = document.getElementById('phoneNumber').value;
+			let i_phoneNumber = document.getElementById('i_phoneNumber').value; // 인증번호 입력값
+			let h_phone_check = document.getElementById('h_phone_check').value; // 인증번호 체크용
 
 			// 유효성 검사
 
-			if ( phoneNumber.value == '' ) {
-				alert("휴대폰 번호를 입력하세요");
+			if ( phoneNumber == '' ) {
+				alert('휴대폰 번호를 입력하세요.');
 				return;
 			}
-			if ( i_phoneNumber.value == '' ) {
-				alert("인증번호를 입력하세요")
+			if ( i_phoneNumber == '' ) {
+				alert('인증번호를 입력하세요.')
 				return;
 			}
-			if ( h_phone_check.value != 'true' ) {
-				alert("인증번호를 다시 확인하세요");
+			if ( h_phone_check != 'true' ) {
+				alert('인증번호를 다시 확인하세요.');
 				return;
 			}
 
-			url = "phone_update.do";
+			url = "profile_phone_update.do";
 			param = "idx=" + idx +
-					"&phoneNumber=" + phoneNumber.value;
+					"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultPhoneUpdate, "POST");
 		}
 		// 휴대폰 번호 변경 콜백메소드
 		function resultPhoneUpdate() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				let data = xhr.responseText;
+				let idx = document.getElementById("idx").value;
 
-				if ( data == 'no' ) {
-					alert('휴대폰 변경이 실패하였습니다.\n다시 시도해주시기 바랍니다.');
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+
+				if ( data == "no" ) {
+					alert("휴대폰 변경이 실패하였습니다.\n다시 시도해주시기 바랍니다.");
 					return;
 				} else {
-					alert('휴대폰 변경이 완료되었습니다.');
+					alert("휴대폰 변경이 완료되었습니다.");
 					window.location.reload();
 					return;
 				}
@@ -527,11 +627,11 @@
 	<script>
 		// 프로필 탭
 		function profile(f) {
-			let sessionIdx = document.getElementById("sessionIdx").value;
+			let loginIdx = document.getElementById("loginIdx").value;
 			let idx = document.getElementById("idx").value;
 			
 			// 타 유저 접근 불가
-			if ( sessionIdx != idx ) {
+			if ( loginIdx != idx ) {
 				alert("프로필은 본인만 들어갈 수 있습니다");
 				return;
 			}

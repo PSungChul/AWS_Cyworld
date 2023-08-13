@@ -5,10 +5,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.social.cyworld.util.JwtUtil;
 import com.social.cyworld.entity.Sign;
 import com.social.cyworld.util.MailKey;
 import com.social.cyworld.service.SignService;
@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,6 +31,10 @@ public class SignUpController {
 	// @Autowired
 	@Autowired
 	HttpServletRequest request;
+	@Autowired
+	HttpHeaders headers;
+	@Autowired
+	JwtUtil jwtUtil;
 	@Autowired
 	PasswordEncoder passwordEncoder;
 	@Autowired
@@ -59,27 +64,107 @@ public class SignUpController {
 	// 기본 및 로그인
 	@RequestMapping(value= {"/", "login.do"})
 	public String basic(Model model) {
-		// 이제 기본 페이지는 항상 세션값을 확인해서 로그인 페이지와 메인 페이지로 나눈다
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			model.addAttribute("naverClientId", naverClientId);
-			model.addAttribute("kakaoKey", kakaoKey);
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 로그인
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 에러
+			if ( session.getAttribute("login") != null ) {
+				// 로그아웃 페이지로 이동
+				return "redirect:logout.do";
+			// 토큰도 세션도 존재하지 않는 경우 - 로그인
+			} else {
+				model.addAttribute("naverClientId", naverClientId);
+				model.addAttribute("kakaoKey", kakaoKey);
 
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "Sign/login";
+				// 로그인 페이지로 이동
+				return "Sign/login";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 메인 페이지로 이동
+			return "Page/main";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 메인 페이지로 이동
+					return "Page/main";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
 		}
 
-		// 세션값이 있다면 이제 로그인은 건너뛰고 세션값에 해당하는 메인 페이지로 바로 이동
-		return "redirect:main.do?idx=" + session.getAttribute("login");
+		// 토큰과 세션 모두 값이 있다면 로그인은 건너뛰고 토큰에서 추출한 로그인 유저 idx에 해당하는 메인 페이지로 이동
+		return "redirect:main.do?idx=" + loginIdx;
 	}
 	
 	// 로그아웃
 	@RequestMapping("/logout.do")
 	public String logout() {
-		// 로그아웃을 하면 세션을 비운다
-		HttpSession session = request.getSession();
-		session.removeAttribute("login");
-		// 세션을 비우면 다시 로그인 페이지로 이동한다
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 세션만 제거
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크
+			HttpSession session = request.getSession();
+			// 세션에 값이 존재하는 경우
+			if ( session.getAttribute("login") != null ) {
+				// 세션 값 제거
+				session.removeAttribute("login");
+			}
+		// 헤더에 토큰이 존재하는 경우 - 토큰과 세션 모두 제거
+		} else {
+			// 세션에 값이 존재하는지 체크
+			HttpSession session = request.getSession();
+			// 세션에 값이 존재하는 경우
+			if ( session.getAttribute("login") != null ) {
+				// 세션 값 제거
+				session.removeAttribute("login");
+			}
+			// 로그아웃을 하면 Redis 블랙리스트에 토큰을 추가하고 헤더에 토큰을 제거한다.
+			// Redis 블랙리스트에 토큰 추가
+			jwtUtil.logoutToken(authorization.substring("Bearer ".length()));
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+		}
+
+		// 토큰과 세션을 모두 비우면 다시 로그인 페이지로 이동한다
 		return "redirect:login.do";
 	}
 	
@@ -100,26 +185,59 @@ public class SignUpController {
 			// cyworld 회원가입 페이지
 			return "Sign/cyworld_join";
 		}
+
 		// 가져온 정보 중에 ID가 있을경우 - 로그인
 		// 로그인한 ID로 회원 정보 조회
 		Sign login = signService.findByUserId(sign.getUserId());
 
-		HttpSession session = request.getSession();
-		// 세션값이 있을 경우
-		if ( session.getAttribute("login") != null ) {
-			if ( (Integer)session.getAttribute("login") < 0 ) {
-				// 세션값이 비회원으로 로그인으로 돌아올 경우 세션 제거
-				session.removeAttribute("login");
-			}
-		}
-		// 세션값이 없을 경우
-		if ( session.getAttribute("login") == null ) {
-			// 로그인 세션 부여
-			session.setAttribute("login", login.getIdx());
-		}
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하는 경우 - 만료시간 or 무효화 이후 로그인
+		if ( authorization != null ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 토큰 생성
+			String loginToken = jwtUtil.createToken(login.getIdx());
+			// Authorization 헤더에 토큰 부여
+			headers.add("Authorization", "Bearer " + loginToken);
+			// 세션 생성
+			HttpSession session = request.getSession();
+			// 로그인용 세션 생성
+			session.setAttribute("login", "login");
 
-		// 세션값에 해당하는 메인 페이지로 이동
-		return "redirect:main.do?idx=" + session.getAttribute("login");
+			// 접속 날짜를 기록하기 위해 Date객체 사용
+			Date date = new Date();
+			// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
+			SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
+			// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
+			login.setToDate(today.format(date));
+			// 로그인한 유저의 접속 날짜를 갱신
+			signService.updateTodayDate(login);
+
+			// idx에 해당하는 메인 페이지로 이동
+			return "redirect:main.do?idx=" + login.getIdx();
+		}
+		// 헤더에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
+		// JWT의 토큰 생성
+		String loginToken = jwtUtil.createToken(login.getIdx());
+		// Authorization 헤더에 토큰 부여
+		headers.add("Authorization", "Bearer " + loginToken);
+		// 세션 생성
+		HttpSession session = request.getSession();
+		// 로그인용 세션 생성
+		session.setAttribute("login", "login");
+
+		// 접속 날짜를 기록하기 위해 Date객체 사용
+		Date date = new Date();
+		// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
+		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
+		// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
+		login.setToDate(today.format(date));
+		// 로그인한 유저의 접속 날짜를 갱신
+		signService.updateTodayDate(login);
+
+		// idx에 해당하는 메인 페이지로 이동
+		return "redirect:main.do?idx=" + login.getIdx();
 	}
 
 	// 카카오 가입자 비가입자 구별
@@ -131,6 +249,7 @@ public class SignUpController {
 
 		// 가입자가 아닐 경우
 		int result = 0;
+
 		// 조회된 값이 없을 때 - 회원가입
 		if ( join == null ) {
 			// 콜백 메소드에 전달
@@ -139,23 +258,23 @@ public class SignUpController {
 		} else {
 			// 조회된 값 중 플랫폼이 같을 때
 			if ( join.getPlatform().equals("kakao") ) {
-				// 1로 변경
+				// 로그인 유저 idx로 변경
 				result = join.getIdx();
 
-				// 소셜 로그인은 이곳에서 세션을 발급받는다
-				HttpSession session = request.getSession();
-				// 세션값이 있을 경우
-				if ( session.getAttribute("login") != null ) {
-					if ( (Integer) session.getAttribute("login") < 0 ) {
-						// 세션값이 비회원으로 로그인으로 돌아올 경우 세션 제거
-						session.removeAttribute("login");
-					}
-				}
-
-				// 세션값이 없을 경우
-				if ( session.getAttribute("login") == null ) {
-					// 로그인 세션 지정
-					session.setAttribute("login", join.getIdx());
+				// Authorization 헤더에 토큰이 존재하는지 체크
+				String authorization = headers.getFirst("Authorization");
+				// 헤더에 토큰이 존재하는 경우 - 토큰 및 세션 만료 or 무효화 이후 로그인
+				if ( authorization != null ) {
+					// Authorization 헤더 제거
+					headers.remove("Authorization");
+					// JWT 토큰 생성
+					String loginToken = jwtUtil.createToken(join.getIdx());
+					// Authorization 헤더에 토큰 부여
+					headers.add("Authorization", "Bearer " + loginToken);
+					// 세션 생성
+					HttpSession session = request.getSession();
+					// 로그인용 세션 생성
+					session.setAttribute("login", "login");
 
 					// 접속 날짜를 기록하기 위해 Date객체 사용
 					Date date = new Date();
@@ -165,7 +284,28 @@ public class SignUpController {
 					join.setToDate(today.format(date));
 					// 로그인한 유저의 접속 날짜를 갱신
 					signService.updateTodayDate(join);
+
+					// 콜백 메소드에 전달
+					return result;
 				}
+				// 헤더에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
+				// JWT 토큰 생성
+				String loginToken = jwtUtil.createToken(join.getIdx());
+				// Authorization 헤더에 토큰 부여
+				headers.add("Authorization", "Bearer " + loginToken);
+				// 세션 생성
+				HttpSession session = request.getSession();
+				// 로그인용 세션 생성
+				session.setAttribute("login", "login");
+
+				// 접속 날짜를 기록하기 위해 Date객체 사용
+				Date date = new Date();
+				// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
+				SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
+				// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
+				join.setToDate(today.format(date));
+				// 로그인한 유저의 접속 날짜를 갱신
+				signService.updateTodayDate(join);
 
 				// 콜백 메소드에 전달
 				return result;
@@ -196,30 +336,34 @@ public class SignUpController {
 		// 네이버 가입자 조회 - 휴대폰
 		Sign join = signService.findByPhoneNumber(phoneNumber);
 
+		// 가입자가 아닐 경우
 		int result = 0;
+
 		// 조회된 값이 없을 때 - 회원가입
 		if ( join == null ) {
 			// 콜백 메소드에 전달
 			return result;
+		// 조회된 값이 있을 때 - 가입자
 		} else {
+			// 조회된 값 중 플랫폼이 같을 때
 			if ( join.getPlatform().equals("naver") ) {
 				// 로그인 유저 idx로 변경
 				result = join.getIdx();
 
-				// 소셜 로그인은 이곳에서 세션을 발급받는다
-				HttpSession session = request.getSession();
-				// 세션값이 있을 경우
-				if ( session.getAttribute("login") != null ) {
-					if ( (Integer) session.getAttribute("login") < 0 ) {
-						// 세션값이 비회원으로 로그인으로 돌아올 경우 세션 제거
-						session.removeAttribute("login");
-					}
-				}
-
-				// 세션값이 없을 경우
-				if ( session.getAttribute("login") == null ) {
-					// 로그인 세션 지정
-					session.setAttribute("login", join.getIdx());
+				// Authorization 헤더에 토큰이 존재하는지 체크
+				String authorization = headers.getFirst("Authorization");
+				// 헤더에 토큰이 존재하는 경우 - 토큰 및 세션 만료 or 무효화 이후 로그인
+				if ( authorization != null ) {
+					// Authorization 헤더 제거
+					headers.remove("Authorization");
+					// JWT 토큰 생성
+					String loginToken = jwtUtil.createToken(join.getIdx());
+					// Authorization 헤더에 토큰 부여
+					headers.add("Authorization", "Bearer " + loginToken);
+					// 세션 생성
+					HttpSession session = request.getSession();
+					// 로그인용 세션 생성
+					session.setAttribute("login", "login");
 
 					// 접속 날짜를 기록하기 위해 Date객체 사용
 					Date date = new Date();
@@ -229,10 +373,32 @@ public class SignUpController {
 					join.setToDate(today.format(date));
 					// 로그인한 유저의 접속 날짜를 갱신
 					signService.updateTodayDate(join);
+
+					// 콜백 메소드에 전달
+					return result;
 				}
+				// 헤더에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
+				// JWT 토큰 생성
+				String loginToken = jwtUtil.createToken(join.getIdx());
+				// Authorization 헤더에 토큰 부여
+				headers.add("Authorization", "Bearer " + loginToken);
+				// 세션 생성
+				HttpSession session = request.getSession();
+				// 로그인용 세션 생성
+				session.setAttribute("login", "login");
+
+				// 접속 날짜를 기록하기 위해 Date객체 사용
+				Date date = new Date();
+				// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
+				SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
+				// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
+				join.setToDate(today.format(date));
+				// 로그인한 유저의 접속 날짜를 갱신
+				signService.updateTodayDate(join);
 
 				// 콜백 메소드에 전달
 				return result;
+			// 조회된 값 중 플랫폼이 다를 때
 			} else {
 				// 가입 플랫폼이 싸이월드일 경우
 				if ( join.getPlatform().equals("cyworld") ) {
@@ -596,7 +762,7 @@ public class SignUpController {
 			} else {
 				// 추가 정보들을 임의로 지정
 				sign.setIdx(null); // AUTO_INCREMENT로 null값 지정시 자동 인덱스 증가
-				sign.setUserId(""); // 소셜 로그인이라 ID정보 없음
+				sign.setUserId(sign.getEmail().substring(0, sign.getEmail().indexOf("@"))); // 소셜 로그인이라 ID정보에 이메일에서 아이디 부분만 따로 잘라서 지정
 				sign.setInfo(""); // 소셜 로그인이라 PW정보 없음
 				sign.setMinimi("mainMinimi.png"); // 기본 미니미 지정
 				sign.setDotory(0); // 기본 도토리 개수 지정

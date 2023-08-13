@@ -2,12 +2,22 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="UTF-8">
-	<title th:text="${ sign.name } + '님의 다이어리'"></title>
+	<title th:if="${ errMsg eq null }" th:text="${ sign.name } + '님의 다이어리'"></title>
 	<link rel="stylesheet" href="/css/diary.css">
 	<link rel="stylesheet" href="/css/reset.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout.do";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container">
 		<section class="left-section">
 			<div class="left-dashed-line">
@@ -68,7 +78,7 @@
 						<div id="main_box">
 							<h1>다이어리</h1>
 							<!-- 로그인한 유저가 다이어리 주인일 경우에만 보인다 -->
-							<th:block th:if="${ sessionIdx eq sign.idx }">
+							<th:block th:if="${ loginIdx eq sign.idx }">
 								<div>
 									<input class="writing" type="button" value="글쓰기" th:onclick="|location.href='@{diary_insert_form.do(idx=${ sign.idx })}'|">
 								</div>
@@ -88,7 +98,7 @@
 											</p>
 										</div>
 										<!-- 로그인한 유저가 다이어리 주인일 경우에만 보인다 -->
-										<th:block th:if="${ sessionIdx eq diary.diaryIdx }">
+										<th:block th:if="${ loginIdx eq diary.diaryIdx }">
 											<input class="modify" id="btn-cover" type="button" value="수정" onclick="modify(this.form);">
 											<input class="delete" id="btn-cover" type="button" value="삭제" onclick="del(this.form);">
 										</th:block>
@@ -108,7 +118,7 @@
 						<!-- 해당 미니홈피 유저의 idx -->
 						<input id="idx" name="idx" type="hidden" th:value="${ sign.idx }" readonly>
 						<!-- 로그인한 유저의 idx -->
-						<input id="sessionIdx" name="sessionIdx" type="hidden" th:value="${sessionIdx}" readonly>
+						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
 						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main.do(idx=${ sign.idx })}'|">
@@ -142,7 +152,7 @@
 	
 	<!-- Ajax 사용을 위한 js를 로드 -->
 	<script src="/js/httpRequest.js"></script>
-	<script th:inline="javascript">
+	<script>
 		// 다이어리 글 삭제
 		function del(f) {
 			if ( !confirm('정말 삭제하시겠습니까?') ) {
@@ -152,20 +162,46 @@
 			var url = "diary_delete.do";
 			var param = "diaryIdx=" + f.diaryIdx.value + 
 						"&idx=" + f.idx.value;
-			sendRequest( url, param, resultFn, "GET" );
+			sendRequest(url, param, resultFn, "GET");
 		}
 		// 다이어리 글 삭제 콜백메소드
 		function resultFn() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				var data = xhr.responseText;
+				let idx = document.getElementById("idx").value;
+
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
 				
-				if ( data == 'no' ) {
+				if ( data == "no" ) {
 					alert("삭제 실패");
 					return;
 				}
 				
 				alert("삭제성공");
-				location.href="diary.do?idx=" + [[${ param.idx }]];
+				location.href = "/diary.do?idx=" + idx;
 			}
 		}
 		
@@ -181,11 +217,11 @@
 	<script>
 		// 프로필 탭
 		function profile(f) {
-			let sessionIdx = document.getElementById("sessionIdx").value;
+			let loginIdx = document.getElementById("loginIdx").value;
 			let idx = document.getElementById("idx").value;
 			
 			// 타 유저 접근 불가
-			if ( sessionIdx != idx ) {
+			if ( loginIdx != idx ) {
 				alert("프로필은 본인만 들어갈 수 있습니다");
 				return;
 			}

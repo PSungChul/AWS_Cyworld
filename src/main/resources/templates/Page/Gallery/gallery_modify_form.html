@@ -7,7 +7,17 @@
 	<link rel="stylesheet" href="/css/reset.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout.do";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container ">
 		<section class="section">
 			<div class="dashed-line">

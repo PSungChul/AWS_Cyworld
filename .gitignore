@@ -38,3 +38,4 @@ out/
 
 ### Information ###
 application-information.properties
+application-redis.properties

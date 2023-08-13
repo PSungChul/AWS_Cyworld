@@ -7,22 +7,33 @@
 	<link rel="stylesheet" href="/css/guestbook_insert.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout.do";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container ">
 		<section class="section">
 			<div class="dashed-line">
 				<div class="gray-background">
 					<div class="main">
 						<form>
-							<input name="guestbookIdx" type="hidden" th:value="${ param.idx }">
+							<input name="guestbookIdx" type="hidden" th:value="${ guestbook.guestbookIdx }">
+							<input name="guestbookSessionIdx" type="hidden" th:value="${ guestbook.guestbookSessionIdx }">
 							<table >
 								<caption>::: 방명록 작성 :::</caption>
 								
 								<tr>
 									<th>미니미</th>
 									<td>
-										<img class="myImg" th:src="@{/filePath/} + ${ minimi }"/>
-										<input name="guestbookMinimi" type="hidden"  th:value="${ minimi }">
+										<img class="myImg" th:src="@{/filePath/minimi/} + ${ guestbook.guestbookMinimi }"/>
+										<input name="guestbookMinimi" type="hidden"  th:value="${ guestbook.guestbookMinimi }">
 									</td>
 								</tr>
 								
@@ -33,13 +44,13 @@
 								
 								<tr>
 									<th>작성자</th>
-									<td><input  type="text" name="guestbookName" th:value="${ guestbookName }" readonly></td>
+									<td><input  type="text" name="guestbookName" th:value="${ guestbook.guestbookName }" readonly></td>
 								</tr>
 								
 								<tr>
 									<td class="lastTd"colspan="2" >
 										<input id="btn-cover" class="write" type="button" value="글쓰기" onclick="send(this.form);">
-										<input class="cancel" id="btn-cover" type="button" value="취소" th:onclick="|location.href='@{guestbook.do(idx=${ param.idx })}'|">
+										<input class="cancel" id="btn-cover" type="button" value="취소" th:onclick="|location.href='@{guestbook.do(idx=${ guestbook.guestbookIdx })}'|">
 										<!-- 비밀글 설정 여부 -->
 										<select class="textChoice" id="guestsecret" name="guestbookSecretCheck" onchange="selectbox">
 											<!-- 공개글 -->

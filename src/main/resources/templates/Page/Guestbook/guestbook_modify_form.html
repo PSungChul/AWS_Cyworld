@@ -7,14 +7,24 @@
 	<link rel="stylesheet" href="/css/guestbook_modify.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout.do";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container ">
 		<section class="section">
 			<div class="dashed-line">
 				<div class="gray-background">
 					<div class="main">
 						<form>
-							<input type="hidden" name="guestbookIdx" th:value="${ updateGuestbook.guestbookIdx }">
+							<input type="hidden" id="guestbookIdx" name="guestbookIdx" th:value="${ updateGuestbook.guestbookIdx }">
 							<input type="hidden" name="idx" th:value="${ updateGuestbook.idx }">
 							<input type="hidden" name="guestbookSessionIdx" th:value="${ updateGuestbook.guestbookSessionIdx }">
 							<table >
@@ -24,8 +34,8 @@
 									<th>미니미</th>
 									<td>
 										<!-- 수정할때는 전에 작성한 미니미가 나오는게 아닌 새로 바뀐 미니미가 나오게 하기 위해 미니미만 따로 잡아온다 -->
-										<img class="myImg" th:src="@{/filePath/minimi/} + ${ minimi }"/>
-										<input name="guestbookMinimi" type="hidden" th:value="${ minimi }">
+										<img class="myImg" th:src="@{/filePath/minimi/} + ${ updateGuestbook.guestbookMinimi }"/>
+										<input name="guestbookMinimi" type="hidden" th:value="${ updateGuestbook.guestbookMinimi }">
 									</td>
 								</tr>
 								
@@ -67,7 +77,7 @@
 <!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
 	<!-- Ajax활용을 위한 js파일 로드 -->
 	<script src="/js/httpRequest.js"></script>
-	<script th:inline="javascript">
+	<script>
 		// 방명록 수정
 		function send(f) {
 			var url = "guestbook_modify.do";
@@ -78,22 +88,46 @@
 						"&guestbookSecretCheck=" + f.guestbookSecretCheck.value +
 						"&guestbookSessionIdx=" + f.guestbookSessionIdx.value +
 						"&guestbookMinimi=" + f.guestbookMinimi.value;
-			sendRequest( url, param, sendCallback, "GET");
+			sendRequest(url, param, sendCallback, "GET");
 		}
 		// 방명록 수정 콜백메소드
 		function sendCallback() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				var data = xhr.responseText;
+				let guestbookIdx = document.getElementById("guestbookIdx").value;
+
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + guestbookIdx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
 				
-				var json = (new Function('return'+data))();
-				
-				if ( json.result == 'no' ) {
+				if ( data == "no" ) {
 					alert("수정실패");
 					return;
 				}
 				
 				alert("수정성공");
-				location.href="guestbook.do?idx=" + [[${ updateGuestbook.guestbookIdx }]];
+				location.href = "/guestbook.do?idx=" + guestbookIdx;
 			}
 		}
 	</script>

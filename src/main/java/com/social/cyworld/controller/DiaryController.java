@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -12,7 +11,9 @@ import com.social.cyworld.entity.Diary;
 import com.social.cyworld.entity.Sign;
 import com.social.cyworld.service.DiaryService;
 import com.social.cyworld.service.SignService;
+import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,25 +25,81 @@ public class DiaryController {
 	@Autowired
 	HttpServletRequest request;
 	@Autowired
+	HttpHeaders headers;
+	@Autowired
+	JwtUtil jwtUtil;
+	@Autowired
 	SignService signService;
 	@Autowired
 	DiaryService diaryService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 다이어리 조회
 	@RequestMapping("/diary.do")
-	public String list(Integer idx,Model model) {
-		// 다이어리에 들어오면 가장 먼저 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String list(int idx,Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + idx;
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
-		
-		// 비회원이 접근할 경우
-		if ( (Integer) session.getAttribute("login") < 0 ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + idx;
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 메인 페이지로 이동
+			return "Page/main";
 		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 메인 페이지로 이동
+					return "Page/main";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 		
 		// 그 다음 idx에 해당하는 다이어리의 모든 글을 조회
 		List<Diary> list = diaryService.findByDiaryIdxOrderByIdxDesc(idx);
@@ -53,8 +110,8 @@ public class DiaryController {
 		Sign sign = signService.findByIdx(idx);
 		// 조회된 유저 정보를 바인딩
 		model.addAttribute("sign", sign);
-		// 추가로 세션값도 바인딩
-		model.addAttribute("sessionIdx", session.getAttribute("login"));
+		// 로그인 유저 idx를 바인딩
+		model.addAttribute("loginIdx", loginIdx);
 		
 		// 다이어리 페이지로 이동
 		return "Page/Diary/diary_list";
@@ -62,38 +119,163 @@ public class DiaryController {
 	
 	// 다이어리 글 작성 페이지로 이동
 	@RequestMapping("/diary_insert_form.do")
-	public String insert_form(int idx) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String insert_form(int idx, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + idx;
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 다이어리 페이지로 이동
+			return "Page/Diary/diary_list";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 다이어리 페이지로 이동
+				return "Page/Diary/diary_list";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 다이어리 페이지로 이동
+					return "Page/Diary/diary_list";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 다이어리는 오로지 미니홈피 주인만 작성할 수 있다.
-		if ( (Integer) session.getAttribute("login") != idx ) {
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 다이어리는 오로지 미니홈피 유저만 작성할 수 있다.
+		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 다이어리 페이지로 이동
 			return "redirect:diary.do?idx=" + idx;
 		}
+
+		// 다이어리 작성자 정보 생성
+		Diary diary = new Diary();
+
+		// 미니홈피 유저 idx 지정
+		diary.setDiaryIdx(idx);
+
+		// 다이어리 작성자 정보 바인딩
+		model.addAttribute("diary", diary);
 		
-		// 세션값이 있다면 작성 페이지로 이동
+		// 다이어리 작성 페이지로 이동
 		return "Page/Diary/diary_insert_form";
 	}
 
 	// 다이어리 새 글 작성
 	@RequestMapping("/diary_insert.do")
-	public String insert(int diaryIdx, Diary diary) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String insert(Diary diary, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + diary.getDiaryIdx();
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 다이어리 작성 페이지로 이동
+			return "Page/Diary/diary_insert_form";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 다이어리 작성 페이지로 이동
+				return "Page/Diary/diary_insert_form";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 다이어리 작성 페이지로 이동
+					return "Page/Diary/diary_insert_form";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 다이어리는 오로지 미니홈피 주인만 작성할 수 있다.
-		if ( (Integer) session.getAttribute("login") != diaryIdx ) {
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 다이어리는 오로지 미니홈피 유저만 작성할 수 있다.
+		if ( loginIdx != diary.getDiaryIdx() ) {
 			// 해당 미니홈피 유저의 다이어리 페이지로 이동
-			return "redirect:diary.do?idx=" + diaryIdx;
+			return "redirect:diary.do?idx=" + diary.getDiaryIdx();
 		}
 
 		// 작성 시간를 기록하기 위해 Date객체 사용
@@ -116,27 +298,76 @@ public class DiaryController {
 	// 다이어리 글 삭제
 	@RequestMapping("/diary_delete.do")
 	@ResponseBody
-	public String delete(int diaryIdx, Diary diary) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인페이지로 이동
-			return "redirect:login.do";
+	public String delete(Diary diary) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 다이어리는 오로지 미니홈피 유저만 삭제할 수 있다.
+		if ( loginIdx != diary.getIdx() ) {
+			// 에러 코드를 반환한다.
+			return "-4";
 		}
 
 		// 삭제 실패할 경우
 		String result = "no";
-
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 다이어리는 오로지 미니홈피 주인만 삭제할 수 있다.
-		if ( (Integer) session.getAttribute("login") != diaryIdx ) {
-			// 콜백 메소드에 전달
-			return "redirect:diary.do?idx=" + diaryIdx;
-		}
 		
 		// DB에 저장된 다이어리 글 중 가져온 정보에 해당하는 다이어리 글 삭제
 		int res = diaryService.deleteByDiaryIdxAndIdx(diary);
-		
-		if (res == 1) {
+		if ( res == 1 ) {
 			// 삭제 성공할 경우
 			result = "yes";
 		}
@@ -147,50 +378,158 @@ public class DiaryController {
 	
 	// 다이어리 글 수정 페이지로 이동
 	@RequestMapping("/diary_modify_form.do")
-	public String modify_form(int diaryIdx, Diary diary, Model model) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String modify_form(Diary diary, Model model) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 해당 미니홈피 유저의 메인 페이지로 이동
+				return "redirect:main.do?idx=" + diary.getDiaryIdx();
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 로그인 페이지로 이동
+				return "redirect:login.do";
+			}
 		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 다이어리 페이지로 이동
+			return "Page/Diary/diary_list";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 다이어리 페이지로 이동
+				return "Page/Diary/diary_list";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 다이어리 페이지로 이동
+					return "Page/Diary/diary_list";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 다이어리는 오로지 미니홈피 주인만 수정할 수 있다.
-		if ( (Integer) session.getAttribute("login") != diaryIdx ) {
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 다이어리는 오로지 미니홈피 유저만 수정할 수 있다.
+		if ( loginIdx != diary.getDiaryIdx() ) {
 			// 해당 미니홈피 유저의 다이어리 페이지로 이동
-			return "redirect:diary.do?idx=" + diaryIdx;
+			return "redirect:diary.do?idx=" + diary.getDiaryIdx();
 		}
 		
 		// 해당 idx의 다이어리에 수정할 글을 조회
 		Diary updateDiary = diaryService.findByDiaryIdxAndIdx(diary);
-		if (updateDiary != null) {
+		if ( updateDiary != null ) {
 			// 조회된 다이어리 글을 바인딩
 			model.addAttribute("updateDiary", updateDiary);
 		}
 		
-		// 수정 페이지로 이동
+		// 다이어리 수정 페이지로 이동
 		return "Page/Diary/diary_modify_form";
 	}
 	
 	// 다이어리 글 수정하기
 	@RequestMapping("/diary_modify.do")
 	@ResponseBody
-	public String modify(int diaryIdx, Diary diary) {
-		// 세션값이 있는지 확인
-		HttpSession session = request.getSession();
-		if ( session.getAttribute("login") == null ) {
-			// 세션값이 없다면 로그인 페이지로 이동
-			return "redirect:login.do";
+	public String modify(Diary diary) {
+		// Authorization 헤더에 토큰이 존재하는지 체크
+		String authorization = headers.getFirst("Authorization");
+		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		if ( authorization == null ) {
+			// 세션에 값이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 코드를 반환한다.
+				return "-4";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 코드를 반환한다.
+				return "0";
+			}
+		}
+		// 헤더에 토큰이 존재하는 경우 - 정상
+		// JWT의 토큰에 해당하는 idx 추출
+		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// 에러 코드를 반환한다.
+			return "-99";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// Authorization 헤더 제거
+			headers.remove("Authorization");
+			// JWT의 리프레쉬 토큰으로 토큰 재생성
+			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
+			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+			if ( refreshToken == null ) {
+				// 에러 코드를 반환한다.
+				return "-100";
+			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			} else {
+				// 세션에 값이 존재하는지 체크한다.
+				HttpSession session = request.getSession();
+				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
+				if ( session.getAttribute("login") == null ) {
+					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+					jwtUtil.timeoutToken(refreshToken);
+					// 에러 코드를 반환한다.
+					return "-1";
+				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				} else {
+					// Authorization 헤더에 재생성한 토큰 부여
+					headers.add("Authorization", "Bearer " + refreshToken);
+					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
 		}
 
-		// 갱신 실패할 경우 - JSON형태
-		String result = "{'result':'no'}";
-
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다를경우 - 다이어리는 오로지 미니홈피 주인만 수정할 수 있다.
-		if ( (Integer) session.getAttribute("login") != diaryIdx ) {
-			// 콜백 메소드에 전달
-			return result;
+		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 다이어리는 오로지 미니홈피 유저만 수정할 수 있다.
+		if ( loginIdx != diary.getDiaryIdx() ) {
+			// 에러 코드를 반환한다.
+			return "-4";
 		}
+
+		// 갱신 실패할 경우
+		String result = "no";
 
 		// 수정 시간을 기록하기 위해 Date객체 사용
 		Date date = new Date();
@@ -202,10 +541,9 @@ public class DiaryController {
 		
 		// 수정된 다이어리 글로 갱신
 		int res = diaryService.updateSetDiaryContentAndDiaryRegDateByDiaryIdxAndIdx(diary);
-
-		if (res != 0) {
-			// 갱신 성공할 경우 - JSON형태
-			result = "{'result':'yes'}";
+		if ( res != 0 ) {
+			// 갱신 성공할 경우
+			result = "yes";
 		}
 		
 		// 콜백 메소드에 전달

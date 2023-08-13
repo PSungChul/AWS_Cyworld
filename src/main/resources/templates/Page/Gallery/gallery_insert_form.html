@@ -7,14 +7,24 @@
 	<link rel="stylesheet" href="/css/reset.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout.do";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container ">
 		<section class="section">
 			<div class="dashed-line">
 				<div class="gray-background">
 					<div class="main">
 						<form method="POST" enctype="multipart/form-data" th:object="${galleryDTO}">
-							<input id="myIdx" name="idx" type="hidden" th:value="${ param.idx }">
+							<input th:field="*{galleryIdx}" type="hidden">
 							<table>
 								<caption>새 글 쓰기</caption>
 								
@@ -36,7 +46,7 @@
 								<tr>
 									<td colspan="2">
 										<input id="btn-cover" class="write" type="button" value="글쓰기" onclick="insert(this.form);" >
-										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{gallery.do(idx=${ param.idx })}'|">
+										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{gallery.do(idx=${ galleryDTO.galleryIdx })}'|">
 									</td>
 								</tr>
 							</table>

@@ -7,7 +7,18 @@
 	<link rel="stylesheet" href="/css/dotoryPopUp.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			opener.location.href = "/logout.do";
+			window.close();
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container" id="scrollBar">
 		<h2 class="title" >도토리 충전소</h2>
 		<div class="buyDotory">

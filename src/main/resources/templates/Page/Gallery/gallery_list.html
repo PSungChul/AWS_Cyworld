@@ -2,13 +2,23 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="UTF-8">
-	<title th:text="${ sign.name } + '님의 사진첩'"></title>
+	<title th:if="${ errMsg eq null }" th:text="${ sign.name } + '님의 사진첩'"></title>
 	<link rel="stylesheet" href="/css/gallery.css">
 	<link rel="stylesheet" href="/css/reset.css">
 	<link rel="stylesheet" href="/css/animate.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body >
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout.do";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container">
 		<section class="left-section">
 			<div class="left-dashed-line">
@@ -72,7 +82,7 @@
 							<div id="writing">
 								<h1>사진첩 목록</h1>
 								<!-- 로그인한 유저가 사진첩 주인일 경우에만 보인다 -->
-								<th:block th:if="${ sessionIdx eq sign.idx }">
+								<th:block th:if="${ loginIdx eq sign.idx }">
 									<input id="btn-cover" type="button" value="글쓰기" th:onclick="|location.href='@{gallery_insert_form.do(idx=${ sign.idx })}'|">
 								</th:block>
 							</div>
@@ -117,10 +127,10 @@
 												<p class="like">
 													<!-- ${ status.index } - forEach에서 0부터 생성한 숫자를 id에 추가로 순서대로 지정한다  -->
 													<span th:id="'galleryLikeNum' + ${ status.index }" th:text="${ gallery.galleryLikeNum }"></span>
-													<input  id="heart" type="button" onclick="like(this.form)" >
+													<input id="heart" type="button" onclick="like(this.form)">
 												</p>
 												<!-- 로그인한 유저가 사진첩 주인일 경우에만 보인다. -->
-												<th:block th:if="${ sessionIdx eq gallery.galleryIdx }">
+												<th:block th:if="${ loginIdx eq gallery.galleryIdx }">
 													<p class="changeBtn">
 														<input id="btn-cover" type="button" value="수정" onclick="modify(this.form);">
 														<input id="btn-cover" class="del"  type="button" value="삭제" onclick="del(this.form);">
@@ -139,8 +149,10 @@
 											<input type="hidden" name="galleryCommentIdx" th:value="${ gallery.galleryIdx }">
 											<!-- 게시글 번호 -->
 											<input type="hidden" name="galleryIdxComment" th:value="${ gallery.idx }">
+											<!-- 작성자 idx -->
+											<input type="hidden" name="galleryCommentSessionIdx" th:value="${loginIdx}">
 											<!-- 작성자 이름 -->
-											<div class="commentWriter"><label>&nbsp;&nbsp;작성자 : </label><input type="text" name="galleryCommentName" th:value="${ sessionName }" readonly>
+											<div class="commentWriter"><label>&nbsp;&nbsp;작성자 : </label><input type="text" name="galleryCommentName" th:value="${loginName}" readonly>
 												<!-- 댓글 작성 -->
 												<label>&nbsp;&nbsp;댓글 : </label><input type="text" name="galleryCommentContent">
 												<!-- 댓글 작성 버튼 -->
@@ -156,6 +168,8 @@
 												<div class="Gallerycomment">
 													<!-- 사진첩 주인 idx -->
 													<input type="hidden" name="galleryCommentIdx" th:value="${ comment.galleryCommentIdx }">
+													<!-- 댓글 주인 idx -->
+													<input type="hidden" name="galleryCommentSessionIdx" th:value="${ comment.galleryCommentSessionIdx }">
 													<!-- 사진첩 댓글 번호 -->
 													<input type="hidden" name="idx" th:value="${ comment.idx }">
 													<!-- 게시글 번호 -->
@@ -178,7 +192,7 @@
 													<!-- 댓글을 삭제하지 않았을 경우 -->
 													<th:block th:if="${ comment.galleryCommentDeleteCheck eq 0 }">
 														<!-- 로그인한 유저가 작성자 이거나 사진첩 주인일 경우에만 보인다 -->
-														<th:block th:if="${ sessionIdx eq comment.galleryCommentSessionIdx || sessionIdx eq comment.galleryCommentIdx }">
+														<th:block th:if="${ loginIdx eq comment.galleryCommentSessionIdx || loginIdx eq comment.galleryCommentIdx }">
 															<input id="btn_cover"type="button" value="댓글삭제" onclick="gcdel(this.form);">
 														</th:block>
 													</th:block>
@@ -200,7 +214,7 @@
 						<!-- 해당 미니홈피 유저의 idx -->
 						<input id="idx" name="idx" type="hidden" th:value="${ sign.idx }" readonly>
 						<!-- 로그인한 유저의 idx -->
-						<input id="sessionIdx" name="sessionIdx" type="hidden" th:value="${ sessionIdx }" readonly>
+						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
 						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main.do(idx=${ sign.idx })}'|">
@@ -234,7 +248,7 @@
 	
 	<!-- Ajax 사용을 위한 js를 로드 -->
 	<script src="/js/httpRequest.js"></script>
-	<script th:inline="javascript">
+	<script>
 		// 게시글 삭제
 		function del(f){
 			if ( !confirm('정말 삭제하시겠습니까?') ) {
@@ -244,20 +258,46 @@
 			var url = "gallery_delete.do";
 			var param = "galleryIdx=" + f.galleryIdx.value + 
 						"&idx=" + f.idx.value;
-			sendRequest( url, param, resultDel, "GET" );
+			sendRequest(url, param, resultDel, "GET");
 		}
 		// 게시글 삭제 콜백메소드
 		function resultDel() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				var data = xhr.responseText;
+				let idx = document.getElementById("idx").value;
+
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
 				
-				if ( data == 'no' ) {
+				if ( data == "no" ) {
 					alert("삭제 실패");
 					return;
 				}
 				
 				alert("삭제성공");
-				location.href = "gallery.do?idx=" + [[${ param.idx }]];
+				location.href = "/gallery.do?idx=" + idx;
 			}
 		}
 		
@@ -275,10 +315,12 @@
 		function like(f) {
 			let galleryIdx = f.galleryIdx.value;
 			let idx = f.idx.value;
+			let loginIdx = document.getElementById("loginIdx").value;
 			
 			let url = "gallery_like.do";
-			let param = "galleryIdx=" + galleryIdx +
-						"&idx=" + idx;
+			let param = "galleryLikeIdx=" + galleryIdx +
+						"&galleryLikeRef=" + idx +
+						"&galleryLikeSessionIdx=" + loginIdx;
 			sendRequest(url, param, resultLike, "GET");
 		}
 		// 게시글 좋아요 콜백메소드
@@ -289,17 +331,43 @@
 				
 				// JSON형태로 들어온 data를 실제 JSON타입으로 변경
 				var json = (new Function('return'+data))();
+				let idx = document.getElementById("idx").value;
+
+				// 로그인 에러
+				if ( json.GalleryContent == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( json.GalleryContent == "0" ) {
+					location.href = "/login.do";
+					return;
+				}
+				if ( json.GalleryContent == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/login.do";
+					return;
+				}
+				if ( json.GalleryContent == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/login.do";
+					return;
+				}
+				if ( json.GalleryContent == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/login.do";
+					return;
+				}
 				
 				// 게시글 번호 - name으로 가져와 배열로 생성
 				let galleryRef = document.getElementsByName("galleryRef");
 				
-				// 가져온 게시글 번호로 for문 생성
+				// name으로 가져온 게시글 번호로 for문 생성
 				for ( let i = 0; i < galleryRef.length; i++ ) {
-					// VO로 가져온 정보중 게시글 번호를 가져와 일치하는 게시글이 나올때까지 for문을 돌린다
+					// 갱신된 정보중 게시글 번호를 가져와 일치하는 게시글이 나올때까지 for문을 돌린다
 					if ( galleryRef[i].value == json.idx ) {
 						// 좋아요 수가 작성되는곳을 id로 가져오는데 추가로 같이 작성한 숫자로 어느 게시글의 좋아요인지 찾는다
 						let galleryLikeNum = document.getElementById("galleryLikeNum" + i);
-						// VO로 가져온 정보중 좋아요 수를 가져와 작성한다
+						// 갱신된 정보중 좋아요 수를 가져와 작성한다
 						galleryLikeNum.innerText = json.galleryLikeNum;
 					}
 				}
@@ -308,11 +376,12 @@
 	</script>
 	
 	<!-- 댓글 기능 -->
-	<script th:inline="javascript">
+	<script>
 		// 댓글 작성
 		function reply(f) {
 			let galleryCommentIdx = f.galleryCommentIdx.value;
 			let galleryIdxComment = f.galleryIdxComment.value;
+			let galleryCommentSessionIdx = f.galleryCommentSessionIdx.value;
 			let galleryCommentName = f.galleryCommentName.value;
 			let galleryCommentContent = f.galleryCommentContent.value;
 			
@@ -326,6 +395,7 @@
 			url = "comment_insert.do";
 			param = "galleryCommentIdx=" + galleryCommentIdx +
 					"&galleryIdxComment=" + galleryIdxComment +
+					"&galleryCommentSessionIdx=" + galleryCommentSessionIdx +
 					"&galleryCommentContent=" + galleryCommentContent +
 					"&galleryCommentName=" + galleryCommentName;
 			sendRequest(url, param, resultWrite, "GET");
@@ -334,6 +404,32 @@
 		function resultWrite() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				let data = xhr.responseText;
+				let idx = document.getElementById("idx").value;
+
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
 				
 				if ( data == "no" ) {
 					alert("작성 실패");
@@ -341,7 +437,7 @@
 				}
 				
 				alert("작성 완료");
-				location.href = "gallery.do?idx=" + [[${ param.idx }]];
+				location.href = "/gallery.do?idx=" + idx;
 			}
 		}
 		
@@ -354,21 +450,48 @@
 			var url = "gcomment_delete.do";
 			var param = "idx=" + f.idx.value +
 						"&galleryCommentIdx=" + f.galleryCommentIdx.value +
-						"&galleryIdxComment=" + f.galleryIdxComment.value;
-			sendRequest( url, param, resultgcDel, "GET" );
+						"&galleryIdxComment=" + f.galleryIdxComment.value +
+						"&galleryCommentSessionIdx=" + f.galleryCommentSessionIdx.value;
+			sendRequest(url, param, resultgcDel, "GET");
 		}
 		// 댓글 삭제 콜백메소드
 		function resultgcDel() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				var data = xhr.responseText;
+				let idx = document.getElementById("idx").value;
+
+				// 로그인 에러
+				if ( data == "-4" ) {
+					location.href = "/main.do?idx=" + idx;
+					return;
+				}
+				if ( data == "0" ) {
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout.do";
+					return;
+				}
 				
-				if ( data == 'no' ) {
+				if ( data == "no" ) {
 					alert("삭제 실패");
 					return;
 				}
 				
 				alert("삭제성공");
-				location.href = "gallery.do?idx=" + [[${ param.idx }]];
+				location.href = "/gallery.do?idx=" + idx;
 			}
 		}
 	</script>
@@ -377,11 +500,11 @@
 	<script>
 		// 프로필 탭
 		function profile(f) {
-			let sessionIdx = document.getElementById("sessionIdx").value;
+			let loginIdx = document.getElementById("loginIdx").value;
 			let idx = document.getElementById("idx").value;
 			
 			// 타 유저 접근 불가
-			if ( sessionIdx != idx ) {
+			if ( loginIdx != idx ) {
 				alert("프로필은 본인만 들어갈 수 있습니다");
 				return;
 			}

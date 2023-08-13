@@ -8,14 +8,24 @@
 	<link rel="stylesheet" href="/css/animate.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout.do";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container ">
 		<section class="section">
 			<div class="dashed-line">
 				<div class="gray-background">
 					<div class="main">
 						<form>
-							<input name="diaryIdx" type="hidden" th:value="${ param.idx }">
+							<input name="diaryIdx" type="hidden" th:value="${ diary.diaryIdx }">
 							<table>
 								<caption>새 글 쓰기</caption>
 								
@@ -27,7 +37,7 @@
 								<tr>
 									<td>
 										<input id="btn-cover" class="write" type="button" value="글쓰기" onclick="send(this.form);">
-										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{diary.do(idx=${ param.idx })}'|">
+										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{diary.do(idx=${ diary.diaryIdx })}'|">
 									</td>
 								</tr>
 							</table>

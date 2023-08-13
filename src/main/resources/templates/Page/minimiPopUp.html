@@ -7,7 +7,18 @@
 	<link rel="stylesheet" href="/css/popUp.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
-<body>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			opener.location.href = "/logout.do";
+			window.close();
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
 	<div class="container" id="scrollBar">
 		<h2 class="title">미니미 설정창</h2>
 		
@@ -79,7 +90,7 @@
 			<!-- 액션 미니미 구매 - 구매하면 내가 구매한 미니미가 보유 미니미로 가고 리스트 갱신-->
 			<form action="">
 				<div class="tabs">
-					<input name="idx" type="hidden" th:value="${ param.idx }">
+					<input id="idx" name="idx" type="hidden" th:value="${ param.idx }">
 					<input name="dotory" type="hidden" th:value="${ dotory }">
 					<!-- 유료 미니미 -->
 					<input id="tab7" class="btn" name="buyMinimiName" type="checkbox" value="cat.gif" onclick="NoMultiChk2(this)">
@@ -137,7 +148,7 @@
 	
 	<!-- Ajax 사용을 위한 js를 로드 -->
 	<script src="/js/httpRequest.js"></script>
-	<script th:inline="javascript">
+	<script>
 		// 미니미 변경
 		function changeMinimi(f) {
 			let minimi = f.minimi;
@@ -182,6 +193,37 @@
 		function resultBuy() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				let data = xhr.responseText;
+				let idx = document.getElementById("idx").value;
+
+				// 로그인 에러
+				if ( data == "-4" ) {
+					opener.location.href = "/main.do?idx=" + idx;
+					window.close();
+					return;
+				}
+				if ( data == "0" ) {
+					opener.location.href = "/logout.do";
+					window.close();
+					return;
+				}
+				if ( data == "-99" ) {
+					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					opener.location.href = "/logout.do";
+					window.close();
+					return;
+				}
+				if ( data == "-100" ) {
+					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					opener.location.href = "/logout.do";
+					window.close();
+					return;
+				}
+				if ( data == "-1" ) {
+					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					opener.location.href = "/logout.do";
+					window.close();
+					return;
+				}
 				
 				// 이미 구매한 미니미일 경우
 				if ( data == "no" ) {
@@ -190,7 +232,7 @@
 				}
 				
 				alert("구매 완료");
-				location.href = "profile_minimi_popup.do?idx=" + [[${ param.idx }]];
+				location.href = "profile_minimi_popup.do?idx=" + idx;
 			}
 		}
 	</script>
