@@ -17,13 +17,10 @@ public class RedisUtil {
     @Autowired
     RedisTemplate<String, Object> redisBlackListTemplate;
 //    private final RedisTemplate<String, Object> redisBlackListTemplate;
-    @Autowired
-    RedisTemplate<String, Object> redisInvalidationTemplate;
-//    private final RedisTemplate<String, Object> redisInvalidationTemplate;
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////RefreshToken - 로그인 유지 키
-    public void set(String key, Object o, int minutes) {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////RefreshToken - 리프레쉬
+    public void set(String key, Object o, long millis) {
         redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer(o.getClass()));
-        redisTemplate.opsForValue().set(key, o, minutes, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(key, o, millis, TimeUnit.MILLISECONDS);
     }
 
     public Object get(String key) {
@@ -41,10 +38,10 @@ public class RedisUtil {
     public boolean hasKey(String key) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////BlackList - 로그아웃
-    public void setBlackList(String key, Object o, int minutes) {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////BlackList - 무효화 및 로그아웃
+    public void setBlackList(String key, Object o, long millis) {
         redisBlackListTemplate.setValueSerializer(new Jackson2JsonRedisSerializer(o.getClass()));
-        redisBlackListTemplate.opsForValue().set(key, o, minutes, TimeUnit.MINUTES);
+        redisBlackListTemplate.opsForValue().set(key, o, millis, TimeUnit.MILLISECONDS);
     }
 
     public Object getBlackList(String key) {
@@ -57,22 +54,5 @@ public class RedisUtil {
 
     public boolean hasKeyBlackList(String key) {
         return Boolean.TRUE.equals(redisBlackListTemplate.hasKey(key));
-    }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Invalidation - 다중 로그인
-public void setInvalidation(String key, Object o, int minutes) {
-    redisInvalidationTemplate.setValueSerializer(new Jackson2JsonRedisSerializer(o.getClass()));
-    redisInvalidationTemplate.opsForValue().set(key, o, minutes, TimeUnit.MINUTES);
-}
-
-    public Object getInvalidation(String key) {
-        return redisInvalidationTemplate.opsForValue().get(key);
-    }
-
-    public boolean deleteInvalidation(String key) {
-        return Boolean.TRUE.equals(redisInvalidationTemplate.delete(key));
-    }
-
-    public boolean hasKeyInvalidation(String key) {
-        return Boolean.TRUE.equals(redisInvalidationTemplate.hasKey(key));
     }
 }

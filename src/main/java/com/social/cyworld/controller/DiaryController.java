@@ -4,7 +4,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.social.cyworld.entity.Diary;
@@ -13,7 +15,6 @@ import com.social.cyworld.service.DiaryService;
 import com.social.cyworld.service.SignService;
 import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,7 +26,7 @@ public class DiaryController {
 	@Autowired
 	HttpServletRequest request;
 	@Autowired
-	HttpHeaders headers;
+	HttpServletResponse response;
 	@Autowired
 	JwtUtil jwtUtil;
 	@Autowired
@@ -36,11 +37,26 @@ public class DiaryController {
 	// 다이어리 조회
 	@RequestMapping("/diary.do")
 	public String list(int idx,Model model) {
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
 		if ( authorization == null ) {
-			// 세션에 값이 존재하는지 체크한다.
+			// 세션이 존재하는지 체크한다.
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
@@ -52,13 +68,11 @@ public class DiaryController {
 				return "redirect:login.do";
 			}
 		}
-		// 헤더에 토큰이 존재하는 경우 - 정상
-		// JWT의 토큰에 해당하는 idx 추출
-		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 메인 페이지로 이동
@@ -66,34 +80,48 @@ public class DiaryController {
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
-			// JWT의 리프레쉬 토큰으로 토큰 재생성
-			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
-			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
-			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
-			if ( refreshToken == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
 				// 에러 메시지를 바인딩한다.
-				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 메인 페이지로 이동
 				return "Page/main";
-			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
-				// 세션에 값이 존재하는지 체크한다.
-				HttpSession session = request.getSession();
-				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
-				if ( session.getAttribute("login") == null ) {
-					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
-					jwtUtil.timeoutToken(refreshToken);
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
 					// 에러 메시지를 바인딩한다.
-					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 메인 페이지로 이동
 					return "Page/main";
-				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
-					// Authorization 헤더에 재생성한 토큰 부여
-					headers.add("Authorization", "Bearer " + refreshToken);
-					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// JWT에서 재생성한 토큰에 해당하는 로그인 유저 idx를 추출한다.
 					loginIdx = jwtUtil.validationToken(refreshToken);
 				}
 			}
@@ -120,11 +148,26 @@ public class DiaryController {
 	// 다이어리 글 작성 페이지로 이동
 	@RequestMapping("/diary_insert_form.do")
 	public String insert_form(int idx, Model model) {
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
 		if ( authorization == null ) {
-			// 세션에 값이 존재하는지 체크한다.
+			// 세션이 존재하는지 체크한다.
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
@@ -136,13 +179,11 @@ public class DiaryController {
 				return "redirect:login.do";
 			}
 		}
-		// 헤더에 토큰이 존재하는 경우 - 정상
-		// JWT의 토큰에 해당하는 idx 추출
-		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 다이어리 페이지로 이동
@@ -150,34 +191,48 @@ public class DiaryController {
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
-			// JWT의 리프레쉬 토큰으로 토큰 재생성
-			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
-			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
-			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
-			if ( refreshToken == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
 				// 에러 메시지를 바인딩한다.
-				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 다이어리 페이지로 이동
 				return "Page/Diary/diary_list";
-			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
-				// 세션에 값이 존재하는지 체크한다.
-				HttpSession session = request.getSession();
-				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
-				if ( session.getAttribute("login") == null ) {
-					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
-					jwtUtil.timeoutToken(refreshToken);
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
 					// 에러 메시지를 바인딩한다.
-					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 다이어리 페이지로 이동
 					return "Page/Diary/diary_list";
-				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
-					// Authorization 헤더에 재생성한 토큰 부여
-					headers.add("Authorization", "Bearer " + refreshToken);
-					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// JWT에서 재생성한 토큰에 해당하는 로그인 유저 idx를 추출한다.
 					loginIdx = jwtUtil.validationToken(refreshToken);
 				}
 			}
@@ -207,11 +262,26 @@ public class DiaryController {
 	// 다이어리 새 글 작성
 	@RequestMapping("/diary_insert.do")
 	public String insert(Diary diary, Model model) {
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
 		if ( authorization == null ) {
-			// 세션에 값이 존재하는지 체크한다.
+			// 세션이 존재하는지 체크한다.
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
@@ -223,13 +293,11 @@ public class DiaryController {
 				return "redirect:login.do";
 			}
 		}
-		// 헤더에 토큰이 존재하는 경우 - 정상
-		// JWT의 토큰에 해당하는 idx 추출
-		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 다이어리 작성 페이지로 이동
@@ -237,34 +305,48 @@ public class DiaryController {
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
-			// JWT의 리프레쉬 토큰으로 토큰 재생성
-			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
-			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
-			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
-			if ( refreshToken == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
 				// 에러 메시지를 바인딩한다.
-				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 다이어리 작성 페이지로 이동
 				return "Page/Diary/diary_insert_form";
-			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
-				// 세션에 값이 존재하는지 체크한다.
-				HttpSession session = request.getSession();
-				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
-				if ( session.getAttribute("login") == null ) {
-					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
-					jwtUtil.timeoutToken(refreshToken);
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
 					// 에러 메시지를 바인딩한다.
-					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 다이어리 작성 페이지로 이동
 					return "Page/Diary/diary_insert_form";
-				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
-					// Authorization 헤더에 재생성한 토큰 부여
-					headers.add("Authorization", "Bearer " + refreshToken);
-					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// JWT에서 재생성한 토큰에 해당하는 로그인 유저 idx를 추출한다.
 					loginIdx = jwtUtil.validationToken(refreshToken);
 				}
 			}
@@ -299,11 +381,26 @@ public class DiaryController {
 	@RequestMapping("/diary_delete.do")
 	@ResponseBody
 	public String delete(Diary diary) {
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
 		if ( authorization == null ) {
-			// 세션에 값이 존재하는지 체크한다.
+			// 세션이 존재하는지 체크한다.
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
@@ -315,42 +412,54 @@ public class DiaryController {
 				return "0";
 			}
 		}
-		// 헤더에 토큰이 존재하는 경우 - 정상
-		// JWT의 토큰에 해당하는 idx 추출
-		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
 			// 에러 코드를 반환한다.
 			return "-99";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
-			// JWT의 리프레쉬 토큰으로 토큰 재생성
-			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
-			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
-			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
-			if ( refreshToken == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
 				// 에러 코드를 반환한다.
-				return "-100";
-			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+				return "-1";
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
-				// 세션에 값이 존재하는지 체크한다.
-				HttpSession session = request.getSession();
-				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
-				if ( session.getAttribute("login") == null ) {
-					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
-					jwtUtil.timeoutToken(refreshToken);
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
 					// 에러 코드를 반환한다.
-					return "-1";
-				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+					return "-100";
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
-					// Authorization 헤더에 재생성한 토큰 부여
-					headers.add("Authorization", "Bearer " + refreshToken);
-					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// JWT에서 재생성한 토큰에 해당하는 로그인 유저 idx를 추출한다.
 					loginIdx = jwtUtil.validationToken(refreshToken);
 				}
 			}
@@ -379,11 +488,26 @@ public class DiaryController {
 	// 다이어리 글 수정 페이지로 이동
 	@RequestMapping("/diary_modify_form.do")
 	public String modify_form(Diary diary, Model model) {
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
 		if ( authorization == null ) {
-			// 세션에 값이 존재하는지 체크한다.
+			// 세션이 존재하는지 체크한다.
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
@@ -395,13 +519,11 @@ public class DiaryController {
 				return "redirect:login.do";
 			}
 		}
-		// 헤더에 토큰이 존재하는 경우 - 정상
-		// JWT의 토큰에 해당하는 idx 추출
-		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 다이어리 페이지로 이동
@@ -409,34 +531,48 @@ public class DiaryController {
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
-			// JWT의 리프레쉬 토큰으로 토큰 재생성
-			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
-			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
-			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
-			if ( refreshToken == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
 				// 에러 메시지를 바인딩한다.
-				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 다이어리 페이지로 이동
 				return "Page/Diary/diary_list";
-			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
-				// 세션에 값이 존재하는지 체크한다.
-				HttpSession session = request.getSession();
-				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
-				if ( session.getAttribute("login") == null ) {
-					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
-					jwtUtil.timeoutToken(refreshToken);
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
 					// 에러 메시지를 바인딩한다.
-					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 다이어리 페이지로 이동
 					return "Page/Diary/diary_list";
-				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
-					// Authorization 헤더에 재생성한 토큰 부여
-					headers.add("Authorization", "Bearer " + refreshToken);
-					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// JWT에서 재생성한 토큰에 해당하는 로그인 유저 idx를 추출한다.
 					loginIdx = jwtUtil.validationToken(refreshToken);
 				}
 			}
@@ -465,11 +601,26 @@ public class DiaryController {
 	@RequestMapping("/diary_modify.do")
 	@ResponseBody
 	public String modify(Diary diary) {
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하지 않는 경우 - 에러
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
 		if ( authorization == null ) {
-			// 세션에 값이 존재하는지 체크한다.
+			// 세션이 존재하는지 체크한다.
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
@@ -481,42 +632,54 @@ public class DiaryController {
 				return "0";
 			}
 		}
-		// 헤더에 토큰이 존재하는 경우 - 정상
-		// JWT의 토큰에 해당하는 idx 추출
-		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
 			// 에러 코드를 반환한다.
 			return "-99";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
-			// JWT의 리프레쉬 토큰으로 토큰 재생성
-			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
-			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
-			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
-			if ( refreshToken == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
 				// 에러 코드를 반환한다.
-				return "-100";
-			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+				return "-1";
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
-				// 세션에 값이 존재하는지 체크한다.
-				HttpSession session = request.getSession();
-				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
-				if ( session.getAttribute("login") == null ) {
-					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
-					jwtUtil.timeoutToken(refreshToken);
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
 					// 에러 코드를 반환한다.
-					return "-1";
-				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+					return "-100";
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
-					// Authorization 헤더에 재생성한 토큰 부여
-					headers.add("Authorization", "Bearer " + refreshToken);
-					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// JWT에서 재생성한 토큰에 해당하는 로그인 유저 idx를 추출한다.
 					loginIdx = jwtUtil.validationToken(refreshToken);
 				}
 			}

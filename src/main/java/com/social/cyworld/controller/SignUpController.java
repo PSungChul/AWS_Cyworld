@@ -5,7 +5,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.social.cyworld.util.JwtUtil;
@@ -18,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,7 +33,7 @@ public class SignUpController {
 	@Autowired
 	HttpServletRequest request;
 	@Autowired
-	HttpHeaders headers;
+	HttpServletResponse response;
 	@Autowired
 	JwtUtil jwtUtil;
 	@Autowired
@@ -64,13 +65,28 @@ public class SignUpController {
 	// 기본 및 로그인
 	@RequestMapping(value= {"/", "login.do"})
 	public String basic(Model model) {
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하지 않는 경우 - 로그인
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 로그인
 		if ( authorization == null ) {
-			// 세션에 값이 존재하는지 체크한다.
+			// 세션이 존재하는지 체크한다.
 			HttpSession session = request.getSession();
-			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 에러
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 로그아웃 페이지로 이동
 				return "redirect:logout.do";
@@ -83,13 +99,11 @@ public class SignUpController {
 				return "Sign/login";
 			}
 		}
-		// 헤더에 토큰이 존재하는 경우 - 정상
-		// JWT의 토큰에 해당하는 idx 추출
-		int loginIdx = jwtUtil.validationToken(authorization.substring("Bearer ".length()));
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 메인 페이지로 이동
@@ -97,74 +111,115 @@ public class SignUpController {
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
-			// JWT의 리프레쉬 토큰으로 토큰 재생성
-			String refreshToken = jwtUtil.validationRefreshToken(authorization.substring("Bearer ".length()));
-			// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
-			// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
-			if ( refreshToken == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
 				// 에러 메시지를 바인딩한다.
-				model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 메인 페이지로 이동
 				return "Page/main";
-			// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
-				// 세션에 값이 존재하는지 체크한다.
-				HttpSession session = request.getSession();
-				// 세션에 값이 존재하지 않는 경우 - 대기 시간 1시간 이후
-				if ( session.getAttribute("login") == null ) {
-					// 재생성한 토큰과 리프레쉬 토큰을 삭제한다.
-					jwtUtil.timeoutToken(refreshToken);
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
 					// 에러 메시지를 바인딩한다.
-					model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 메인 페이지로 이동
 					return "Page/main";
-				// 세션에 값이 존재하는 경우 - 대기 시간 1시간 이전
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
-					// Authorization 헤더에 재생성한 토큰 부여
-					headers.add("Authorization", "Bearer " + refreshToken);
-					// JWT의 재생성한 토큰에 해당하는 idx 추출
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// JWT에서 재생성한 토큰에 해당하는 로그인 유저 idx를 추출한다.
 					loginIdx = jwtUtil.validationToken(refreshToken);
 				}
 			}
 		}
 
-		// 토큰과 세션 모두 값이 있다면 로그인은 건너뛰고 토큰에서 추출한 로그인 유저 idx에 해당하는 메인 페이지로 이동
+		// 토큰과 세션이 모두 존재한다면 로그인은 건너뛰고 토큰에서 추출한 로그인 유저 idx에 해당하는 메인 페이지로 이동
 		return "redirect:main.do?idx=" + loginIdx;
 	}
 	
 	// 로그아웃
 	@RequestMapping("/logout.do")
 	public String logout() {
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하지 않는 경우 - 세션만 제거
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 세션만 삭제
 		if ( authorization == null ) {
-			// 세션에 값이 존재하는지 체크
+			// 세션이 존재하는지 체크한다.
 			HttpSession session = request.getSession();
-			// 세션에 값이 존재하는 경우
-			if ( session.getAttribute("login") != null ) {
-				// 세션 값 제거
+			// 세션이 존재하는 경우
+			if (session.getAttribute("login") != null) {
+				// 세션을 삭제한다.
 				session.removeAttribute("login");
 			}
-		// 헤더에 토큰이 존재하는 경우 - 토큰과 세션 모두 제거
-		} else {
-			// 세션에 값이 존재하는지 체크
-			HttpSession session = request.getSession();
-			// 세션에 값이 존재하는 경우
-			if ( session.getAttribute("login") != null ) {
-				// 세션 값 제거
-				session.removeAttribute("login");
-			}
-			// 로그아웃을 하면 Redis 블랙리스트에 토큰을 추가하고 헤더에 토큰을 제거한다.
-			// Redis 블랙리스트에 토큰 추가
-			jwtUtil.logoutToken(authorization.substring("Bearer ".length()));
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
+
+			// 세션이 삭제되면 다시 로그인 페이지로 이동
+			return "redirect:login.do";
+		}
+		// 쿠키에 토큰이 존재하는 경우 - Redis 블랙리스트에 토큰을 추가하고 토큰과 세션 모두 삭제
+		// 무효화한 토큰인지 체크한다.
+		int logoutIdx = jwtUtil.validationToken(authorization);
+		// 무효화한 토큰이 아닌 경우 - 무효화한 토큰은 이미 블랙리스트에 등록돼있으니 더 추가할 필요가 없다.
+		if ( logoutIdx != -99 ) {
+			// Redis 블랙리스트에 토큰을 추가한다.
+			jwtUtil.logoutToken(authorization);
 		}
 
-		// 토큰과 세션을 모두 비우면 다시 로그인 페이지로 이동한다
+		// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+		Cookie deleteCookie = new Cookie("Authorization", "");
+		// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+		deleteCookie.setMaxAge(0);
+		// 삭제할 Authorization 쿠키를 추가한다.
+		response.addCookie(deleteCookie);
+
+		// 세션이 존재하는지 체크한다.
+		HttpSession session = request.getSession();
+		// 세션이 존재하는 경우
+		if ( session.getAttribute("login") != null ) {
+			// 세션을 삭제한다.
+			session.removeAttribute("login");
+		}
+
+		// 토큰과 세션이 모두 삭제되면 다시 로그인 페이지로 이동
 		return "redirect:login.do";
 	}
 	
@@ -172,7 +227,7 @@ public class SignUpController {
 	@RequestMapping("/login_naver_callback.do")
 	public String naver_join(Model model) {
 		model.addAttribute("naverClientId", naverClientId);
-		// 네이버 콜백 페이지
+		// 네이버 콜백 페이지로 이동
 		return "Sign/login_naver_callback";
 	}
 	
@@ -182,7 +237,7 @@ public class SignUpController {
 		// 가져온 정보중에 ID가 없을경우 - 회원가입
 		if ( sign.getUserId() == null ) {
 			model.addAttribute("sign", sign);
-			// cyworld 회원가입 페이지
+			// cyworld 회원가입 페이지로 이동
 			return "Sign/cyworld_join";
 		}
 
@@ -190,53 +245,84 @@ public class SignUpController {
 		// 로그인한 ID로 회원 정보 조회
 		Sign login = signService.findByUserId(sign.getUserId());
 
-		// Authorization 헤더에 토큰이 존재하는지 체크
-		String authorization = headers.getFirst("Authorization");
-		// 헤더에 토큰이 존재하는 경우 - 만료시간 or 무효화 이후 로그인
-		if ( authorization != null ) {
-			// Authorization 헤더 제거
-			headers.remove("Authorization");
-			// JWT의 토큰 생성
-			String loginToken = jwtUtil.createToken(login.getIdx());
-			// Authorization 헤더에 토큰 부여
-			headers.add("Authorization", "Bearer " + loginToken);
-			// 세션 생성
-			HttpSession session = request.getSession();
-			// 로그인용 세션 생성
-			session.setAttribute("login", "login");
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 만료 or 무효화 이후 로그인
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
 
-			// 접속 날짜를 기록하기 위해 Date객체 사용
-			Date date = new Date();
-			// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
-			SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-			// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
-			login.setToDate(today.format(date));
-			// 로그인한 유저의 접속 날짜를 갱신
-			signService.updateTodayDate(login);
+					// JWT에서 로그인 유저 idx로 토큰을 생성한다.
+					String loginToken = jwtUtil.createToken(login.getIdx());
 
-			// idx에 해당하는 메인 페이지로 이동
-			return "redirect:main.do?idx=" + login.getIdx();
+					// Authorization 쿠키에 생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", loginToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(loginToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// 로그인용 세션을 생성한다.
+					HttpSession session = request.getSession();
+					// 로그인용 세션으로 "login"을 지정한다.
+					session.setAttribute("login", "login");
+
+					// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+					Date date = new Date();
+					// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+					SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
+					// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
+					login.setToDate(today.format(date));
+					// 로그인한 유저의 접속 날짜를 갱신한다.
+					signService.updateTodayDate(login);
+
+					// 로그인 유저 idx에 해당하는 메인 페이지로 이동
+					return "redirect:main.do?idx=" + login.getIdx();
+				}
+			}
 		}
-		// 헤더에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
-		// JWT의 토큰 생성
+		// 쿠키에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
+		// JWT에서 로그인 유저 idx로 토큰을 생성한다.
 		String loginToken = jwtUtil.createToken(login.getIdx());
-		// Authorization 헤더에 토큰 부여
-		headers.add("Authorization", "Bearer " + loginToken);
-		// 세션 생성
+
+		// Authorization 쿠키에 생성한 토큰을 부여한다.
+		Cookie tokenCookie = new Cookie("Authorization", loginToken);
+		// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+		int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(loginToken);
+		// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+		tokenCookie.setMaxAge(refreshExpiryDate);
+		// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+		tokenCookie.setHttpOnly(true);
+		// 생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+		response.addCookie(tokenCookie);
+
+		// 로그인용 세션을 생성한다.
 		HttpSession session = request.getSession();
-		// 로그인용 세션 생성
+		// 로그인용 세션으로 "login"을 지정한다.
 		session.setAttribute("login", "login");
 
-		// 접속 날짜를 기록하기 위해 Date객체 사용
+		// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
 		Date date = new Date();
-		// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
+		// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-		// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
+		// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
 		login.setToDate(today.format(date));
-		// 로그인한 유저의 접속 날짜를 갱신
+		// 로그인한 유저의 접속 날짜를 갱신한다.
 		signService.updateTodayDate(login);
 
-		// idx에 해당하는 메인 페이지로 이동
+		// 로그인 유저 idx에 해당하는 메인 페이지로 이동
 		return "redirect:main.do?idx=" + login.getIdx();
 	}
 
@@ -261,50 +347,81 @@ public class SignUpController {
 				// 로그인 유저 idx로 변경
 				result = join.getIdx();
 
-				// Authorization 헤더에 토큰이 존재하는지 체크
-				String authorization = headers.getFirst("Authorization");
-				// 헤더에 토큰이 존재하는 경우 - 토큰 및 세션 만료 or 무효화 이후 로그인
-				if ( authorization != null ) {
-					// Authorization 헤더 제거
-					headers.remove("Authorization");
-					// JWT 토큰 생성
-					String loginToken = jwtUtil.createToken(join.getIdx());
-					// Authorization 헤더에 토큰 부여
-					headers.add("Authorization", "Bearer " + loginToken);
-					// 세션 생성
-					HttpSession session = request.getSession();
-					// 로그인용 세션 생성
-					session.setAttribute("login", "login");
+				// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+				Cookie[] cookies = request.getCookies();
+				// Authorization 쿠키가 존재하는 경우
+				if ( cookies != null ) {
+					// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+					for (Cookie cookie : cookies) {
+						// Authorization 쿠키에 토큰이 존재하는 경우 - 만료 or 무효화 이후 로그인
+						if (cookie.getName().equals("Authorization")) {
+							// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+							Cookie deleteCookie = new Cookie("Authorization", "");
+							// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+							deleteCookie.setMaxAge(0);
+							// 삭제할 Authorization 쿠키를 추가한다.
+							response.addCookie(deleteCookie);
 
-					// 접속 날짜를 기록하기 위해 Date객체 사용
-					Date date = new Date();
-					// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
-					SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-					// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
-					join.setToDate(today.format(date));
-					// 로그인한 유저의 접속 날짜를 갱신
-					signService.updateTodayDate(join);
+							// JWT에서 로그인 유저 idx로 토큰을 생성한다.
+							String loginToken = jwtUtil.createToken(join.getIdx());
 
-					// 콜백 메소드에 전달
-					return result;
+							// Authorization 쿠키에 생성한 토큰을 부여한다.
+							Cookie tokenCookie = new Cookie("Authorization", loginToken);
+							// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+							int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(loginToken);
+							// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+							tokenCookie.setMaxAge(refreshExpiryDate);
+							// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+							tokenCookie.setHttpOnly(true);
+							// 생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+							response.addCookie(tokenCookie);
+
+							// 로그인용 세션을 생성한다.
+							HttpSession session = request.getSession();
+							// 로그인용 세션으로 "login"을 지정한다.
+							session.setAttribute("login", "login");
+
+							// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+							Date date = new Date();
+							// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+							SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
+							// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
+							join.setToDate(today.format(date));
+							// 로그인한 유저의 접속 날짜를 갱신한다.
+							signService.updateTodayDate(join);
+
+							// 콜백 메소드에 전달
+							return result;
+						}
+					}
 				}
-				// 헤더에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
-				// JWT 토큰 생성
+				// 쿠키에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
+				// JWT에서 로그인 유저 idx로 토큰을 생성한다.
 				String loginToken = jwtUtil.createToken(join.getIdx());
-				// Authorization 헤더에 토큰 부여
-				headers.add("Authorization", "Bearer " + loginToken);
-				// 세션 생성
+
+				// Authorization 쿠키에 생성한 토큰을 부여한다.
+				Cookie tokenCookie = new Cookie("Authorization", loginToken);
+				// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+				int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(loginToken);
+				// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+				tokenCookie.setMaxAge(refreshExpiryDate);
+				// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+				tokenCookie.setHttpOnly(true);
+				// 생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+				response.addCookie(tokenCookie);
+
+				// 로그인용 세션을 생성한다.
 				HttpSession session = request.getSession();
-				// 로그인용 세션 생성
+				// 로그인용 세션으로 "login"을 지정한다.
 				session.setAttribute("login", "login");
 
-				// 접속 날짜를 기록하기 위해 Date객체 사용
+				// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
 				Date date = new Date();
-				// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
+				// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
 				SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-				// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
+				// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
 				join.setToDate(today.format(date));
-				// 로그인한 유저의 접속 날짜를 갱신
+				// 로그인한 유저의 접속 날짜를 갱신한다.
 				signService.updateTodayDate(join);
 
 				// 콜백 메소드에 전달
@@ -350,50 +467,81 @@ public class SignUpController {
 				// 로그인 유저 idx로 변경
 				result = join.getIdx();
 
-				// Authorization 헤더에 토큰이 존재하는지 체크
-				String authorization = headers.getFirst("Authorization");
-				// 헤더에 토큰이 존재하는 경우 - 토큰 및 세션 만료 or 무효화 이후 로그인
-				if ( authorization != null ) {
-					// Authorization 헤더 제거
-					headers.remove("Authorization");
-					// JWT 토큰 생성
-					String loginToken = jwtUtil.createToken(join.getIdx());
-					// Authorization 헤더에 토큰 부여
-					headers.add("Authorization", "Bearer " + loginToken);
-					// 세션 생성
-					HttpSession session = request.getSession();
-					// 로그인용 세션 생성
-					session.setAttribute("login", "login");
+				// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+				Cookie[] cookies = request.getCookies();
+				// Authorization 쿠키가 존재하는 경우
+				if ( cookies != null ) {
+					// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+					for (Cookie cookie : cookies) {
+						// Authorization 쿠키에 토큰이 존재하는 경우 - 만료 or 무효화 이후 로그인
+						if (cookie.getName().equals("Authorization")) {
+							// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+							Cookie deleteCookie = new Cookie("Authorization", "");
+							// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+							deleteCookie.setMaxAge(0);
+							// 삭제할 Authorization 쿠키를 추가한다.
+							response.addCookie(deleteCookie);
 
-					// 접속 날짜를 기록하기 위해 Date객체 사용
-					Date date = new Date();
-					// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
-					SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-					// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
-					join.setToDate(today.format(date));
-					// 로그인한 유저의 접속 날짜를 갱신
-					signService.updateTodayDate(join);
+							// JWT에서 로그인 유저 idx로 토큰을 생성한다.
+							String loginToken = jwtUtil.createToken(join.getIdx());
 
-					// 콜백 메소드에 전달
-					return result;
+							// Authorization 쿠키에 생성한 토큰을 부여한다.
+							Cookie tokenCookie = new Cookie("Authorization", loginToken);
+							// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+							int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(loginToken);
+							// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+							tokenCookie.setMaxAge(refreshExpiryDate);
+							// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+							tokenCookie.setHttpOnly(true);
+							// 생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+							response.addCookie(tokenCookie);
+
+							// 로그인용 세션을 생성한다.
+							HttpSession session = request.getSession();
+							// 로그인용 세션으로 "login"을 지정한다.
+							session.setAttribute("login", "login");
+
+							// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+							Date date = new Date();
+							// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+							SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
+							// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
+							join.setToDate(today.format(date));
+							// 로그인한 유저의 접속 날짜를 갱신한다.
+							signService.updateTodayDate(join);
+
+							// 콜백 메소드에 전달
+							return result;
+						}
+					}
 				}
-				// 헤더에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
-				// JWT 토큰 생성
+				// 쿠키에 토큰이 존재하지 않는 경우 - 로그이웃 이후 로그인
+				// JWT에서 로그인 유저 idx로 토큰을 생성한다.
 				String loginToken = jwtUtil.createToken(join.getIdx());
-				// Authorization 헤더에 토큰 부여
-				headers.add("Authorization", "Bearer " + loginToken);
-				// 세션 생성
+
+				// Authorization 쿠키에 생성한 토큰을 부여한다.
+				Cookie tokenCookie = new Cookie("Authorization", loginToken);
+				// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+				int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(loginToken);
+				// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+				tokenCookie.setMaxAge(refreshExpiryDate);
+				// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+				tokenCookie.setHttpOnly(true);
+				// 생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+				response.addCookie(tokenCookie);
+
+				// 로그인용 세션을 생성한다.
 				HttpSession session = request.getSession();
-				// 로그인용 세션 생성
+				// 로그인용 세션으로 "login"을 지정한다.
 				session.setAttribute("login", "login");
 
-				// 접속 날짜를 기록하기 위해 Date객체 사용
+				// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
 				Date date = new Date();
-				// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
+				// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
 				SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-				// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력
+				// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
 				join.setToDate(today.format(date));
-				// 로그인한 유저의 접속 날짜를 갱신
+				// 로그인한 유저의 접속 날짜를 갱신한다.
 				signService.updateTodayDate(join);
 
 				// 콜백 메소드에 전달
@@ -731,7 +879,7 @@ public class SignUpController {
 		} else {
 			// 먼저 접속 날짜에 가입 날짜를 기록하기 위해 Date객체 사용
 			Date date = new Date();
-			// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다
+			// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
 			SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
 
 			// 휴대폰 번호 하이픈 제거
