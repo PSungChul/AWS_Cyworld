@@ -7,7 +7,6 @@ import com.social.cyworld.repository.IlchonRepository;
 import com.social.cyworld.repository.IlchonpyeongRepository;
 import com.social.cyworld.repository.ViewsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

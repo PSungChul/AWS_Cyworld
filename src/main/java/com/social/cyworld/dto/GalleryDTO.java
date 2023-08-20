@@ -4,10 +4,6 @@ import com.social.cyworld.entity.Gallery;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 

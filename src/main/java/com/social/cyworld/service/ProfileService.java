@@ -5,7 +5,6 @@ import com.social.cyworld.entity.Sign;
 import com.social.cyworld.repository.BuyMinimiRepository;
 import com.social.cyworld.repository.SignRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

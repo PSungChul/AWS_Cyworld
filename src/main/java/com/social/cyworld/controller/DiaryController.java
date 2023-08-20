@@ -105,7 +105,7 @@ public class DiaryController {
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCookie = new Cookie("Authorization", "");
-					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
 					deleteCookie.setMaxAge(0);
 					// 삭제할 Authorization 쿠키를 추가한다.
 					response.addCookie(deleteCookie);
@@ -114,9 +114,9 @@ public class DiaryController {
 					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
 					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
 					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
-					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
 					tokenCookie.setMaxAge(refreshExpiryDate);
-					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
 					tokenCookie.setHttpOnly(true);
 					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
 					response.addCookie(tokenCookie);
@@ -216,7 +216,7 @@ public class DiaryController {
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCookie = new Cookie("Authorization", "");
-					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
 					deleteCookie.setMaxAge(0);
 					// 삭제할 Authorization 쿠키를 추가한다.
 					response.addCookie(deleteCookie);
@@ -225,9 +225,9 @@ public class DiaryController {
 					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
 					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
 					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
-					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
 					tokenCookie.setMaxAge(refreshExpiryDate);
-					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
 					tokenCookie.setHttpOnly(true);
 					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
 					response.addCookie(tokenCookie);
@@ -330,7 +330,7 @@ public class DiaryController {
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCookie = new Cookie("Authorization", "");
-					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
 					deleteCookie.setMaxAge(0);
 					// 삭제할 Authorization 쿠키를 추가한다.
 					response.addCookie(deleteCookie);
@@ -339,9 +339,9 @@ public class DiaryController {
 					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
 					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
 					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
-					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
 					tokenCookie.setMaxAge(refreshExpiryDate);
-					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
 					tokenCookie.setHttpOnly(true);
 					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
 					response.addCookie(tokenCookie);
@@ -443,7 +443,7 @@ public class DiaryController {
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCookie = new Cookie("Authorization", "");
-					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
 					deleteCookie.setMaxAge(0);
 					// 삭제할 Authorization 쿠키를 추가한다.
 					response.addCookie(deleteCookie);
@@ -452,9 +452,9 @@ public class DiaryController {
 					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
 					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
 					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
-					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
 					tokenCookie.setMaxAge(refreshExpiryDate);
-					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
 					tokenCookie.setHttpOnly(true);
 					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
 					response.addCookie(tokenCookie);
@@ -556,7 +556,7 @@ public class DiaryController {
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCookie = new Cookie("Authorization", "");
-					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
 					deleteCookie.setMaxAge(0);
 					// 삭제할 Authorization 쿠키를 추가한다.
 					response.addCookie(deleteCookie);
@@ -565,9 +565,9 @@ public class DiaryController {
 					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
 					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
 					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
-					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
 					tokenCookie.setMaxAge(refreshExpiryDate);
-					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
 					tokenCookie.setHttpOnly(true);
 					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
 					response.addCookie(tokenCookie);
@@ -663,7 +663,7 @@ public class DiaryController {
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCookie = new Cookie("Authorization", "");
-					// Authorization 쿠키의 만료 시간을 0으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
 					deleteCookie.setMaxAge(0);
 					// 삭제할 Authorization 쿠키를 추가한다.
 					response.addCookie(deleteCookie);
@@ -672,9 +672,9 @@ public class DiaryController {
 					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
 					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
 					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
-					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 지정한다.
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
 					tokenCookie.setMaxAge(refreshExpiryDate);
-					// Authorization 쿠키에 HttpOnly를 지정한다. - JavaScript를 통한 접근을 차단
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
 					tokenCookie.setHttpOnly(true);
 					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
 					response.addCookie(tokenCookie);
