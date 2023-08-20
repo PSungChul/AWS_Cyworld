@@ -26,7 +26,7 @@ public class JwtUtil {
     @Autowired
     RedisUtil redisUtil;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // 토큰 암호화키
+    // HS256 알고리즘을 사용하여 랜덤한 시크릿 키를 생성한다.
     private SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     // idx에 해당하는 토큰 저장 map
     private Map<Integer, String> tokenMap = new ConcurrentHashMap<>();
@@ -39,17 +39,19 @@ public class JwtUtil {
         // AccessToken 발급
         // 현재 시간을 가져온다.
         Date now = new Date();
-        // 토큰의 만료 시간을 계산한다.
+        // 토큰의 만료 시간을 계산하기 위해 Calendar 클래스의 인스턴스를 생성한다.
         Calendar calendar = Calendar.getInstance(); // Calendar 클래스의 인스턴스 반환 // Calendar cal = new Calendar(); - 애러, 추상클래스는 인스턴스 생성 불가
-        // 현재 시간에서 1시간 후의 시간을 설정
+        // 현재 시간에서 1시간 후의 밀리초로 토큰의 만료 시간을 계산하여 Calendar 클래스의 인스턴스에 추가한다.
         calendar.add(Calendar.MILLISECOND, 60 * 60 * 1000); // Calendar.MILLISECOND - 1000분의 1초(0~999)
+        // Calendar 클래스의 인스턴스에 추가된 만료 시간을 가져온다.
         Date expiryDate = calendar.getTime();
-        String token = Jwts.builder()
-                .setSubject(String.valueOf(idx))
-                .setIssuedAt(now)
-                .setExpiration(expiryDate) // setExpiration 매개변수가 Date로 되어있어 LocalDateTime를 사용하지 못한다.
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+        // JWT 토큰을 생성한다.
+        String token = Jwts.builder() // JWT 빌더를 생성한다.
+                .setSubject(String.valueOf(idx)) // 토큰의 주제(subject)를 설정한다. - 로그인 유저 idx
+                .setIssuedAt(now) // 토큰의 발행 시간을 설정한다.
+                .setExpiration(expiryDate) // 토큰의 만료 시간을 설정한다. - 1시간 후
+                .signWith(secretKey, SignatureAlgorithm.HS256) // 생성한 시크릿 키와 HS256 알고리즘을 사용하여 JWT 토큰에 서명한다.
+                .compact(); // 토큰을 생성하고 문자열 형태로 반환한다.
 
         // 토큰 저장 map에 idx를 키로 토큰을 저장한다.
         tokenMap.put(idx, token);
@@ -57,17 +59,19 @@ public class JwtUtil {
         // RefreshToken 발급
         // 현재 시간을 가져온다.
         Date refreshNow = new Date();
-        // 토큰의 만료 시간을 계산한다.
+        // 토큰의 만료 시간을 계산하기 위해 Calendar 클래스의 인스턴스를 생성한다.
         Calendar refreshCalendar = Calendar.getInstance(); // Calendar 클래스의 인스턴스 반환 // Calendar cal = new Calendar(); - 애러, 추상클래스는 인스턴스 생성 불가
-        // 현재 시간에서 7일 후의 시간을 설정
+        // 현재 시간에서 7일 후의 밀리초로 토큰의 만료 시간을 계산하여 Calendar 클래스의 인스턴스에 추가한다.
         refreshCalendar.add(Calendar.MILLISECOND, 7 * 24 * 60 * 60 * 1000); // Calendar.MILLISECOND - 1000분의 1초(0~999)
+        // Calendar 클래스의 인스턴스에 추가된 만료 시간을 가져온다.
         Date refreshExpiryDate = refreshCalendar.getTime();
-        String refreshToken = Jwts.builder()
-                .setSubject(String.valueOf(idx))
-                .setIssuedAt(refreshNow)
-                .setExpiration(refreshExpiryDate) // setExpiration 매개변수가 Date로 되어있어 LocalDateTime를 사용하지 못한다.
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+        // JWT 토큰을 생성한다.
+        String refreshToken = Jwts.builder() // JWT 빌더를 생성한다.
+                .setSubject(String.valueOf(idx)) // 토큰의 주제(subject)를 설정한다. - 로그인 유저 idx
+                .setIssuedAt(refreshNow) // 토큰의 발행 시간을 설정한다.
+                .setExpiration(refreshExpiryDate) // 토큰의 만료 시간을 설정한다. - 7일 후
+                .signWith(secretKey, SignatureAlgorithm.HS256) // 생성한 시크릿 키와 HS256 알고리즘을 사용하여 JWT 토큰에 서명한다.
+                .compact(); // 토큰을 생성하고 문자열 형태로 반환한다.
 
         // Redis에 토큰을 키로 사용하여 리프레쉬 토큰을 저장한다.
         saveRefreshToken(token, refreshToken);
@@ -86,11 +90,11 @@ public class JwtUtil {
             tokenMap.remove(idx);
             try {
                 // 토큰을 파싱하여 토큰의 내용(Claims)을 가져온다.
-                Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(secretKey)
-                        .build()
-                        .parseClaimsJws(token)
-                        .getBody();
+                Claims claims = Jwts.parserBuilder() // JWT 파서 빌더를 생성한다.
+                        .setSigningKey(secretKey) // 파싱에 사용할 시크릿 키를 설정한다.
+                        .build() // JWT 파서를 빌드하여 생성한다.
+                        .parseClaimsJws(token) // 가져온 토큰을 파싱하여 Jws 객체를 얻는다. (Jws - JSON Web Signature)
+                        .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다.
                 // 토큰의 만료 시간을 가져온다.
                 Date expirationDate = claims.getExpiration();
                 // 현재 시간을 가져온다.
@@ -117,11 +121,11 @@ public class JwtUtil {
     // 리프레쉬 토큰 저장
     public void saveRefreshToken(String token, String refreshToken) {
         // 리프레쉬 토큰을 파싱하여 리프레쉬 토큰의 내용(Claims)을 가져온다.
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(refreshToken)
-                .getBody();
+        Claims claims = Jwts.parserBuilder() // JWT 파서 빌더를 생성한다.
+                .setSigningKey(secretKey) // 파싱에 사용할 시크릿 키를 설정한다.
+                .build() // JWT 파서를 빌드하여 생성한다.
+                .parseClaimsJws(refreshToken) // 가져온 리프레쉬 토큰을 파싱하여 Jws 객체를 얻는다. (Jws - JSON Web Signature)
+                .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다.
         // 리프레쉬 토큰의 만료 시간을 가져온다.
         Date expirationDate = claims.getExpiration();
         // 현재 시간을 가져온다.
@@ -142,11 +146,11 @@ public class JwtUtil {
             }
 
             // 토큰을 파싱하여 토큰의 내용(Claims)을 가져온다.
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            Claims claims = Jwts.parserBuilder() // JWT 파서 빌더를 생성한다.
+                    .setSigningKey(secretKey) // 파싱에 사용할 시크릿 키를 설정한다.
+                    .build() // JWT 파서를 빌드하여 생성한다.
+                    .parseClaimsJws(token) // 가져온 토큰을 파싱하여 Jws 객체를 얻는다. (Jws - JSON Web Signature)
+                    .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다. // 파싱된 토큰의 내용(Claims)을 가져온다.
 
             // 토큰의 내용 중 사용자 idx 추출
             int idx = Integer.valueOf(claims.getSubject());
@@ -201,11 +205,11 @@ public class JwtUtil {
             // Redis에서 토큰을 키로 사용하여 리프레쉬 토큰을 가져온다.
             String refreshToken = (String) redisUtil.get(token);
             // 리프레쉬 토큰을 파싱하여 리프레쉬 토큰의 내용(Claims)을 가져온다.
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(refreshToken)
-                    .getBody();
+            Claims claims = Jwts.parserBuilder() // JWT 파서 빌더를 생성한다.
+                    .setSigningKey(secretKey) // 파싱에 사용할 시크릿 키를 설정한다.
+                    .build() // JWT 파서를 빌드하여 생성한다.
+                    .parseClaimsJws(refreshToken) // 가져온 리프레쉬 토큰을 파싱하여 Jws 객체를 얻는다. (Jws - JSON Web Signature)
+                    .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다. // 파싱된 토큰의 내용(Claims)을 가져온다.
 
             // 리프레쉬 토큰의 내용 중 사용자 idx 추출
             int idx = Integer.valueOf(claims.getSubject());
@@ -215,17 +219,19 @@ public class JwtUtil {
             // 토큰 재생성
             // 현재 시간을 가져온다.
             Date now = new Date();
-            // 토큰의 만료 시간을 계산한다.
+            // 토큰의 만료 시간을 계산하기 위해 Calendar 클래스의 인스턴스를 생성한다.
             Calendar calendar = Calendar.getInstance(); // Calendar 클래스의 인스턴스 반환 // Calendar cal = new Calendar(); - 애러, 추상클래스는 인스턴스 생성 불가
-            // 현재 시간에서 1시간 후의 시간을 설정
+            // 현재 시간에서 1시간 후의 밀리초로 토큰의 만료 시간을 계산하여 Calendar 클래스의 인스턴스에 추가한다.
             calendar.add(Calendar.MILLISECOND, 60 * 60 * 1000); // Calendar.MILLISECOND - 1000분의 1초(0~999)
+            // Calendar 클래스의 인스턴스에 추가된 만료 시간을 가져온다.
             Date expiryDate = calendar.getTime();
-            String newToken = Jwts.builder()
-                    .setSubject(String.valueOf(idx))
-                    .setIssuedAt(now)
-                    .setExpiration(expiryDate) // setExpiration 매개변수가 Date로 되어있어 LocalDateTime를 사용하지 못한다.
-                    .signWith(secretKey, SignatureAlgorithm.HS256)
-                    .compact();
+            // JWT 토큰을 재생성한다.
+            String newToken = Jwts.builder() // JWT 빌더를 생성한다.
+                    .setSubject(String.valueOf(idx)) // 토큰의 주제(subject)를 설정한다. - 로그인 유저 idx
+                    .setIssuedAt(now) // 토큰의 발행 시간을 설정한다.
+                    .setExpiration(expiryDate) // 토큰의 만료 시간을 설정한다. - 1시간 후
+                    .signWith(secretKey, SignatureAlgorithm.HS256) // 생성한 시크릿 키와 HS256 알고리즘을 사용하여 JWT 토큰에 서명한다.
+                    .compact(); // 토큰을 생성하고 문자열 형태로 반환한다.
 
             // Redis에 저장된 리프레쉬 토큰의 키를 재생성한 토큰으로 갱신한다.
             redisUtil.update(token, newToken);
@@ -249,11 +255,11 @@ public class JwtUtil {
             // Redis에서 토큰을 키로 사용하여 리프레쉬 토큰을 가져온다.
             String refreshToken = (String) redisUtil.get(token);
             // 리프레쉬 토큰을 파싱하여 리프레쉬 토큰의 내용(Claims)을 가져온다.
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(refreshToken)
-                    .getBody();
+            Claims claims = Jwts.parserBuilder() // JWT 파서 빌더를 생성한다.
+                    .setSigningKey(secretKey) // 파싱에 사용할 시크릿 키를 설정한다.
+                    .build() // JWT 파서를 빌드하여 생성한다.
+                    .parseClaimsJws(refreshToken) // 가져온 리프레쉬 토큰을 파싱하여 Jws 객체를 얻는다. (Jws - JSON Web Signature)
+                    .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다.
 
             // 리프레쉬 토큰의 만료 시간을 가져온다.
             Date expirationDate = claims.getExpiration();
@@ -276,11 +282,11 @@ public class JwtUtil {
     public void logoutToken(String token) {
         try {
             // 토큰을 파싱하여 토큰의 내용(Claims)을 가져온다.
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            Claims claims = Jwts.parserBuilder() // JWT 파서 빌더를 생성한다.
+                    .setSigningKey(secretKey) // 파싱에 사용할 시크릿 키를 설정한다.
+                    .build() // JWT 파서를 빌드하여 생성한다.
+                    .parseClaimsJws(token) // 가져온 토큰을 파싱하여 Jws 객체를 얻는다. (Jws - JSON Web Signature)
+                    .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다.
             // 토큰 저장 map에서 idx에 해당하는 토큰을 삭제한다.
             tokenMap.remove(Integer.valueOf(claims.getSubject()));
             // 토큰의 만료 시간을 가져온다.

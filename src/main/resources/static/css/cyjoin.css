@@ -45,39 +45,39 @@
    .logo-main {  position: absolute; width: 280px; height: 80px;
     left: 80px; top:30px;
 }
-.userID { position: absolute; width: 360px; height: 30px; top:130px; left:105px; }
+.userID { position: absolute; width: 360px; height: 30px; top:130px; left:105px;}
 .userID > input { width: 230px; height: 25px;}
 .checkButton { position: absolute; top:154px; left:360px;  width: 70px; letter-spacing: .15em;}
-.userPW { position: absolute; width: 340px; height: 30px; top:195px; left:105px;}    
-.userPW > input { position: absolute; width: 230px; height: 25px; top:30px; }    
-.pwText { color:red; font-size:10px; position:absolute; top:260px; left:105px; }
-.pT2 { position:absolute; top:340px; }
-.userPW2 {position: absolute; width: 440px; height: 30px; top:275px; left:105px;} 
-.userPW2 > input { width: 230px; height: 25px; }   
-.name{position: absolute; width: 360px; height: 30px; top:357px; left:105px;}
-.name > input { width: 230px; height: 25px; }
-/*.rNumber {position: absolute; width: 360px; height: 30px; top:422px; left:105px;}*/
-/*.rNumber > input { width: 230px; height: 25px; }*/
-.gender {position: absolute; width: 360px; height: 30px; top:422px; left:105px;}
-.gender > input {width: 15px; height: 18px;  }
-.email {position: absolute; width: 360px; height: 30px; top:490px; left:105px;}
-.email > input {width: 230px; height: 25px; }
-.sendANum1 {position: absolute; width: 90px; height: 30px; top:514px; left:348px; font-size: 12px; letter-spacing: .15em; }
-.sendANum2 {position: absolute; width: 90px; height: 30px; top:580px; left:348px; font-size: 12px; letter-spacing: .15em;}
-.ANum {position: absolute; width: 360px; height: 30px; top:555px; left:105px;}
-.ANum > input {width: 230px; height: 25px;}
-.phone {position: absolute; width: 360px; height: 30px; top:620px; left:105px;}
+.userPW { position: absolute; width: 340px; height: 30px; top:195px; left:105px;}
+.userPW > input { position: absolute; width: 230px; height: 25px; top:30px;}
+.pwText { color:red; font-size:10px; position:absolute; top:260px; left:105px;}
+.pT2 { position:absolute; top:340px;}
+.userPW2 {position: absolute; width: 440px; height: 30px; top:275px; left:105px;}
+.userPW2 > input { width: 230px; height: 25px;}
+.gender {position: absolute; width: 360px; height: 30px; top:357px; left:105px;}
+.gender > input {width: 15px; height: 18px;}
+.name{position: absolute; width: 360px; height: 30px; top:425px; left:105px;}
+.name > input { width: 230px; height: 25px;}
+.birthday{position: absolute; width: 360px; height: 30px; top:490px; left:105px;}
+.birthday > input { width: 230px; height: 25px;}
+.phone {position: absolute; width: 360px; height: 30px; top:555px; left:105px;}
 .phone > input {width: 230px; height: 25px;}
-.PNum {position: absolute; width: 360px; height: 30px; top:685px; left:105px;}
+.PNum {position: absolute; width: 360px; height: 30px; top:620px; left:105px;}
 .PNum > input {width: 230px; height: 25px;}
-.sendPNum1 {position: absolute; width: 90px; height: 30px; top:644px; left:348px; font-size: 12px; letter-spacing: .15em; }
-.sendPNum2 {position: absolute; width: 90px; height: 30px; top:710px; left:348px; font-size: 12px; letter-spacing: .15em;}
-.address{position: absolute; width: 360px; height: 30px; top:750px; left:105px;}
+.sendPNum1 {position: absolute; width: 90px; height: 30px; top:580px; left:348px; font-size: 12px; letter-spacing: .15em;}
+.sendPNum2 {position: absolute; width: 90px; height: 30px; top:645px; left:348px; font-size: 12px; letter-spacing: .15em;}
+.email {position: absolute; width: 360px; height: 30px; top:685px; left:105px;}
+.email > input {width: 230px; height: 25px;}
+.ANum {position: absolute; width: 360px; height: 30px; top:750px; left:105px;}
+.ANum > input {width: 230px; height: 25px;}
+.sendANum1 {position: absolute; width: 90px; height: 30px; top:710px; left:348px; font-size: 12px; letter-spacing: .15em;}
+.sendANum2 {position: absolute; width: 90px; height: 30px; top:775px; left:348px; font-size: 12px; letter-spacing: .15em;}
+.address{position: absolute; width: 360px; height: 30px; top:815px; left:105px;}
 .address > input { width: 230px; height: 25px;}
-.address2 { position: absolute; top:775px; left:360px; letter-spacing: .15em; width: 70px;}
-.rAddress {position: absolute; width: 360px; height: 30px; top:815px; left:105px;}
+.address2 { position: absolute; top:841px; left:360px; letter-spacing: .15em; width: 70px;}
+.rAddress {position: absolute; width: 360px; height: 30px; top:880px; left:105px;}
 .rAddress > input {width: 230px; height: 25px;}
-.mJoin{position: absolute; width: 80px; height: 40px; top:920px; left:185px; letter-spacing: .15em;}
+.mJoin{position: absolute; width: 80px; height: 40px; top:950px; left:185px; letter-spacing: .15em;}
 .cancel{position:absolute; width: 40px; font-size:16px; left: 20px;}
 
 

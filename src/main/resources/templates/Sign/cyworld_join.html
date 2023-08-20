@@ -36,19 +36,20 @@
 							<div class="pwText" id="pT1"></div>
 							<p class="userPW2">PW 확인 <br> <input id="pw2" type="password" oninput="pw2Check();"></p>
 							<div class="pwText pT2"></div>
-							<p class="name">이름 <br> <input name="name" type="text"></p>
 							<p class="gender">성별 <br> <input name="gender" type="radio" value="male">&nbsp; 남자
 														<input name="gender" type="radio" value="female">&nbsp; 여자</p>
-							<p class="email">이메일 <br> <input id="email" name="email" type="text"></p>
-							<input class="sendANum1" id="btn-cover" type="button" value="인증번호 전송" onclick="emailSend(this.form);">
-							<p class="ANum">인증번호 <br> <input id="i_email" type="text"></p>
-							<input class="sendANum2" ID="btn-cover" type="button" value="인증번호 확인" onclick="emailCheck();" >
+							<p class="name">이름 <br> <input name="name" type="text"></p>
+							<p class="birthday">생년월일 <br> <input name="birthday" type="date"></p>
 							<p class="phone">휴대폰 <br> <input id="phoneNumber" name="phoneNumber" type="text" placeholder="휴대폰 번호를 입력해주세요" maxlength="13"></p>
-							<input class="sendPNum1" id="btn-cover" type="button" value="인증번호 전송" onclick="phoneSend();">
+														<input class="sendPNum1" id="btn-cover" type="button" value="인증번호 전송" onclick="phoneSend();">
 							<p class="PNum">인증번호 <br> <input id="i_phoneNumber" type="text"></p>
-							<input class="sendPNum2" id="btn-cover" type="button" value="인증번호 확인" onclick="phoneCheck();">
+														<input class="sendPNum2" id="btn-cover" type="button" value="인증번호 확인" onclick="phoneCheck();">
+							<p class="email">이메일 <br> <input id="email" name="email" type="text"></p>
+														<input class="sendANum1" id="btn-cover" type="button" value="인증번호 전송" onclick="emailSend(this.form);">
+							<p class="ANum">인증번호 <br> <input id="i_email" type="text"></p>
+														<input class="sendANum2" ID="btn-cover" type="button" value="인증번호 확인" onclick="emailCheck();">
 							<p class="address">주소 <br> <input class="address_kakao" name="address" type="text"></p>
-							<input class="address2 address_kakao" id="btn-cover" type="button" value="주소찾기"> <br>
+														<input class="address2 address_kakao" id="btn-cover" type="button" value="주소찾기"> <br>
 							<p class="rAddress">상세 주소 <br> <input class="address_kakao" name="addressDetail" type="text"></p>
 							<input class="mJoin" id="btn-cover" type="button" value="가입" onclick="cyworldJoin(this.form);">
 							<input  id="btn-cover" class="cancel" type="button" value="취소" onclick="location.href='logout.do'">
@@ -361,19 +362,20 @@
 			let pattern2 = /[a-zA-Z]/; // 영어 소문자, 대문자 입력
 			let pattern3 = /[~!@#$%^&*()_+]/; // 특수기호 입력
 			let infoR = document.getElementById("pw2").value;
-			
-			let name = f.name.value;
+
 			let gender = f.gender.value;
-			
-			// 이메일 인증 체크
-			let email = f.email.value;
-			let i_email = document.getElementById("i_email").value; // 인증번호 입력값
-			let h_email_check = document.getElementById("h_email_check").value; // 인증번호 체크용
+			let name = f.name.value;
+			let birthday = f.birthday.value;
 
 			// 휴대폰 인증 체크
 			let phoneNumber = f.phoneNumber.value;
 			let i_phoneNumber = document.getElementById("i_phoneNumber").value; // 인증번호 입력값
 			let h_phone_check = document.getElementById("h_phone_check").value; // 인증번호 체크용
+			
+			// 이메일 인증 체크
+			let email = f.email.value;
+			let i_email = document.getElementById("i_email").value; // 인증번호 입력값
+			let h_email_check = document.getElementById("h_email_check").value; // 인증번호 체크용
 
 			let address = f.address.value;
 			let addressDetail = f.addressDetail.value;
@@ -416,24 +418,16 @@
 				alert("비밀번호 확인이 비밀번호와 일치하지 않습니다");
 				return;
 			}
-			if ( name == '' ) {
-				alert("이름을 입력하세요");
-				return;
-			}
 			if ( gender == '' ) {
 				alert("성별을 선택하세요");
 				return;
 			}
-			if ( email == '' ) {
-				alert("이메일을 입력하세요");
+			if ( name == '' ) {
+				alert("이름을 입력하세요");
 				return;
 			}
-			if ( i_email == '' ) {
-				alert("인증번호를 입력하세요")
-				return;
-			}
-			if ( h_email_check != 'true' ) {
-				alert("인증번호를 다시 확인하세요");
+			if ( birthday == '' ) {
+				alert("생년월일을 입력하세요");
 				return;
 			}
 			if ( phoneNumber == '' ) {
@@ -445,6 +439,18 @@
 				return;
 			}
 			if ( h_phone_check != 'true' ) {
+				alert("인증번호를 다시 확인하세요");
+				return;
+			}
+			if ( email == '' ) {
+				alert("이메일을 입력하세요");
+				return;
+			}
+			if ( i_email == '' ) {
+				alert("인증번호를 입력하세요")
+				return;
+			}
+			if ( h_email_check != 'true' ) {
 				alert("인증번호를 다시 확인하세요");
 				return;
 			}
@@ -460,10 +466,11 @@
 			url = "welcome.do";
 			param = "userId=" + userId +
 					"&info=" + info +
-					"&name=" + name +
 					"&gender=" + gender +
-					"&email=" + email +
+					"&name=" + name +
+					"&birthday=" + birthday +
 					"&phoneNumber=" + phoneNumber +
+					"&email=" + email +
 					"&address=" + address +
 					"&addressDetail=" + addressDetail +
 					"&platform=" + platform;

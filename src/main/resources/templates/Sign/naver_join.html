@@ -19,10 +19,11 @@
 						
 						<form>
 							<input name="platform" type="hidden" th:value="${ sign.platform }">
-							<input name="name" type="hidden" th:value="${ sign.name }">
 							<input name="gender" type="hidden" th:value="${ sign.gender }">
-							<input name="email" type="hidden" th:value="${ sign.email }">
+							<input name="name" type="hidden" th:value="${ sign.name }">
+							<input name="birthday" type="hidden" th:value="${ sign.birthday }">
 							<input name="phoneNumber" type="hidden" th:value="${ sign.phoneNumber }">
+							<input name="email" type="hidden" th:value="${ sign.email }">
 							<p class="address">주소 <br> <input class="address_kakao" name="address" type="text">
 								<div class="findAddress"><input id="btn-cover" class="address_kakao" type="button" value="주소찾기"></div>
 							</p>
@@ -64,10 +65,11 @@
 		// DB저장하러 이동
 		function join(f) {
 			// 회원가입 정보
-			let name = f.name.value;
 			let gender = f.gender.value;
-			let email = f.email.value;
+			let name = f.name.value;
+			let birthday = f.birthday.value;
 			let phoneNumber = f.phoneNumber.value;
+			let email = f.email.value;
 			let address = f.address.value;
 			let addressDetail = f.addressDetail.value;
 			let platform = f.platform.value;
@@ -84,10 +86,11 @@
 			}
 			
 			url = "welcome.do";
-			param = "name=" + name +
-					"&gender=" + gender +
-					"&email=" + email +
+			param = "&gender=" + gender +
+					"&name=" + name +
+					"&birthday=" + birthday +
 					"&phoneNumber=" + phoneNumber +
+					"&email=" + email +
 					"&address=" + address +
 					"&addressDetail=" + addressDetail +
 					"&platform=" + platform;

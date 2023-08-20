@@ -26,10 +26,11 @@
 							<input name="gender" type="hidden" th:value="${ sign.gender }">
 							<input name="email" type="hidden" th:value="${ sign.email }">
 							<p class="name">이름 <br> <input name="name" type="text"></p>
+							<p class="birthday">생년월일 <br> <input name="birthday" type="date"></p>
 							<p class="phone">휴대폰 <br> <input id="phoneNumber" name="phoneNumber" type="text" placeholder="휴대폰 번호를 입력해주세요" maxlength="13"></p>
-							<input class="sendPNum1" id="btn-cover" type="button" value="인증번호 전송" onclick="phoneSend();">
+														<input class="sendPNum1" id="btn-cover" type="button" value="인증번호 전송" onclick="phoneSend();">
 							<p class="PNum">인증번호 <br> <input id="i_phoneNumber" type="text"></p>
-							<input class="sendPNum2" id="btn-cover" type="button" value="인증번호 확인" onclick="phoneCheck();">
+														<input class="sendPNum2" id="btn-cover" type="button" value="인증번호 확인" onclick="phoneCheck();">
 							<p class="address">주소 <br> <input id="addressText" class="address_kakao" name="address" type="text">
 														<input id="btn-cover" class="address_kakao" type="button" value="주소찾기"></p> 
 							<p class="rAddress">상세 주소 <br> <input class="address_kakao" name="addressDetail" type="text"></p>
@@ -179,14 +180,16 @@
 		// DB저장하러 이동
 		function join(f) {
 			// 회원가입 정보
-			let name = f.name.value;
 			let gender = f.gender.value;
-			let email = f.email.value;
+			let name = f.name.value;
+			let birthday = f.birthday.value;
 
 			// 휴대폰 인증 체크
 			let phoneNumber = f.phoneNumber.value;
 			let i_phoneNumber = document.getElementById("i_phoneNumber").value; // 인증번호 입력값
 			let h_phone_check = document.getElementById("h_phone_check").value; // 인증번호 체크용
+
+			let email = f.email.value;
 
 			let address = f.address.value;
 			let addressDetail = f.addressDetail.value;
@@ -194,6 +197,10 @@
 			
 			// 유효성 검사
 
+			if ( birthday == '' ) {
+				alert("생년월일을 입력하세요");
+				return;
+			}
 			if ( phoneNumber == '' ) {
 				alert("휴대폰 번호를 입력하세요");
 				return;
@@ -216,10 +223,11 @@
 			}
 			
 			url = "welcome.do";
-			param = "name=" + name +
-					"&gender=" + gender +
-					"&email=" + email +
+			param = "gender=" + gender +
+					"&name=" + name +
+					"&birthday=" + birthday +
 					"&phoneNumber=" + phoneNumber +
+					"&email=" + email +
 					"&address=" + address +
 					"&addressDetail=" + addressDetail +
 					"&platform=" + platform;

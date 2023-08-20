@@ -22,17 +22,20 @@ public class Sign {
 	@Column(length = 255, nullable = false)
 	private String info;
 
-	@Column(length = 15, nullable = false)
-	private String name;
-
 	@Column(length = 5, nullable = false)
 	private String gender;
 
-	@Column(length = 50, nullable = false, unique = true)
-	private String email;
+	@Column(length = 15, nullable = false)
+	private String name;
+
+	@Column(length = 10, nullable = false)
+	private String birthday;
 
 	@Column(length = 30, nullable = false, unique = true)
 	private String phoneNumber;
+
+	@Column(length = 50, nullable = false, unique = true)
+	private String email;
 
 	@Column(length = 255, nullable = false)
 	private String address;

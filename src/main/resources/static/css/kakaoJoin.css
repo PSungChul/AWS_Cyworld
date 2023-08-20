@@ -24,17 +24,17 @@
     font-size: 25px;
     top:-25px;
     }
-    .section { width:30%; height:730px; background-color: rgb(158, 218, 241); border-radius: 80px; position: relative; left: 640px; top:130px; }
+    .section { width:30%; height: 815px; background-color: rgb(158, 218, 241); border-radius: 80px; position: relative; left: 640px; top:130px; }
 
    
-.dashed-line {width:96%; height: 660px; border-radius: 50px; margin: 30px; border: 3px dashed white; position: absolute; left: -22px; }
+.dashed-line {width:96%; height: 745px; border-radius: 50px; margin: 30px; border: 3px dashed white; position: absolute; left: -22px; }
 
 
-.gray-background {width:98%; height: 640px; background-color: rgb(235, 232, 232); border-radius: 50px; margin: 10px; 
+.gray-background {width:98%; height: 725px; background-color: rgb(235, 232, 232); border-radius: 50px; margin: 10px;
     position: absolute;  left: -5px;
 }
 
-.main {width:90%; background-color: white; height: 595px; border-radius: 30px; margin: 10px;  position: absolute; left: 15px; top: 15px;
+.main {width:90%; background-color: white; height: 680px; border-radius: 30px; margin: 10px;  position: absolute; left: 15px; top: 15px;
 box-shadow: 10px 10px  10px rgba(0, 0, 0, 0.356);}
 
 
@@ -46,20 +46,20 @@ box-shadow: 10px 10px  10px rgba(0, 0, 0, 0.356);}
 .login-minimi { position: absolute; width: 220px; height: 220px; top:110px; left:115px;}
 .name { position: absolute; width: 360px; height: 30px; top:110px; left:50px; }
 .name > input { width: 300px; height: 25px; font-size:15px;}
-/*.rNum { position: absolute; width: 360px; height: 30px; top:195px; left:70px; }*/
-/*.rNum > input {width: 300px; height: 25px; font-size:15px;}*/
-.phone { position: absolute; width: 360px; height: 30px; top:195px; left:50px; }
+.birthday { position: absolute; width: 360px; height: 30px; top:195px; left:50px; }
+.birthday > input { width: 300px; height: 25px; font-size:15px;}
+.phone { position: absolute; width: 360px; height: 30px; top:280px; left:50px; }
 .phone > input {width: 300px; height: 25px; font-size:15px;}
-.PNum {position: absolute; width: 360px; height: 30px; top:280px; left:50px;}
+.PNum {position: absolute; width: 360px; height: 30px; top:365px; left:50px;}
 .PNum > input {width: 300px; height: 25px;}
-.sendPNum1 {position: absolute; width: 90px; height: 30px; top:230px; left:360px; font-size: 12px; letter-spacing: .15em; }
-.sendPNum2 {position: absolute; width: 90px; height: 30px; top:315px; left:360px; font-size: 12px; letter-spacing: .15em;}
-.address{ position: absolute; width: 360px; height: 30px; top:365px; left:50px; }
-.address > input { position: absolute; left:313px; top:39px;}
+.sendPNum1 {position: absolute; width: 90px; height: 30px; top:314px; left:360px; font-size: 12px; letter-spacing: .15em; }
+.sendPNum2 {position: absolute; width: 90px; height: 30px; top:400px; left:360px; font-size: 12px; letter-spacing: .15em;}
+.address{ position: absolute; width: 360px; height: 30px; top:450px; left:50px; }
+.address > input { position: absolute; left:313px; top:40px;}
 #addressText {position: absolute; top: 40px; left:0px; width:300px; height: 25px; font-size: 15px;}
-.rAddress { position: absolute; width: 360px; height: 30px; top:450px; left:50px;}
+.rAddress { position: absolute; width: 360px; height: 30px; top:535px; left:50px;}
 .rAddress > input {width: 300px; height: 25px; font-size:15px;}
-.join { position: absolute; width: 150px; font-size: 20px; top: 540px; left:150px;}
+.join { position: absolute; width: 150px; font-size: 20px; top: 625px; left:150px;}
 .cancel { position:absolute; left:20px; top:10px;}
 #btn-cover {  border: 1px solid skyblue;
             background-color: rgba(0,0,0,0);
