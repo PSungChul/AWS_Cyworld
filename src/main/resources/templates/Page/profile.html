@@ -160,6 +160,7 @@
 									<p class="phoneUpdateForm" style="display: none">인증번호 : <input id="i_phoneNumber" type="text"> <input id="btn-cover" type="button" value="인증번호 확인" onclick="phoneCheck();" style="position: relative; top: 1px;"></p>
 									<p class="phoneUpdateForm" style="display: none"><input id="btn-cover" type="button" value="휴대폰 변경" onclick="phoneUpdate();" style="position: relative; top: -38px;"></p>
 								</th:block>
+								<p class="phoneUpdateForm"><input id="btn-cover" type="button" value="API" onclick="apiPopUp();" style="position: relative; top: 285px; left: 80%;"></p>
 								<input class="final-button" id="btn-cover" type="button" value="수정" onclick="modifyUserData(this.form);">
 							</div>
 						</form> 
@@ -620,6 +621,16 @@
 					return;
 				}
 			}
+		}
+	</script>
+
+	<!-- API 팝업 -->
+	<script th:inline="javascript">
+		// window.open (API 발급창)
+		function apiPopUp() {
+			let popUrl = "/api/profile_api_popup.do?idx=" + [[${ sign.idx }]];
+			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
+			window.open(popUrl, "api", popOption);
 		}
 	</script>
 	

@@ -900,6 +900,7 @@ public class SignUpController {
 				sign.setToday(0); // 일일 조회수
 				sign.setTotal(0); // 누적 조회수
 				sign.setToDate(today.format(date)); // 접속 날짜 ( 가입 날짜 )
+				sign.setConsent(0); // 동의 항목
 				// 가입 성공 시 유저 정보 저장
 				signService.signUp(sign);
 				// 저장 성공할 경우
@@ -921,6 +922,7 @@ public class SignUpController {
 				sign.setToday(0); // 일일 조회수
 				sign.setTotal(0); // 누적 조회수
 				sign.setToDate(today.format(date)); // 접속 날짜 ( 가입 날짜 )
+				sign.setConsent(0); // 동의 항목
 				// 가입 성공 시 유저 정보 저장
 				signService.signUp(sign);
 				// 저장 성공할 경우

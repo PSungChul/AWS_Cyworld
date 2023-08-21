@@ -76,4 +76,7 @@ public class Sign {
 
 	@Column(length = 20, nullable = false)
 	private String toDate;
+
+	@Column
+	private int consent;
 }

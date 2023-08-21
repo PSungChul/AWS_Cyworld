@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>Cyworld 로그인</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/animate.css">
+	<link rel="stylesheet" href="/css/login.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<body>
+	<div class="container ">
+		<section class="section">
+			<div class="dashed-line">
+				<div class="gray-background">
+					<div class="main">
+					
+						<img class="logo-main box animate__animated animate__rubberBand animate__" src="/images/logo_cyworld.png" alt="">
+						<img class="login-minimi" alt="" src="/images/minimi_main.png">
+						
+						<div class="user-info">
+						
+							<!-- 로그인 -->
+							<form th:object="${apiDTO}">
+								<input th:field="*{idx}" type="hidden">
+								<input th:field="*{clientId}" type="hidden">
+								<input th:field="*{redirectUri}" type="hidden">
+								<p class="userID">ID :&nbsp;<input id="userId" type="text"></p>
+								<p class="userPW">PW :&nbsp;<input id="info" type="password"> </p>
+								<p class="login"><input class="btn-cover" type="button" value="로그인" onclick="loginCheck(this.form)"></p>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
+	<!-- Ajax사용을 위한 js를 추가 -->
+	<script src="/js/httpRequest.js"></script>
+	<!-- cyworld 로그인 -->
+	<script>
+		// 로그인 ID & PW 체크
+		function loginCheck(f) {
+			let userId = document.getElementById('userId').value;
+			let info = document.getElementById('info').value;
+			
+			// 유효성 체크
+			if ( userId == '' ) {
+				alert("아이디를 입력하세요");
+				return;
+			}
+			if ( info == '' ) {
+				alert("비밀번호를 입력하세요");
+				return;
+			}
+
+			fetch('/api/loginform/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: 'userId=' + userId +
+					  '&info=' + info
+			})
+				.then(response => response.text())
+				.then(data => {
+					// 로그인에 실패하는 경우 - 아이디 X
+					if ( data == '-1' ) {
+						alert('아이디가 틀렸습니다.');
+						return;
+					}
+					// 로그인에 실패하는 경우 - 비밀번호 X
+					if ( data == '-2' ) {
+						alert('비밀번호가 틀렸습니다');
+						return;
+					}
+
+					// 로그인에 성공하는 경우 - code 발급으로 이동
+					if ( data == 0 ) {
+						f.action = '/api/login/code';
+						f.method = 'POST';
+						f.submit();
+						return;
+					}
+
+					// 동의 항목 체크하지 않은 경우 - 동의 항목 체크하러 이동
+					// 반환받은 로그인 유저 idx를 가져간다.
+					let idx = f.idx;
+					idx.value = data;
+					f.action = '/api/login/consent';
+					f.method = 'POST';
+					f.submit();
+				})
+				.catch(error => console.error(error)); // fetch
+		}
+	</script>
+</body>
+</html>

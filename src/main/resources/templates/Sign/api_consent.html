@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>Cyworld 동의 항목</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/animate.css">
+	<link rel="stylesheet" href="/css/login.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<body>
+	<div class="container ">
+		<section class="section">
+			<div class="dashed-line">
+				<div class="gray-background">
+					<div class="main" style="display: flex; justify-content: center;">
+					
+						<img class="logo-main box animate__animated animate__rubberBand animate__" src="/images/logo_cyworld.png" alt="">
+						<img class="login-minimi" alt="" src="/images/minimi_main.png">
+
+						<form style="position: inherit; top: 350px;">
+							<input name="idx" type="hidden" th:value="${ apiKey.idx }">
+							<input name="clientId" type="hidden" th:value="${ apiKey.clientId }">
+							<input name="redirectUri" type="hidden" th:value="${ apiKey.redirectUri }">
+							<input name="consent" type="hidden" value="1">
+							<h2 style="text-align: center">동의 항목</h2>
+							<br>
+							<div style="display: flex;">
+								<label th:if="${ apiKey.gender ne 0 }"><input name="gender" class="scope" type="checkbox">성별&nbsp;</label>
+								<label th:if="${ apiKey.name ne 0 }"><input name="name" class="scope" type="checkbox">이름&nbsp;</label>
+								<label th:if="${ apiKey.birthday ne 0 }"><input name="birthday" class="scope" type="checkbox">생년월일&nbsp;</label>
+								<label th:if="${ apiKey.phoneNumber ne 0 }"><input name="phoneNumber" class="scope" type="checkbox">휴대폰 번호&nbsp;</label>
+								<label th:if="${ apiKey.email ne 0 }"><input name="email" class="scope" type="checkbox">이메일</label>
+							</div>
+							<br>
+							<p class="login" style="top: 300px;"><input class="btn-cover" type="button" value="확인" onclick="apiCheck(this.form)"></p>
+						</form>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
+	<!-- Ajax사용을 위한 js를 추가 -->
+	<script src="/js/httpRequest.js"></script>
+	<!-- cyworld 로그인 -->
+	<script>
+		function apiCheck(f) {
+			let scopes = document.querySelectorAll('.scope'); // 동의 항목들
+			// 동의 항목들을 foreach로 돌리면서 scope 값을 설정
+			scopes.forEach(scope => {
+				if (scope.checked) {
+					scope.value = 2;
+				} else {
+					scope.value = 1;
+					scope.checked = true;
+				}
+				console.log(scope.name, scope.value);
+			});
+
+			f.action = '/api/login/code';
+			f.method = 'POST';
+			f.submit();
+		}
+	</script>
+</body>
+</html>
