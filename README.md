@@ -4,42 +4,42 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 
 #
 
-## 컨셉
+## 📌 컨셉
 	과거의 싸이월드 재구현을 통한 추억 여행을 목적으로 미니홈피를 제작해 홈, 프로필, 다이어리, 사진첩, 방명록을 사용할 수 있게 설계하였습니다.
 
 #
 
-## 구성원 및 기간
+## 📌 구성원 및 기간
 	프론트엔드 1명, 백엔드 4명 총 5명이서 팀을 꾸려 2주간(2022.11.22 ~ 2022.12.6) CyworldProject를 진행하였습니다.
 	이후 혼자서 유지 보수 및 추가적인 기능 작업들과 더불어 AWS를 통해 CyworldProject를 서버에 배포하는 작업을 진행 중입니다.
 
 #
 
-## 내가 구현한 주요 기능들
-### 로그인 & 회원가입
+## 📌 내가 구현한 주요 기능들
+### ✔ 로그인 & 회원가입
 	naver Login API
 	kakao Login API
 	이메일 인증 SMTP
 	주소 API
 	아이디 찾기
 	임시 비밀번호 발급
-### 메인
+### ✔ 메인
 	투데이 (조회수)
 	파도타기 (일촌)
 	일촌 신청
 	일촌평 작성
 	유저 검색
-### 프로필
+### ✔ 프로필
 	메인 사진 및 메인 소개글 작성 및 수정
 	메인 타이틀 작성 및 수정
 	비밀번호 수정
 	미니미 변경
-### 사진첩 & 방명록
+### ✔ 사진첩 & 방명록
 	좋아요
-### 부가 역할들
+### ✔ 부가 역할들
 	데이터베이스 전체 생성 및 관리
 	프로젝트 모든 파일 병합
-### 프로젝트 이후 추가한 기능들
+### ✔ 프로젝트 이후 추가한 기능들
 	휴대폰 문자 인증
 	인증번호 암호화
 	비밀번호 암호화
@@ -50,40 +50,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 
 #
 
-## Cyworld Login API 가이드
-### API Login Code 발급
-	http://localhost:9999/api/loginform - 로그인 페이지
-	"?clientId=" + Client ID Key + "&redirectUri=" + Redirect URI
-	Method="GET"
-	http://localhost:9999/api/loginform/login - 로그인
-	http://localhost:9999/api/loginform/login/consent - 동의 항목 페이지
-	http://localhost:9999/api/login/code - API Login Code 발급
-	정상
-	Redirect URI + "?code=" + API Login Code
-	에러 - Cyworld API 에러 페이지
-	http://localhost:9999/api/error + "?code=" + Error Message
-### API Access Token 발급
-	http://localhost:9999/api/token - API Login Access Token 발급
-	"?clientId=" + Client ID Key + "&clientSecret=" + Client Secret Key + "&redirectUri=" + Redirect URI + "&code=" + API Login Code
-	Method="POST"
-	정상
-	{"accessToken":"API Access Token"}
-	에러
-	{"accessToken":"Error Code", "message":"Error Message"}
-### API 유저 정보 조회
-	http://localhost:9999/api/user - API 유저 정보 조회
-	Header="Authorization":"Bearer " + API Access Token
-	Method="POST"
-	정상 - 동의 항목 동의
-	{"birthday":"yyyy-MM-dd","phoneNumber":"01012345678","gender":"male/female","name":"테스터","email":"cyworld@cyworld.com"}
-	정상 - 동의 항목 미동의
-	{"birthday":null,"phoneNumber":null,"gender":null,"name":null,"email":null}
-	에러 - Invalid API Access Token
-	{"user":"Error Code"}
-	에러 - Invalid User
-	{"user":"null"}
-
-## 개발환경
+## 📌 개발환경
 	Mac
 	Eclipse --> Intellij
 	Spring --> Spring Boot
@@ -94,13 +61,13 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 
 #
 
-## Database
-### DATABASE - Cyworld
+## 📌 Database
+### ✔ DATABASE - Cyworld
 	# 데이터베이스 생성
 	CREATE DATABASE Cyworld DEFAULT CHARACTER SET UTF8MB4;
 	# 생성한 데이터베이스 사용
 	USE Cyworld;
-### TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey
+### ✔ TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey
 	# 테이블 생성
 	
 	# 유저 테이블
@@ -252,5 +219,40 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		phoneNumber INT, # 휴대폰 번호 동의 항목 체크
 		email INT # 이메일 동의 항목 체크
 	);
+
+#
+
+## 📌 Cyworld Login API 가이드
+### ✔ API Login Code 발급
+	http://localhost:9999/api/loginform - 로그인 페이지
+	"?clientId=" + Client ID Key + "&redirectUri=" + Redirect URI
+	Method="GET"
+	http://localhost:9999/api/loginform/login - 로그인
+	http://localhost:9999/api/loginform/login/consent - 동의 항목 페이지
+	http://localhost:9999/api/login/code - API Login Code 발급
+	정상
+	Redirect URI + "?code=" + API Login Code
+	에러 - Cyworld API 에러 페이지
+	http://localhost:9999/api/error + "?code=" + Error Message
+### ✔ API Access Token 발급
+	http://localhost:9999/api/token - API Login Access Token 발급
+	"?clientId=" + Client ID Key + "&clientSecret=" + Client Secret Key + "&redirectUri=" + Redirect URI + "&code=" + API Login Code
+	Method="POST"
+	정상
+	{"accessToken":"API Access Token"}
+	에러
+	{"accessToken":"Error Code", "message":"Error Message"}
+### ✔ API 유저 정보 조회
+	http://localhost:9999/api/user - API 유저 정보 조회
+	Header="Authorization":"Bearer " + API Access Token
+	Method="POST"
+	정상 - 동의 항목 동의
+	{"birthday":"yyyy-MM-dd","phoneNumber":"01012345678","gender":"male/female","name":"테스터","email":"cyworld@cyworld.com"}
+	정상 - 동의 항목 미동의
+	{"birthday":null,"phoneNumber":null,"gender":null,"name":null,"email":null}
+	에러 - Invalid API Access Token
+	{"user":"Error Code"}
+	에러 - Invalid User
+	{"user":"null"}
 
 #
