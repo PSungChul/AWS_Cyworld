@@ -45,6 +45,8 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	비밀번호 암호화
  	Token 및 Redis를 추가하여 로그인 보안 강화
   	로그인 토큰 관리에 헤더 대신 쿠키로 변경
+	유저 정보에 생년월일 컬럼 추가
+	Cyworld Login API 구현 - ApiKey 테이블 추가, 유저 정보에 API 동의 항목 체크 컬럼 추가
 
 #
 
@@ -65,7 +67,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	CREATE DATABASE Cyworld DEFAULT CHARACTER SET UTF8MB4;
 	# 생성한 데이터베이스 사용
 	USE Cyworld;
-### TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike
+### TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey
 	# 테이블 생성
 	
 	# 유저 테이블
@@ -73,10 +75,11 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		idx  INT PRIMARY KEY AUTO_INCREMENT, # IDX - 기본키, 시퀀스
 		userId VARCHAR(15) NOT NULL UNIQUE, # ID
 		info VARCHAR(255) NOT NULL, # PW
-		name VARCHAR(15) NOT NULL, # 이름
 		gender VARCHAR(5) NOT NULL, # 성별
-		email VARCHAR(50) NOT NULL UNIQUE, # Email
+		name VARCHAR(15) NOT NULL, # 이름
+		birthday VARCHAR(10) NOT NULL, # 생년월일
 		phoneNumber VARCHAR(30) NOT NULL UNIQUE, # 휴대전화
+		email VARCHAR(50) NOT NULL UNIQUE, # Email
 		address VARCHAR(255) NOT NULL, # 주소
 		addressDetail VARCHAR(255) NOT NULL, # 상세주소
 		platform VARCHAR(10) NOT NULL, # 플랫폼
@@ -88,7 +91,8 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		mainText VARCHAR(255), # 메인 소개글
 		today INT NOT NULL, # 일일 조회수
 		total INT NOT NULL, # 총합 조회수
-		toDate VARCHAR(20) NOT NULL # 접속 일자
+		toDate VARCHAR(20) NOT NULL, # 접속 일자
+		consent INT # API 동의 항목 체크
 	);
 	
 	# 조회수 테이블
@@ -200,6 +204,20 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		CONSTRAINT fk_GuestbookLikeRef FOREIGN KEY(guestbookLikeRef) REFERENCES Guestbook(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
 		guestbookLikeSessionIdx INT NOT NULL, # 로그인 유저 IDX
 		CONSTRAINT fk_GuestbookLikeSessionIdx FOREIGN KEY(guestbookLikeSessionIdx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE # 포린키 연결
+	);
+
+	# API 테이블
+	CREATE TABLE ApiKey(
+		idx INT PRIMARY KEY, # 로그인 유저 IDX
+		CONSTRAINT fk_ApiIdx FOREIGN KEY(idx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
+		clientId VARCHAR(255) NOT NULL UNIQUE, # API Client ID Key
+		clientSecret VARCHAR(255) NOT NULL UNIQUE, # API Client Secret Key
+		redirectUri VARCHAR(255), # API Redirect URI
+		gender INT, # 성별 동의 항목 체크
+		name INT, # 이름 동의 항목 체크
+		birthday INT, # 생년월일 동의 항목 체크
+		phoneNumber INT, # 휴대폰 번호 동의 항목 체크
+		email INT # 이메일 동의 항목 체크
 	);
 
 #
