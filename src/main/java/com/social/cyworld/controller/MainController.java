@@ -568,8 +568,8 @@ public class MainController {
 		if ( loginIdx == -99 ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-			// 메인 페이지로 이동
-			return "Page/main";
+			// 도토리 구매 팝업으로 이동
+			return "Page/dotory";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
@@ -581,8 +581,8 @@ public class MainController {
 				jwtUtil.logoutToken(authorization);
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-				// 메인 페이지로 이동
-				return "Page/main";
+				// 도토리 구매 팝업으로 이동
+				return "Page/dotory";
 			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
 				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
@@ -592,8 +592,8 @@ public class MainController {
 				if ( refreshToken == null ) {
 					// 에러 메시지를 바인딩한다.
 					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					// 메인 페이지로 이동
-					return "Page/main";
+					// 도토리 구매 팝업으로 이동
+					return "Page/dotory";
 				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
