@@ -35,7 +35,7 @@ public class JwtUtil {
         // 토큰 생성 전에 먼저 idx에 해당하는 토큰이 존재하는지 검증한다.
         validationCreateToken(idx);
 
-        // AccessToken 발급
+        // Login AccessToken 발급
         // 현재 시간을 가져온다.
         Date now = new Date();
         // 토큰의 만료 시간을 계산하기 위해 Calendar 클래스의 인스턴스를 생성한다.
@@ -141,6 +141,7 @@ public class JwtUtil {
             // 다중 로그인에 토큰이 존재하는지 체크
             if (validationInvalidationToken(token)) {
 //                throw new RuntimeException("다중 로그인");
+                // 에러 코드를 반환한다.
                 return -99;
             }
 
@@ -149,17 +150,18 @@ public class JwtUtil {
                     .setSigningKey(secretKey) // 파싱에 사용할 시크릿 키를 설정한다.
                     .build() // JWT 파서를 빌드하여 생성한다.
                     .parseClaimsJws(token) // 가져온 토큰을 파싱하여 Jws 객체를 얻는다. (Jws - JSON Web Signature)
-                    .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다. // 파싱된 토큰의 내용(Claims)을 가져온다.
+                    .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다.
 
-            // 토큰의 내용 중 사용자 idx 추출
+            // 토큰의 내용 중 로그인 유저 idx를 추출한다.
             int idx = Integer.valueOf(claims.getSubject());
 
-            // 추출한 idx 반환
+            // 추출한 로그인 유저 idx를 반환한다.
             return idx;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             System.out.println("잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
             System.out.println("만료된 JWT 토큰입니다.");
+            // 에러 코드를 반환한다.
             return -1;
         } catch (UnsupportedJwtException e) {
             System.out.println("지원되지 않는 JWT 토큰입니다.");
@@ -167,6 +169,7 @@ public class JwtUtil {
             System.out.println("JWT 토큰이 잘못되었습니다.");
         }
         // 추출 실패 할 경우
+        // 에러 코드를 반환한다.
         return 0;
     }
     // 다중 로그인 토큰 검증
@@ -208,9 +211,9 @@ public class JwtUtil {
                     .setSigningKey(secretKey) // 파싱에 사용할 시크릿 키를 설정한다.
                     .build() // JWT 파서를 빌드하여 생성한다.
                     .parseClaimsJws(refreshToken) // 가져온 리프레쉬 토큰을 파싱하여 Jws 객체를 얻는다. (Jws - JSON Web Signature)
-                    .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다. // 파싱된 토큰의 내용(Claims)을 가져온다.
+                    .getBody(); // 파싱된 토큰의 내용(Claims)을 가져온다.
 
-            // 리프레쉬 토큰의 내용 중 사용자 idx 추출
+            // 리프레쉬 토큰의 내용 중 로그인 유저 idx를 추출한다.
             int idx = Integer.valueOf(claims.getSubject());
             // 토큰 저장 map에서 idx에 해당하는 토큰을 삭제한다.
             tokenMap.remove(idx);
@@ -272,7 +275,7 @@ public class JwtUtil {
             return remainingSeconds;
         // Redis에 리프레쉬 토큰이 존재하지 않는 경우 - 리프레쉬 토큰 만료
         } else {
-            // 0을 반환한다.
+            // 에러 코드를 반환한다.
             return 0;
         }
     }
