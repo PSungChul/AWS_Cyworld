@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -911,8 +912,8 @@ public class SignUpController {
 			} else {
 				// 추가 정보들을 임의로 지정
 				sign.setIdx(null); // AUTO_INCREMENT로 null값 지정시 자동 인덱스 증가
-				sign.setUserId(sign.getEmail().substring(0, sign.getEmail().indexOf("@"))); // 소셜 로그인이라 ID정보에 이메일에서 아이디 부분만 따로 잘라서 지정
-				sign.setInfo(""); // 소셜 로그인이라 PW정보 없음
+				sign.setUserId(UUID.randomUUID().toString()); // 소셜 가입자는 ID가 따로 없으므로 ID에 중복 가능성이 매우 적은 UUID로 랜덤 지정한다.
+				sign.setInfo(passwordEncoder.encode(UUID.randomUUID().toString())); // // 소셜 가입자는 비밀번호가 따로 없으므로 비밀번호에 중복 가능성이 매우 적은 UUID로 랜덤 지정하여 암호화한다.
 				sign.setMinimi("mainMinimi.png"); // 기본 미니미 지정
 				sign.setDotory(0); // 기본 도토리 개수 지정
 				sign.setMainTitle("안녕하세요~ " + sign.getName() + " 님의 미니홈피입니다!"); // 메인 화면 제목

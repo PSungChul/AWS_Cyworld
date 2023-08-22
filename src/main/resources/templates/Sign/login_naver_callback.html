@@ -55,7 +55,13 @@
 								const h_email = document.getElementById("email"); // 이메일
 
 								// input value에 naver API 필수정보값 넣기
-								h_gender.value = gender; // 성별
+								// 성별을 cyworld 규칙에 맞게 변환
+								if ( gender == 'M' ) { // 남자 성별인 경우
+									h_gender.value = 'male'; // 남자 성별
+								}
+								if ( gender == 'F' ) { // 여자 성별인 경우
+									h_gender.value = 'female'; // 여자 성별
+								}
 								h_name.value = name; // 이름
 								h_birthday.value = birthyear + "-" + birthday; // 생년월일
 								h_phoneNumber.value = phoneNumber; // 휴대폰 번호

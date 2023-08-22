@@ -16,7 +16,7 @@ public class Sign {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer idx;
 
-	@Column(length = 15, nullable = false, unique = true)
+	@Column(length = 50, nullable = false, unique = true)
 	private String userId;
 
 	@Column(length = 255, nullable = false)
