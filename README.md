@@ -47,7 +47,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
   	로그인 토큰 관리에 헤더 대신 쿠키로 변경
 	유저 정보에 생년월일 컬럼 추가
 	Cyworld Login API 구현 - ApiKey 테이블 추가, 유저 정보에 API 동의 항목 체크 컬럼 추가
-	동의 항목을 필수 동의 항목과 선택 동의 항목으로 분리 - ApiConsent 테이블 추가
+	API 동의 항목을 필수 동의 항목과 선택 동의 항목으로 분리 - ApiConsent 테이블 추가
 
 #
 
@@ -237,26 +237,21 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 
 ## 📌 Cyworld Login API 가이드
 ### ✔ API Login Code 발급
-	http://localhost:9999/api/loginform - 로그인 페이지
+	GET http://localhost:9999/api/cyworld - API 검증 --> API 로그인 --> API 동의 항목 --> API Login Code 발급
 	"?clientId=" + Client ID Key + "&redirectUri=" + Redirect URI
-	Method="GET"
-	http://localhost:9999/api/loginform/login - 로그인
-	http://localhost:9999/api/loginform/login/consent - 동의 항목 페이지
-	http://localhost:9999/api/login/code - API Login Code 발급
 	정상
 	Redirect URI + "?code=" + API Login Code
 	에러 - Cyworld API 에러 페이지
 	http://localhost:9999/api/error + "?code=" + Error Message
 ### ✔ API Access Token 발급
-	http://localhost:9999/api/token - API Login Access Token 발급
-	"?clientId=" + Client ID Key + "&clientSecret=" + Client Secret Key + "&redirectUri=" + Redirect URI + "&code=" + API Login Code
-	Method="POST"
+	POST http://localhost:9999/api/token - API 검증 --> API Login Code 검증 --> API Login Access Token 발급
+	Body="clientId=" + Client ID Key + "&clientSecret=" + Client Secret Key + "&redirectUri=" + Redirect URI + "&code=" + API Login Code
 	정상
 	{"accessToken":"API Access Token"}
 	에러
 	{"accessToken":"Error Code", "message":"Error Message"}
 ### ✔ API 유저 정보 조회
-	http://localhost:9999/api/user - API 유저 정보 조회
+	POST http://localhost:9999/api/user - API Login Access Token 검증 --> API 유저 정보 조회
 	Header="Authorization":"Bearer " + API Access Token
 	Method="POST"
 	정상 - 동의 항목 동의
