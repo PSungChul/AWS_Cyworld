@@ -241,26 +241,37 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	"?clientId=" + Client ID Key + "&redirectUri=" + Redirect URI
 	정상
 	Redirect URI + "?code=" + API Login Code
-	에러 - Cyworld API 에러 페이지
+	에러 - API 에러 페이지
 	http://localhost:9999/api/error + "?code=" + Error Message
 ### ✔ API Access Token 발급
 	POST http://localhost:9999/api/token - API 검증 --> API Login Code 검증 --> API Login Access Token 발급
-	Body="clientId=" + Client ID Key + "&clientSecret=" + Client Secret Key + "&redirectUri=" + Redirect URI + "&code=" + API Login Code
+	Body "clientId": Client ID Key,
+	     "clientSecret": Client Secret Key,
+	     "redirectUri": Redirect URI,
+	     "code": API Login Code
 	정상
-	{"accessToken":"API Access Token"}
+	{"accessToken": API Access Token}
 	에러
-	{"accessToken":"Error Code", "message":"Error Message"}
+	{"accessToken": Error Code,
+	 "message": Error Message}
 ### ✔ API 유저 정보 조회
 	POST http://localhost:9999/api/user - API Login Access Token 검증 --> API 유저 정보 조회
-	Header="Authorization":"Bearer " + API Access Token
-	Method="POST"
+	Header "Authorization": "Bearer " + API Access Token
 	정상 - 동의 항목 동의
-	{"birthday":"yyyy-MM-dd","phoneNumber":"01012345678","gender":"male/female","name":"테스터","email":"cyworld@cyworld.com"}
+	{"birthday": yyyy-MM-dd,
+	 "phoneNumber": 01012345678,
+	 "gender": male/female,
+	 "name": 테스터,
+	 "email": cyworld@cyworld.com}
 	정상 - 동의 항목 미동의
-	{"birthday":null,"phoneNumber":null,"gender":null,"name":null,"email":null}
+	{"birthday": null,
+	 "phoneNumber": null,
+	 "gender": null,
+	 "name": null,
+	 "email": null}
 	에러 - Invalid API Access Token
-	{"user":"Error Code"}
+	{"user": Error Code}
 	에러 - Invalid User
-	{"user":"null"}
+	{"user": null}
 
 #
