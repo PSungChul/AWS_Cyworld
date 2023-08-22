@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<title>API 설정</title>
 	<link rel="stylesheet" href="/css/reset.css">
-	<link rel="stylesheet" href="/css/popUp.css">
+	<link rel="stylesheet" href="/css/apiPopUp.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
 <script th:inline="javascript">
@@ -20,28 +20,55 @@
 </script>
 <body th:if="${ errMsg eq null }">
 	<div class="container" id="scrollBar">
-		<h2 class="title">API</h2>
+		<h2 class="title">API 설정</h2>
 
 		<div class="myMinimiBox">
-			<p class="subTitle">-나의 API-&nbsp;&nbsp;
+			<p class="subTitle">API Key&nbsp;&nbsp;
 				<input id="btn-cover" type="button" value="나가기" onclick="window.close()">
 			</p>
 			<br>
 			<th:block th:if="${ apiKey ne null }">
-				<div th:text="'ClientId&nbsp;&nbsp;-&nbsp;&nbsp;' + ${ apiKey.clientId }"></div>
+				<div class="apiKey" th:text="'ClientId&nbsp;&nbsp;-&nbsp;&nbsp;' + ${ apiKey.clientId }"></div>
 				<br>
-				<div th:text="'ClientSecret&nbsp;&nbsp;-&nbsp;&nbsp;' + ${ apiKey.clientSecret }"></div>
+				<div class="apiKey" th:text="'ClientSecret&nbsp;&nbsp;-&nbsp;&nbsp;' + ${ apiKey.clientSecret }"></div>
 				<br>
 				<form>
 					<input name="idx" type="hidden" th:value="${ apiKey.idx }">
-					<div>Redirect-URI</div>
-					<input name="redirectUri" type="text" placeholder="Redirect-URI" th:value="${ apiKey.redirectUri }" size="50">
-					<div>동의 항목</div>
-					<label><input name="gender" class="scope" type="checkbox" th:value="${ apiKey.gender }" th:checked="${ apiKey.gender != 0 }">성별&nbsp;</label>
-					<label><input name="name" class="scope" type="checkbox" th:value="${ apiKey.name }" th:checked="${ apiKey.name != 0 }">이름&nbsp;</label>
-					<label><input name="birthday" class="scope" type="checkbox" th:value="${ apiKey.birthday }" th:checked="${ apiKey.birthday != 0 }">생년월일&nbsp;</label>
-					<label><input name="phoneNumber" class="scope" type="checkbox" th:value="${ apiKey.phoneNumber }" th:checked="${ apiKey.phoneNumber != 0 }">휴대폰 번호&nbsp;</label>
-					<label><input name="email" class="scope" type="checkbox" th:value="${ apiKey.email }" th:checked="${ apiKey.email != 0 }">이메일&nbsp;</label>
+					<div class="apiTitle">Redirect URI</div>
+					<input name="redirectUri" type="text" placeholder="Redirect URI" th:value="${ apiKey.redirectUri }" size="50">
+					<br>
+					<br>
+					<div class="apiTitle">동의 항목</div>
+					<br>
+					<div class="consentTitle">성별</div>
+					<label class="consent"><input name="gender" class="scope" type="radio" value="4" th:checked="${ apiKey.gender == 4 }">필수&nbsp;&nbsp;</label>
+					<label class="consent"><input name="gender" class="scope" type="radio" value="2" th:checked="${ apiKey.gender == 2 }">선택&nbsp;&nbsp;</label>
+					<label class="consent"><input name="gender" class="scope" type="radio" value="0" th:checked="${ apiKey.gender == 0 }">사용 안함</label>
+					<br>
+					<br>
+					<div class="consentTitle">이름</div>
+					<label class="consent"><input name="name" class="scope" type="radio" value="4" th:checked="${ apiKey.name == 4 }">필수&nbsp;&nbsp;</label>
+					<label class="consent"><input name="name" class="scope" type="radio" value="2" th:checked="${ apiKey.name == 2 }">선택&nbsp;&nbsp;</label>
+					<label class="consent"><input name="name" class="scope" type="radio" value="0" th:checked="${ apiKey.name == 0 }">사용 안함</label>
+					<br>
+					<br>
+					<div class="consentTitle">생년월일</div>
+					<label class="consent"><input name="birthday" class="scope" type="radio" value="4" th:checked="${ apiKey.birthday == 4 }">필수&nbsp;&nbsp;</label>
+					<label class="consent"><input name="birthday" class="scope" type="radio" value="2" th:checked="${ apiKey.birthday == 2 }">선택&nbsp;&nbsp;</label>
+					<label class="consent"><input name="birthday" class="scope" type="radio" value="0" th:checked="${ apiKey.birthday == 0 }">사용 안함</label>
+					<br>
+					<br>
+					<div class="consentTitle">휴대폰 번호</div>
+					<label class="consent"><input name="phoneNumber" class="scope" type="radio" value="4" th:checked="${ apiKey.phoneNumber == 4 }">필수&nbsp;&nbsp;</label>
+					<label class="consent"><input name="phoneNumber" class="scope" type="radio" value="2" th:checked="${ apiKey.phoneNumber == 2 }">선택&nbsp;&nbsp;</label>
+					<label class="consent"><input name="phoneNumber" class="scope" type="radio" value="0" th:checked="${ apiKey.phoneNumber == 0 }">사용 안함</label>
+					<br>
+					<br>
+					<div class="consentTitle">이메일</div>
+					<label class="consent"><input name="email" class="scope" type="radio" value="4" th:checked="${ apiKey.email == 4 }">필수&nbsp;&nbsp;</label>
+					<label class="consent"><input name="email" class="scope" type="radio" value="2" th:checked="${ apiKey.email == 2 }">선택&nbsp;&nbsp;</label>
+					<label class="consent"><input name="email" class="scope" type="radio" value="0" th:checked="${ apiKey.email == 0 }">사용 안함</label>
+					<br>
 					<br>
 					<input id="btn-cover" type="button" value="저장" onclick="apiCheck(this.form)">
 				</form>
@@ -56,19 +83,6 @@
 		function apiCheck(f) {
 			let idx = f.idx.value;
 			let redirectUri = f.redirectUri.value;
-
-			let scopes = document.querySelectorAll('.scope'); // 동의 항목들
-			// 동의 항목들을 foreach로 돌리면서 scope 값을 설정
-			scopes.forEach(scope => {
-				if (scope.checked) {
-					if ( scope.value == 0 ) {
-						scope.value = 1;
-					}
-				} else {
-					scope.value = 0;
-				}
-			});
-
 			let gender = f.gender.value;
 			let name = f.name.value;
 			let birthday = f.birthday.value;

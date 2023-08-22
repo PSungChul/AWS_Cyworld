@@ -1,5 +1,6 @@
 package com.social.cyworld.dto;
 
+import com.social.cyworld.entity.ApiConsent;
 import com.social.cyworld.entity.ApiKey;
 import lombok.*;
 
@@ -32,22 +33,10 @@ public class ApiDTO {
 
     private String code;
 
-    public void rqApiConsent(ApiKey apiKey) {
-        this.idx = apiKey.getIdx();
-        this.clientId = apiKey.getClientId();
-        this.redirectUri = apiKey.getRedirectUri();
-        this.gender = apiKey.getGender();
-        this.name = apiKey.getName();
-        this.birthday = apiKey.getBirthday();
-        this.phoneNumber = apiKey.getPhoneNumber();
-        this.email = apiKey.getEmail();
-    }
-
-    public ApiKey toEntity() {
-        return ApiKey.builder()
+    // API DTO를 ApiConsent Entity로 변환 (빌더 방식)
+    public ApiConsent toApiConsent() {
+        return ApiConsent.builder()
                 .idx(idx)
-                .clientId(clientId)
-                .redirectUri(redirectUri)
                 .gender(gender)
                 .name(name)
                 .birthday(birthday)

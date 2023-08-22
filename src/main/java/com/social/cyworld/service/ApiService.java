@@ -1,6 +1,8 @@
 package com.social.cyworld.service;
 
+import com.social.cyworld.entity.ApiConsent;
 import com.social.cyworld.entity.ApiKey;
+import com.social.cyworld.repository.ApiConsentRepository;
 import com.social.cyworld.repository.ApiKeyRepository;
 import com.social.cyworld.repository.SignRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,22 +11,24 @@ import org.springframework.stereotype.Service;
 @Service
 public class ApiService {
     @Autowired
+    SignRepository signRepository;
+    @Autowired
     ApiKeyRepository apiKeyRepository;
     @Autowired
-    SignRepository signRepository;
+    ApiConsentRepository apiConsentRepository;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // API 정보 조회
-    public ApiKey findByIdx(int idx) {
+    public ApiKey findByApiKeyIdx(int idx) {
         ApiKey apiKey = apiKeyRepository.findByIdx(idx);
         return apiKey;
     }
 
-    // API 정보 발급
+    // API Key 발급
     public void insertIntoApiKey(ApiKey apiKey) {
         apiKeyRepository.save(apiKey);
     }
 
-    // API 정보 RedirectURI 검증
+    // API RedirectURI 검증 및 API 정보 조회
     public ApiKey findByRedirectUri(String redirectUri) {
         ApiKey apiKey = apiKeyRepository.findByRedirectUri(redirectUri);
         return apiKey;
@@ -36,7 +40,18 @@ public class ApiService {
         return check;
     }
 
-    // 유저 정보 API 동의 항목 체크
+    // API 동의 항목 체크 정보 조회
+    public ApiConsent findByApiConsentIdx(int idx) {
+        ApiConsent apiConsent = apiConsentRepository.findByIdx(idx);
+        return apiConsent;
+    }
+
+    // API 동의 항목 체크 저장
+    public void insertIntoApiConsent(ApiConsent apiConsent) {
+        apiConsentRepository.save(apiConsent);
+    }
+
+    // API 로그인 유저 API 동의 항목 체크 완료
     public void updateSetConsentByIdx(int idx) {
         signRepository.updateSetConsentByIdx(idx);
     }

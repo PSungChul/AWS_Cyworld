@@ -5,7 +5,7 @@
 	<title>Cyworld 동의 항목</title>
 	<link rel="stylesheet" href="/css/reset.css">
 	<link rel="stylesheet" href="/css/animate.css">
-	<link rel="stylesheet" href="/css/login.css">
+	<link rel="stylesheet" href="/css/consent.css">
 	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -13,50 +13,73 @@
 		<section class="section">
 			<div class="dashed-line">
 				<div class="gray-background">
-					<div class="main" style="display: flex; justify-content: center;">
+					<div class="main consentArea">
 					
 						<img class="logo-main box animate__animated animate__rubberBand animate__" src="/images/logo_cyworld.png" alt="">
 						<img class="login-minimi" alt="" src="/images/minimi_main.png">
 
-						<form style="position: inherit; top: 350px;">
+						<form id="f" class="consentForm">
 							<input name="idx" type="hidden" th:value="${ apiKey.idx }">
 							<input name="clientId" type="hidden" th:value="${ apiKey.clientId }">
 							<input name="redirectUri" type="hidden" th:value="${ apiKey.redirectUri }">
 							<input name="consent" type="hidden" value="1">
-							<h2 style="text-align: center">동의 항목</h2>
+							<h2 class="consentTitle">동의 항목</h2>
 							<br>
-							<div style="display: flex;">
-								<label th:if="${ apiKey.gender ne 0 }"><input name="gender" class="scope" type="checkbox">성별&nbsp;</label>
-								<label th:if="${ apiKey.name ne 0 }"><input name="name" class="scope" type="checkbox">이름&nbsp;</label>
-								<label th:if="${ apiKey.birthday ne 0 }"><input name="birthday" class="scope" type="checkbox">생년월일&nbsp;</label>
-								<label th:if="${ apiKey.phoneNumber ne 0 }"><input name="phoneNumber" class="scope" type="checkbox">휴대폰 번호&nbsp;</label>
-								<label th:if="${ apiKey.email ne 0 }"><input name="email" class="scope" type="checkbox">이메일</label>
-							</div>
-							<br>
-							<p class="login" style="top: 300px;"><input class="btn-cover" type="button" value="확인" onclick="apiCheck(this.form)"></p>
+							<th:block th:if="${ apiKey.gender eq 4 || apiKey.name eq 4 || apiKey.birthday eq 4 || apiKey.phoneNumber eq 4 || apiKey.email eq 4 }" >
+								<h2 class="consentTitle">필수 동의 항목</h2>
+								<div class="consentArea">
+									<label th:if="${ apiKey.gender eq 4 }"><input name="gender" class="scope" type="checkbox" value="4">성별&nbsp;&nbsp;</label>
+									<label th:if="${ apiKey.name eq 4 }"><input name="name" class="scope" type="checkbox" value="4">이름&nbsp;&nbsp;</label>
+									<label th:if="${ apiKey.birthday eq 4 }"><input name="birthday" class="scope" type="checkbox" value="4">생년월일&nbsp;&nbsp;</label>
+									<label th:if="${ apiKey.phoneNumber eq 4 }"><input name="phoneNumber" class="scope" type="checkbox" value="4">휴대폰 번호&nbsp;&nbsp;</label>
+									<label th:if="${ apiKey.email eq 4 }"><input name="email" class="scope" type="checkbox" value="4">이메일</label>
+								</div>
+								<br>
+							</th:block>
+							<th:block th:if="${ apiKey.gender eq 2 || apiKey.name eq 2 || apiKey.birthday eq 2 || apiKey.phoneNumber eq 2 || apiKey.email eq 2 }" >
+								<h2 class="consentTitle">선택 동의 항목</h2>
+								<div class="consentArea">
+									<label th:if="${ apiKey.gender eq 2 }"><input name="gender" class="scope" type="checkbox" value="2">성별&nbsp;&nbsp;</label>
+									<label th:if="${ apiKey.name eq 2 }"><input name="name" class="scope" type="checkbox" value="2">이름&nbsp;&nbsp;</label>
+									<label th:if="${ apiKey.birthday eq 2 }"><input name="birthday" class="scope" type="checkbox" value="2">생년월일&nbsp;&nbsp;</label>
+									<label th:if="${ apiKey.phoneNumber eq 2 }"><input name="phoneNumber" class="scope" type="checkbox" value="2">휴대폰 번호&nbsp;&nbsp;</label>
+									<label th:if="${ apiKey.email eq 2 }"><input name="email" class="scope" type="checkbox" value="2">이메일</label>
+								</div>
+								<br>
+							</th:block>
 						</form>
+						<div class="consentCheck">
+							<input class="consentCheckBtn" type="button" value="확인" onclick="apiCheck()">
+						</div>
 					</div>
 				</div>
 			</div>
 		</section>
 	</div>
-<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
-	<!-- Ajax사용을 위한 js를 추가 -->
-	<script src="/js/httpRequest.js"></script>
+<!------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------>
 	<!-- cyworld 로그인 -->
 	<script>
-		function apiCheck(f) {
-			let scopes = document.querySelectorAll('.scope'); // 동의 항목들
-			// 동의 항목들을 foreach로 돌리면서 scope 값을 설정
+		function apiCheck() {
+			let scopes = document.querySelectorAll('.scope'); // 동의 항목들을 NodeList로 가져온다.
+			let scopesArray = Array.from(scopes); // some 메소드는 배열에만 사용 가능하기에 NodeList를 배열로 변환한다.
+
+			// 동의 항목들을 some 메소드로 돌리면서 필수 동의 항목 체크 유효성 검사
+			if ( scopesArray.some( scope => scope.value == 4 && !scope.checked ) ) {
+				alert('필수 동의 항목은 모두 체크해주시기 바랍니다.');
+				// 유효성 검사에서 바로 함수 종료 - for문과 foreach문에서의 return은 해당 for문이나 foreach문만 종료할 뿐, 바깥에 함수까지는 종료를 못시키기 때문에 some 메소드를 사용해서 바로 함수를 종료시킨다.
+				return;
+			}
+
+			// 동의 항목들을 foreach로 돌리면서 동의 항목 체크 값을 설정
 			scopes.forEach(scope => {
 				if (scope.checked) {
-					scope.value = 2;
+					scope.value = parseInt(scope.value) + 1;
 				} else {
-					scope.value = 1;
 					scope.checked = true;
 				}
-				console.log(scope.name, scope.value);
 			});
+
+			let f = document.getElementById('f');
 
 			f.action = '/api/login/code';
 			f.method = 'POST';

@@ -3,6 +3,7 @@ package com.social.cyworld.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social.cyworld.dto.ApiDTO;
+import com.social.cyworld.entity.ApiConsent;
 import com.social.cyworld.entity.ApiKey;
 import com.social.cyworld.entity.Sign;
 import com.social.cyworld.service.ApiService;
@@ -195,7 +196,7 @@ public class ApiController {
 		}
 
 		// API Key를 조회한다.
-		ApiKey apiKey = apiService.findByIdx(loginIdx);
+		ApiKey apiKey = apiService.findByApiKeyIdx(loginIdx);
 
 		// 조회한 API Key가 존재한다면 API Key가 바인딩 되고, 존재하지 않다면 null이 바인딩 된다.
 		model.addAttribute("apiKey", apiKey);
@@ -494,7 +495,7 @@ public class ApiController {
 	@PostMapping("/login/consent")
 	public String apiConsent(ApiDTO apiDTO, Model model) {
 		// 로그인 유저 idx에 해당하는 API 정보를 조회한다.
-		ApiKey apiKey = apiService.findByIdx(apiDTO.getIdx());
+		ApiKey apiKey = apiService.findByApiKeyIdx(apiDTO.getIdx());
 
 		// 조회한 API 정보를 바인딩한다.
 		model.addAttribute("apiKey", apiKey);
@@ -509,12 +510,12 @@ public class ApiController {
 		// API 동의 항목 체크 값으로 API 동의 항목 페이지를 거쳐서 왔는지 체크한다.
 		// API 동의 항목 페이지를 거쳐서 온 경우
 		if ( apiDTO.getConsent() != null ) {
-			// API DTO로 받아온 API 정보를 ApiKey 객체로 변환한다.
-			ApiKey apiKey = apiDTO.toEntity();
-			// 변환된 ApiKey 객체로 체크한 동의 항목들 값을 수정한다.
-			apiService.updateSetRedirectUriAndGenderAndNameAndBirthdayAndPhoneNumberAndEmailByIdx(apiKey);
+			// API DTO로 받아온 API 정보를 ApiConsent 객체로 변환한다.
+			ApiConsent apiConsent = apiDTO.toApiConsent();
+			// 변환된 ApiConsent 객체로 체크한 동의 항목들을 저장한다.
+			apiService.insertIntoApiConsent(apiConsent);
 			// 로그인 유저 idx에 해당하는 유저 정보 중 동의 항목 체크 값을 체크 완료 값인 1로 수정한다.
-			apiService.updateSetConsentByIdx(apiKey.getIdx());
+			apiService.updateSetConsentByIdx(apiConsent.getIdx());
 		}
 
 		// API 동의 항목 페이지를 거쳐서 오지 않은 경우
@@ -734,8 +735,8 @@ public class ApiController {
 
 		// 유저 정보가 존재하는 경우
 
-		// 로그인 유저 idx에 해당하는 API 정보를 조회한다.
-		ApiKey apiKey = apiService.findByIdx(loginIdx);
+		// 로그인 유저 idx에 해당하는 API 동의 항목 정보를 조회한다.
+		ApiConsent apiConsent = apiService.findByApiConsentIdx(loginIdx);
 
 		// Java 객체를 JSON 형식의 데이터로 직렬화(Serialize) 하기 위해 ObjectMapper를 생성한다.
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -743,38 +744,38 @@ public class ApiController {
 		Map<String, String> responseMap = new HashMap<>();
 		// 생성한 Map에 로그인 유저 정보 중 동의 항목 페이지에서 체크한 정보들만 추가한다.
 		// 성별 동의 항목에 체크한 경우
-		if ( apiKey.getGender() == 2 ) {
+		if ( apiConsent.getGender() == 5 || apiConsent.getGender() == 3 ) {
 			responseMap.put("gender", loginUser.getGender()); // gender를 키로 사용하고, 로그인 유저 성별을 값으로 사용하여 추가한다.
 		// 성별 동의 항목에 체크하지 않은 경우
-		} else {
+		} else if ( apiConsent.getGender() == 2 ) {
 			responseMap.put("gender", null); // gender를 키로 사용하고, null을 값으로 사용하여 추가한다.
 		}
 		// 이름 동의 항목에 체크한 경우
-		if ( apiKey.getName() == 2 ) {
+		if ( apiConsent.getName() == 5 || apiConsent.getName() == 3 ) {
 			responseMap.put("name", loginUser.getName()); // name을 키로 사용하고, 로그인 유저 이름을 값으로 사용하여 추가한다.
 		// 이름 동의 항목에 체크하지 않은 경우
-		} else {
+		} else if ( apiConsent.getName() == 2 ) {
 			responseMap.put("name", null); // name을 키로 사용하고, null을 값으로 사용하여 추가한다.
 		}
 		// 생년월일 동의 항목에 체크한 경우
-		if ( apiKey.getBirthday() == 2 ) {
+		if ( apiConsent.getBirthday() == 5 || apiConsent.getBirthday() == 3 ) {
 			responseMap.put("birthday", loginUser.getBirthday()); // birthday를 키로 사용하고, 로그인 유저 생년월일을 값으로 사용하여 추가한다.
 		// 생년월일 동의 항목에 체크하지 않은 경우
-		} else {
+		} else if ( apiConsent.getBirthday() == 2 ) {
 			responseMap.put("birthday", null); // birthday를 키로 사용하고, null을 값으로 사용하여 추가한다.
 		}
 		// 휴대폰 번호 동의 항목에 체크한 경우
-		if ( apiKey.getPhoneNumber() == 2 ) {
+		if ( apiConsent.getPhoneNumber() == 5 || apiConsent.getPhoneNumber() == 3 ) {
 			responseMap.put("phoneNumber", loginUser.getPhoneNumber()); // phoneNumber를 키로 사용하고, 로그인 유저 휴대폰 번호를 값으로 사용하여 추가한다.
 		// 휴대폰 번호 동의 항목에 체크하지 않은 경우
-		} else {
+		} else if ( apiConsent.getPhoneNumber() == 2 ) {
 			responseMap.put("phoneNumber", null); // phoneNumber를 키로 사용하고, null을 값으로 사용하여 추가한다.
 		}
 		// 이메일 동의 항목에 체크한 경우
-		if ( apiKey.getEmail() == 2 ) {
+		if ( apiConsent.getEmail() == 5 || apiConsent.getEmail() == 3 ) {
 			responseMap.put("email", loginUser.getEmail()); // email을 키로 사용하고, 로그인 유저 이메일을 값으로 사용하여 추가한다.
 		// 이메일 동의 항목에 체크하지 않은 경우
-		} else {
+		} else if ( apiConsent.getEmail() == 2 ) {
 			responseMap.put("email", null); // email을 키로 사용하고, null을 값으로 사용하여 추가한다.
 		}
 		// 로그인 유저 정보가 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.

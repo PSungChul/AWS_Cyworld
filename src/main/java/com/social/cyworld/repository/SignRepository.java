@@ -111,8 +111,8 @@ public interface SignRepository extends JpaRepository<Sign, Object> {
     @Modifying(clearAutomatically = true)
     @Transactional
     int updateSetPhoneNumberByIdx(@Param("phoneNumber") String phoneNumber, @Param("idx") int idx);
-
-    // API 동의 항목 체크
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////API
+    // API 로그인 유저 API 동의 항목 체크 완료
     @Query("UPDATE Sign s SET s.consent = 1 WHERE s.idx = :idx")
     @Modifying(clearAutomatically = true)
     @Transactional

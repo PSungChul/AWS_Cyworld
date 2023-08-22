@@ -14,7 +14,7 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Object> {
     // API 정보 조회
     ApiKey findByIdx(int idx);
 
-    // API 정보 RedirectURI 검증
+    // API RedirectURI 검증 및 API 정보 조회
     ApiKey findByRedirectUri(String redirectUri);
 
     // API RedirectURI 및 동의 항목 설정
