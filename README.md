@@ -47,6 +47,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
   	로그인 토큰 관리에 헤더 대신 쿠키로 변경
 	유저 정보에 생년월일 컬럼 추가
 	Cyworld Login API 구현 - ApiKey 테이블 추가, 유저 정보에 API 동의 항목 체크 컬럼 추가
+	동의 항목을 필수 동의 항목과 선택 동의 항목으로 분리 - ApiConsent 테이블 추가
 
 #
 
@@ -58,6 +59,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	MyBatis --> JPA
 	Oracle --> MySQL
 	먼저 왼쪽 환경으로 제작을 하였고, 이후 AWS를 통해 CyworldProject를 서버에 배포하기 위해 새로운 환경으로 재구성 하였습니다.
+	Redis - 로그인 토큰 저장용 데이터 스토어
 
 #
 
@@ -67,7 +69,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	CREATE DATABASE Cyworld DEFAULT CHARACTER SET UTF8MB4;
 	# 생성한 데이터베이스 사용
 	USE Cyworld;
-### ✔ TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey
+### ✔ TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey, ApiConsent
 	# 테이블 생성
 	
 	# 유저 테이블
@@ -206,19 +208,30 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		CONSTRAINT fk_GuestbookLikeSessionIdx FOREIGN KEY(guestbookLikeSessionIdx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE # 포린키 연결
 	);
 
-	# API 테이블
+	# API 정보 테이블
 	CREATE TABLE ApiKey(
 		idx INT PRIMARY KEY, # 로그인 유저 IDX
-		CONSTRAINT fk_ApiIdx FOREIGN KEY(idx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
+		CONSTRAINT fk_ApiKeyIdx FOREIGN KEY(idx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
 		clientId VARCHAR(255) NOT NULL UNIQUE, # API Client ID Key
 		clientSecret VARCHAR(255) NOT NULL UNIQUE, # API Client Secret Key
 		redirectUri VARCHAR(255), # API Redirect URI
-		gender INT, # 성별 동의 항목 체크
-		name INT, # 이름 동의 항목 체크
-		birthday INT, # 생년월일 동의 항목 체크
-		phoneNumber INT, # 휴대폰 번호 동의 항목 체크
-		email INT # 이메일 동의 항목 체크
+		gender INT, # 성별 동의 항목
+		name INT, # 이름 동의 항목
+		birthday INT, # 생년월일 동의 항목
+		phoneNumber INT, # 휴대폰 번호 동의 항목
+		email INT # 이메일 동의 항목
 	);
+
+	# API 동의 항목 체크 테이블
+	CREATE TABLE ApiConsent(
+		idx INT PRIMARY KEY, # 로그인 유저 IDX
+		CONSTRAINT fk_ApiConsentIdx FOREIGN KEY(idx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
+		gender INT, # 성별 동의 항목
+		name INT, # 이름 동의 항목
+		birthday INT, # 생년월일 동의 항목
+		phoneNumber INT, # 휴대폰 번호 동의 항목
+		email INT # 이메일 동의 항목
+	); 
 
 #
 
