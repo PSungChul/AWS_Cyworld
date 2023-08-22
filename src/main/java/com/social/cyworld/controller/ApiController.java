@@ -35,26 +35,21 @@ import java.util.UUID;
 /***********************************************************************************************************************
  Cyworld Login API 가이드
  -----------------------------------------------------------------------------------------------------------------------API Login Code 발급
- http://localhost:9999/api/loginform - 로그인 페이지
+ GET http://localhost:9999/api/cyworld - API 검증 --> API 로그인 --> API 동의 항목 --> API Login Code 발급
  "?clientId=" + Client ID Key + "&redirectUri=" + Redirect URI
- Method="GET"
- http://localhost:9999/api/loginform/login - 로그인
- http://localhost:9999/api/loginform/login/consent - 동의 항목 페이지
- http://localhost:9999/api/login/code - API Login Code 발급
  정상
  Redirect URI + "?code=" + API Login Code
  에러 - Cyworld API 에러 페이지
  http://localhost:9999/api/error + "?code=" + Error Message
  -----------------------------------------------------------------------------------------------------------------------API Access Token 발급
- http://localhost:9999/api/token - API Login Access Token 발급
- "?clientId=" + Client ID Key + "&clientSecret=" + Client Secret Key + "&redirectUri=" + Redirect URI + "&code=" + API Login Code
- Method="POST"
+ POST http://localhost:9999/api/token - API 검증 --> API Login Code 검증 --> API Login Access Token 발급
+ Body="clientId=" + Client ID Key + "&clientSecret=" + Client Secret Key + "&redirectUri=" + Redirect URI + "&code=" + API Login Code
  정상
  {"accessToken":"API Access Token"}
  에러
  {"accessToken":"Error Code", "message":"Error Message"}
  -----------------------------------------------------------------------------------------------------------------------API 유저 정보 조회
- http://localhost:9999/api/user - API 유저 정보 조회
+ POST http://localhost:9999/api/user - API Login Access Token 검증 --> API 유저 정보 조회
  Header="Authorization":"Bearer " + API Access Token
  Method="POST"
  정상 - 동의 항목 동의
@@ -444,82 +439,9 @@ public class ApiController {
 		return result;
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////API Login
-	// API Login 페이지 이동
-	@GetMapping("/loginform")
-	public String apiLoginForm(ApiDTO apiDTO, Model model) {
-		// 파라미터로 받아온 API 정보를 바인딩한다.
-		model.addAttribute("apiDTO", apiDTO);
-
-		// API Login 페이지로 이동
-		return "Sign/api_login";
-	}
-
-	// API Login 체크
-	@PostMapping("/loginform/login")
-	@ResponseBody
-	public int apiLogin(String userId, String info) {
-		// 아이디에 해당하는 유저 정보가 존재하는지 체크한다.
-		Sign sign = signService.findByUserId(userId);
-
-		// 유저 정보가 존재하지 않는 경우 - 아이디 X
-		if ( sign == null ) {
-			// 에러 값을 반환한다.
-			return -1;
-		}
-
-		// 유저 정보가 존재하는 경우
-
-		// 가져온 유저 정보에서 비빌번호를 가져와 입력한 비밀번호와 일치하는지 체크한다.
-		// 비밀번호가 일치하지 않는 경우 - 비밀번호 X
-		if ( !passwordEncoder.matches(info, sign.getInfo()) ) {
-			// 에러 값을 반환한다.
-			return -2;
-		}
-
-		// 비밀번호가 일치하는 경우 - 로그인
-
-		// 가져온 유저 정보에서 동의 항목 체크 값을 가져와 동의 항목 페이지를 거쳤는지 체크한다.
-		// 동의 항목에 체크하지 않은 경우
-		if ( sign.getConsent() == 0 ) {
-			// 로그인 유저 idx를 반환한다.
-			return sign.getIdx();
-		}
-
-		// 동의 항목에 체크한 경우
-
-		// 성공 값을 반환한다.
-		return 0;
-	}
-
-	// API 동의 항목 페이지
-	@PostMapping("/login/consent")
-	public String apiConsent(ApiDTO apiDTO, Model model) {
-		// 로그인 유저 idx에 해당하는 API 정보를 조회한다.
-		ApiKey apiKey = apiService.findByApiKeyIdx(apiDTO.getIdx());
-
-		// 조회한 API 정보를 바인딩한다.
-		model.addAttribute("apiKey", apiKey);
-
-		// API 동의 항목 페이지로 이동
-		return "Sign/api_consent";
-	}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////API Login Code
-	// API 동의 항목 체크 및 API Client ID Key 검증 및 API Login Code 발급
-	@PostMapping("/login/code")
-	public ResponseEntity<String> apiValidationClientID(ApiDTO apiDTO) {
-		// API 동의 항목 체크 값으로 API 동의 항목 페이지를 거쳐서 왔는지 체크한다.
-		// API 동의 항목 페이지를 거쳐서 온 경우
-		if ( apiDTO.getConsent() != null ) {
-			// API DTO로 받아온 API 정보를 ApiConsent 객체로 변환한다.
-			ApiConsent apiConsent = apiDTO.toApiConsent();
-			// 변환된 ApiConsent 객체로 체크한 동의 항목들을 저장한다.
-			apiService.insertIntoApiConsent(apiConsent);
-			// 로그인 유저 idx에 해당하는 유저 정보 중 동의 항목 체크 값을 체크 완료 값인 1로 수정한다.
-			apiService.updateSetConsentByIdx(apiConsent.getIdx());
-		}
-
-		// API 동의 항목 페이지를 거쳐서 오지 않은 경우
-
+	// API 검증
+	@GetMapping("/cyworld")
+	public ResponseEntity<String> apiCheck(ApiDTO apiDTO) {
 		// RedirectURI에 해당하는 API 정보가 존재하는지 체크한다.
 		ApiKey apiKey = apiService.findByRedirectUri(apiDTO.getRedirectUri());
 
@@ -560,6 +482,137 @@ public class ApiController {
 
 		// ClientID가 일치하는 경우
 
+		// API RedirectURI를 재구성한다.
+		String cyworldRedirectUri = UriComponentsBuilder // URI를 생성하는 빌더를 생성한다.
+				.fromUriString("http://localhost:9999/api/loginform") // API 로그인 페이지 주소를 기반으로 URI 구성을 시작한다.
+				.queryParam("clientId", apiKey.getClientId()) // clientId 이름의 쿼리 파라미터에 RedirectURI에 해당하는 API 정보 중 ClientID를 값으로 추가한다.
+				.queryParam("redirectUri", apiKey.getRedirectUri()) // redirectUri 이름의 쿼리 파라미터에 RedirectURI에 해당하는 API 정보 중 RedirectURI를 값으로 추가한다.
+				.toUriString(); // 구성된 URI를 문자열 형식으로 반환한다.
+
+		// 재구성한 API RedirectURI로 에러 메시지를 반환한다.
+		return ResponseEntity.status(HttpStatus.FOUND)	// HTTP 응답 상태 코드를 302 (Found)으로 설정한 ResponseEntity 객체를 생성한다.
+														// 이 코드는 일반적으로 리다이렉션을 나타내는데 사용된다.
+														// 클라이언트가 이 응답을 받으면, 서버는 Location 헤더에 설정된 URI로 클라이언트를 리다이렉트한다.
+				.header("Location", cyworldRedirectUri) // Location 헤더에 재구성한 API RedirectURI 설정한다.
+				.build(); // ResponseEntity를 빌드하여 생성한다.
+	}
+
+	// API Login 페이지
+	@GetMapping("/loginform")
+	public String apiLoginForm(ApiDTO apiDTO, Model model) {
+		// 파라미터로 받아온 API 정보를 바인딩한다.
+		model.addAttribute("apiDTO", apiDTO);
+
+		// API Login 페이지로 이동
+		return "Sign/api_login";
+	}
+
+	// API Login 검증
+	@PostMapping("/loginform/login")
+	@ResponseBody
+	public int apiLogin(String userId, String info) {
+		// 아이디에 해당하는 유저 정보가 존재하는지 체크한다.
+		Sign sign = signService.findByUserId(userId);
+
+		// 유저 정보가 존재하지 않는 경우 - 아이디 X
+		if ( sign == null ) {
+			// 에러 값을 반환한다.
+			return -1;
+		}
+
+		// 유저 정보가 존재하는 경우
+
+		// 조회한 유저 정보에서 비빌번호를 가져와 입력한 비밀번호와 일치하는지 체크한다.
+		// 비밀번호가 일치하지 않는 경우 - 비밀번호 X
+		if ( !passwordEncoder.matches(info, sign.getInfo()) ) {
+			// 에러 값을 반환한다.
+			return -2;
+		}
+
+		// 비밀번호가 일치하는 경우 - 로그인
+
+		// 조죄한 유저 정보에서 동의 항목 체크 값을 가져와 동의 항목 페이지를 거쳤는지 체크한다.
+		// 동의 항목에 체크하지 않은 경우
+		if ( sign.getConsent() == 0 ) {
+			// 로그인 유저 idx를 반환한다.
+			return sign.getIdx();
+		}
+
+		// 동의 항목에 체크한 경우
+
+		// 성공 값을 반환한다.
+		return 0;
+	}
+
+	// API 동의 항목 페이지
+	@PostMapping("/login/consent")
+	public String apiConsent(ApiDTO apiDTO, Model model) {
+		// 로그인 유저 idx에 해당하는 API 정보를 조회한다.
+		ApiKey apiKey = apiService.findByApiKeyIdx(apiDTO.getIdx());
+
+		// 조회한 API 정보를 바인딩한다.
+		model.addAttribute("apiKey", apiKey);
+
+		// API 동의 항목 페이지로 이동
+		return "Sign/api_consent";
+	}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////API Login Code
+	// API 검증 및 API 동의 항목 체크 검증 이후 API Login Code 발급
+	@PostMapping("/login/code")
+	public ResponseEntity<String> apiValidationClientID(ApiDTO apiDTO) {
+		// RedirectURI에 해당하는 API 정보가 존재하는지 체크한다.
+		ApiKey apiKey = apiService.findByRedirectUri(apiDTO.getRedirectUri());
+
+		// API 정보가 존재하지 않는 경우
+		if ( apiKey == null ) {
+			// API RedirectURI를 재구성한다.
+			String cyworldRedirectUri = UriComponentsBuilder // URI를 생성하는 빌더를 생성한다.
+					.fromUriString("http://localhost:9999/api/error") // API 에러 페이지 주소를 기반으로 URI 구성을 시작한다.
+					.queryParam("code", "Invalid Redirect URI") // code 이름의 쿼리 파라미터에 에러 메시지를 값으로 추가한다.
+					.toUriString(); // 구성된 URI를 문자열 형식으로 반환한다.
+
+			// 재구성한 API RedirectURI로 에러 메시지를 반환한다.
+			return ResponseEntity.status(HttpStatus.FOUND)	// HTTP 응답 상태 코드를 302 (Found)으로 설정한 ResponseEntity 객체를 생성한다.
+															// 이 코드는 일반적으로 리다이렉션을 나타내는데 사용된다.
+															// 클라이언트가 이 응답을 받으면, 서버는 Location 헤더에 설정된 URI로 클라이언트를 리다이렉트한다.
+					.header("Location", cyworldRedirectUri) // Location 헤더에 재구성한 API RedirectURI 설정한다.
+					.build(); // ResponseEntity를 빌드하여 생성한다.
+		}
+
+		// API 정보가 존재하는 경우
+
+		// RedirectURI에 해당하는 API 정보 중 ClientID와 파라미터로 가져온 API 정보 중 ClientID가 일치하는지 체크한다.
+		// ClientID가 일치하지 않는 경우
+		if ( !apiKey.getClientId().equals(apiDTO.getClientId()) ) {
+			// API RedirectURI를 재구성한다.
+			String cyworldRedirectUri = UriComponentsBuilder // URI를 생성하는 빌더를 생성한다.
+					.fromUriString("http://localhost:9999/api/error") // API 에러 페이지 주소를 기반으로 URI 구성을 시작한다.
+					.queryParam("code", "Invalid Client ID Key") // code 이름의 쿼리 파라미터에 에러 메시지를 값으로 추가한다.
+					.toUriString(); // 구성된 URI를 문자열 형식으로 반환한다.
+
+			// 재구성한 API RedirectURI로 에러 메시지를 반환한다.
+			return ResponseEntity.status(HttpStatus.FOUND)	// HTTP 응답 상태 코드를 302 (Found)으로 설정한 ResponseEntity 객체를 생성한다.
+															// 이 코드는 일반적으로 리다이렉션을 나타내는데 사용된다.
+															// 클라이언트가 이 응답을 받으면, 서버는 Location 헤더에 설정된 URI로 클라이언트를 리다이렉트한다.
+					.header("Location", cyworldRedirectUri) // Location 헤더에 재구성한 API RedirectURI 설정한다.
+					.build(); // ResponseEntity를 빌드하여 생성한다.
+		}
+
+		// ClientID가 일치하는 경우
+
+		// API 동의 항목 체크 검증 값으로 API 동의 항목 페이지를 거쳐서 왔는지 체크한다.
+		// API 동의 항목 페이지를 거쳐서 온 경우
+		if ( apiDTO.getConsent() != null ) {
+			// API DTO로 받아온 API 정보를 ApiConsent 객체로 변환한다.
+			ApiConsent apiConsent = apiDTO.toApiConsent();
+			// 변환된 ApiConsent 객체로 체크한 동의 항목들을 저장한다.
+			apiService.insertIntoApiConsent(apiConsent);
+			// 로그인 유저 idx에 해당하는 유저 정보 중 동의 항목 체크 값을 체크 완료 값인 1로 수정한다.
+			apiService.updateSetConsentByIdx(apiConsent.getIdx());
+		}
+
+		// API 동의 항목 페이지를 거쳐서 오지 않은 경우
+
 		// API Login Code를 생성한다.
 		String code = UUID.randomUUID().toString().replace("-", "");
 		// API RedirectURI를 재구성한다.
@@ -578,7 +631,7 @@ public class ApiController {
 				.build(); // ResponseEntity를 빌드하여 생성한다.
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////API Access Token
-	// API Client ID Key, Client Secret Key 검증 및 API Access Token 발급
+	// API 검증 이후 API Access Token 발급
 	@PostMapping("/token")
 	public ResponseEntity<String> apiAccessToken(ApiDTO apiDTO) throws UnsupportedEncodingException, JsonProcessingException {
 		// RedirectURI에 해당하는 API 정보가 존재하는지 체크한다.
