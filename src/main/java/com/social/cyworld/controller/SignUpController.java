@@ -73,9 +73,9 @@ public class SignUpController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -90,7 +90,7 @@ public class SignUpController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 로그아웃 페이지로 이동
-				return "redirect:logout.do";
+				return "redirect:/logout.do";
 			// 토큰도 세션도 존재하지 않는 경우 - 로그인
 			} else {
 				model.addAttribute("naverClientId", naverClientId);
@@ -160,7 +160,7 @@ public class SignUpController {
 		}
 
 		// 토큰과 세션이 모두 존재한다면 로그인은 건너뛰고 토큰에서 추출한 로그인 유저 idx에 해당하는 메인 페이지로 이동
-		return "redirect:main.do?idx=" + loginIdx;
+		return "redirect:/main.do?idx=" + loginIdx;
 	}
 	
 	// 로그아웃
@@ -173,9 +173,9 @@ public class SignUpController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -194,7 +194,7 @@ public class SignUpController {
 			}
 
 			// 세션이 삭제되면 다시 로그인 페이지로 이동
-			return "redirect:login.do";
+			return "redirect:/login.do";
 		}
 		// 쿠키에 토큰이 존재하는 경우 - Redis 블랙리스트에 토큰을 추가하고 토큰과 세션 모두 삭제
 		// 무효화한 토큰인지 체크한다.
@@ -221,7 +221,7 @@ public class SignUpController {
 		}
 
 		// 토큰과 세션이 모두 삭제되면 다시 로그인 페이지로 이동
-		return "redirect:login.do";
+		return "redirect:/login.do";
 	}
 	
 	// 네이버 API 콜백용
@@ -251,9 +251,9 @@ public class SignUpController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 만료 or 무효화 이후 로그인
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCookie = new Cookie("Authorization", "");
 					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
@@ -290,7 +290,7 @@ public class SignUpController {
 					signService.updateTodayDate(login);
 
 					// 로그인 유저 idx에 해당하는 메인 페이지로 이동
-					return "redirect:main.do?idx=" + login.getIdx();
+					return "redirect:/main.do?idx=" + login.getIdx();
 				}
 			}
 		}
@@ -324,7 +324,7 @@ public class SignUpController {
 		signService.updateTodayDate(login);
 
 		// 로그인 유저 idx에 해당하는 메인 페이지로 이동
-		return "redirect:main.do?idx=" + login.getIdx();
+		return "redirect:/main.do?idx=" + login.getIdx();
 	}
 
 	// 카카오 가입자 비가입자 구별
@@ -353,9 +353,9 @@ public class SignUpController {
 				// Authorization 쿠키가 존재하는 경우
 				if ( cookies != null ) {
 					// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-					for (Cookie cookie : cookies) {
+					for ( Cookie cookie : cookies ) {
 						// Authorization 쿠키에 토큰이 존재하는 경우 - 만료 or 무효화 이후 로그인
-						if (cookie.getName().equals("Authorization")) {
+						if ( cookie.getName().equals("Authorization") ) {
 							// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 							Cookie deleteCookie = new Cookie("Authorization", "");
 							// Authorization 쿠키의 만료 시간을 0으로 설정한다.
@@ -473,9 +473,9 @@ public class SignUpController {
 				// Authorization 쿠키가 존재하는 경우
 				if ( cookies != null ) {
 					// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-					for (Cookie cookie : cookies) {
+					for ( Cookie cookie : cookies ) {
 						// Authorization 쿠키에 토큰이 존재하는 경우 - 만료 or 무효화 이후 로그인
-						if (cookie.getName().equals("Authorization")) {
+						if ( cookie.getName().equals("Authorization") ) {
 							// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 							Cookie deleteCookie = new Cookie("Authorization", "");
 							// Authorization 쿠키의 만료 시간을 0으로 설정한다.

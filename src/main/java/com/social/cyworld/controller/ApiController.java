@@ -100,7 +100,7 @@ public class ApiController {
 	private CodeExpirationManager codeExpirationManager = new CodeExpirationManager();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////API Key 발급
-	// API 팝업 이동
+	// API 팝업
 	@RequestMapping("/profile_api_popup.do")
 	public String apiPopUp(int idx, Model model) {
 		// 토큰 값
@@ -110,9 +110,9 @@ public class ApiController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -127,11 +127,11 @@ public class ApiController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + idx;
+				return "redirect:/main.do?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -195,10 +195,10 @@ public class ApiController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - API 팝업은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + idx;
+			return "redirect:/main.do?idx=" + idx;
 		}
 
 		// API Key를 조회한다.
@@ -223,9 +223,9 @@ public class ApiController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -240,11 +240,11 @@ public class ApiController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + idx;
+				return "redirect:/main.do?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -308,10 +308,10 @@ public class ApiController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - API Key 발급은 오로지 미니홈피 주인만 할 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + idx;
+			return "redirect:/main.do?idx=" + idx;
 		}
 
 		// API Key 객체를 생성한다.
@@ -337,7 +337,7 @@ public class ApiController {
 		apiService.insertIntoApiKey(apiKey);
 
 		// API 팝업으로 이동
-		return "redirect:profile_api_popup.do?idx=" + loginIdx;
+		return "redirect:/profile_api_popup.do?idx=" + loginIdx;
 	}
 
 	// API RedirectURI 및 동의 항목 설정
@@ -351,9 +351,9 @@ public class ApiController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -430,10 +430,10 @@ public class ApiController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - API RedirectURI 및 동의 항목 설정은 오로지 미니홈피 주인만 할 수 있다.
 		if ( loginIdx != apiKey.getIdx() ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + apiKey.getIdx();
+			return "redirect:/main.do?idx=" + apiKey.getIdx();
 		}
 
 		// 저장 or 수정 실패하는 경우

@@ -50,9 +50,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -67,11 +67,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + idx;
+				return "redirect:/main.do?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -194,9 +194,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -211,11 +211,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + idx;
+				return "redirect:/main.do?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -282,7 +282,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:gallery.do?idx=" + idx;
+			return "redirect:/gallery.do?idx=" + idx;
 		}
 
 		// 게시글 DTO 생성
@@ -307,9 +307,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -324,11 +324,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + galleryDTO.getGalleryIdx();
+				return "redirect:/main.do?idx=" + galleryDTO.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -395,7 +395,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
 		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:gallery.do?idx=" + galleryDTO.getGalleryIdx();
+			return "redirect:/gallery.do?idx=" + galleryDTO.getGalleryIdx();
 		}
 		
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
@@ -463,7 +463,7 @@ public class GalleryController {
 		galleryService.insertIntoGallery(galleryDTO.toInsertEntity());
 
 		// idx를 들고 사진첩 페이지 URL로 이동
-		return "redirect:gallery.do?idx=" + galleryDTO.getGalleryIdx();
+		return "redirect:/gallery.do?idx=" + galleryDTO.getGalleryIdx();
 	}
 	
 	// 사진첩 글 삭제
@@ -477,9 +477,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -584,9 +584,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -601,11 +601,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + gallery.getGalleryIdx();
+				return "redirect:/main.do?idx=" + gallery.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -672,7 +672,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
 		if ( loginIdx != gallery.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:gallery.do?idx=" + gallery.getGalleryIdx();
+			return "redirect:/gallery.do?idx=" + gallery.getGalleryIdx();
 		}
 		
 		// 해당 idx의 사진첩에 수정할 게시글을 조회
@@ -698,9 +698,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -715,11 +715,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + galleryDTO.getGalleryIdx();
+				return "redirect:/main.do?idx=" + galleryDTO.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -786,7 +786,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
 		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:gallery.do?idx=" + galleryDTO.getGalleryIdx();
+			return "redirect:/gallery.do?idx=" + galleryDTO.getGalleryIdx();
 		}
 
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
@@ -853,7 +853,7 @@ public class GalleryController {
 		galleryService.updateSetGalleryTitleAndGalleryRegDateAndGalleryContentAndGalleryFileNameAndGalleryFileExtensionByGalleryIdxAndIdx(galleryDTO.toModifyEntity());
 		
 		// idx를 들고 사진첩 페이지 URL로 이동
-		return "redirect:gallery.do?idx=" + galleryDTO.getGalleryIdx();
+		return "redirect:/gallery.do?idx=" + galleryDTO.getGalleryIdx();
 	}
 	
 	/////////////// 사진첩 댓글 구역 ///////////////
@@ -869,9 +869,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -989,9 +989,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -1101,9 +1101,9 @@ public class GalleryController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.

@@ -68,9 +68,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -85,11 +85,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + idx;
+				return "redirect:/main.do?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -153,10 +153,10 @@ public class ProfileController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 		
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + idx;
+			return "redirect:/main.do?idx=" + idx;
 		}
 
 		// 미니홈피 유저 정보 조회
@@ -187,7 +187,7 @@ public class ProfileController {
 		return "Page/profile";
 	}
 	
-	// 미니미 팝업 이동
+	// 미니미 팝업
 	@RequestMapping("/profile_minimi_popup.do")
 	public String popup(int idx, Model model) {
 		// 토큰 값
@@ -197,9 +197,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -214,11 +214,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + idx;
+				return "redirect:/main.do?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -282,10 +282,10 @@ public class ProfileController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + idx;
+			return "redirect:/main.do?idx=" + idx;
 		}
 		
 		// idx에 해당하는 프로필 조회
@@ -314,9 +314,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -331,11 +331,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + sign.getIdx();
+				return "redirect:/main.do?idx=" + sign.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -399,17 +399,17 @@ public class ProfileController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != sign.getIdx() ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + sign.getIdx();
+			return "redirect:/main.do?idx=" + sign.getIdx();
 		}
 		
 		// 변경할 미니미 정보로 갱신
 		profileService.updateSetMinimiByIdx(sign);
 
 		// idx를 들고 미니미 팝업으로 URL로 이동
-		return "redirect:profile_minimi_popup.do?idx=" + sign.getIdx();
+		return "redirect:/profile_minimi_popup.do?idx=" + sign.getIdx();
 	}
 	
 	// 미니미 구매
@@ -423,9 +423,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -500,7 +500,7 @@ public class ProfileController {
 			}
 		}
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != sign.getIdx() ) {
 			// 에러 코드를 반환한다.
 			return "-4";
@@ -539,9 +539,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -556,11 +556,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + leftProfileDTO.getIdx();
+				return "redirect:/main.do?idx=" + leftProfileDTO.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -624,10 +624,10 @@ public class ProfileController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != leftProfileDTO.getIdx() ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:main.do?idx=" + leftProfileDTO.getIdx();
+			return "redirect:/main.do?idx=" + leftProfileDTO.getIdx();
 		}
 		
 		// 메인 사진 업로드를 위해 절대 경로를 생성
@@ -676,7 +676,7 @@ public class ProfileController {
 		profileService.updateSetMainPhotoAndMainTextByIdx(leftProfileDTO.toEntity());
 
 		// idx를 들고 프로필 페이지 URL로 이동
-		return "redirect:profile.do?idx=" + leftProfileDTO.getIdx();
+		return "redirect:/profile.do?idx=" + leftProfileDTO.getIdx();
 	}
 	
 	// 프로필 우측 - 메인 타이틀 및 비밀번호 수정
@@ -690,9 +690,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -767,7 +767,7 @@ public class ProfileController {
 			}
 		}
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != sign.getIdx() ) {
 			// 에러 코드를 반환한다.
 			return "4";
@@ -817,9 +817,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -894,7 +894,7 @@ public class ProfileController {
 			}
 		}
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 에러 코드를 반환한다.
 			return "4";
@@ -934,9 +934,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -1011,7 +1011,7 @@ public class ProfileController {
 			}
 		}
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 에러 코드를 반환한다.
 			return "4";
@@ -1037,9 +1037,9 @@ public class ProfileController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -1114,7 +1114,7 @@ public class ProfileController {
 			}
 		}
 
-		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != sign.getIdx() ) {
 			// 에러 코드를 반환한다.
 			return "4";

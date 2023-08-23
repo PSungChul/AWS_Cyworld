@@ -48,9 +48,9 @@ public class MainController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -98,7 +98,7 @@ public class MainController {
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -353,7 +353,7 @@ public class MainController {
 
 	/////////////// 검색 구역 ///////////////
 
-	// 검색 팝업 이동
+	// 검색 팝업
 	@RequestMapping("/main_search_popup.do")
 	public String main_search_popup() {
 		// 검색 팝업으로 이동
@@ -401,9 +401,9 @@ public class MainController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -527,7 +527,7 @@ public class MainController {
 
 	/////////////// 도토리 구매 구역 ///////////////
 
-	// 도토리 구매 팝업 이동
+	// 도토리 구매 팝업
 	@RequestMapping("/dotory.do")
 	public String dotory(int idx, Model model) {
 		// 토큰 값
@@ -537,9 +537,9 @@ public class MainController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -554,11 +554,11 @@ public class MainController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + idx;
+				return "redirect:/main.do?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -631,9 +631,9 @@ public class MainController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
@@ -648,11 +648,11 @@ public class MainController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:main.do?idx=" + sign.getIdx();
+				return "redirect:/main.do?idx=" + sign.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:login.do";
+				return "redirect:/login.do";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -718,7 +718,7 @@ public class MainController {
 		signService.updateSetDotoryByIdx(sign);
 
 		// idx와 갱신된 도토리 개수를 들고 도토리 구매 페이지 URL로 이동
-		return "redirect:dotory.do?idx=" + sign.getIdx() + "&dotory=" + sign.getDotory();
+		return "redirect:/dotory.do?idx=" + sign.getIdx() + "&dotory=" + sign.getDotory();
 	}
 
 	/////////////// 일촌 구역 ///////////////
@@ -733,9 +733,9 @@ public class MainController {
 		// Authorization 쿠키가 존재하는 경우
 		if ( cookies != null ) {
 			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
-			for (Cookie cookie : cookies) {
+			for ( Cookie cookie : cookies ) {
 				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
-				if (cookie.getName().equals("Authorization")) {
+				if ( cookie.getName().equals("Authorization") ) {
 					// Authorization 쿠키에 저장한 토큰을 가져온다.
 					authorization = cookie.getValue();
 					// foreach문을 빠져나간다.
