@@ -25,11 +25,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 @PropertySource("classpath:application-information.properties")
+@RequestMapping("/profile")
 @Controller
 public class ProfileController {
 	// @Autowired
@@ -59,7 +61,7 @@ public class ProfileController {
 	private String smsPhoneNumber;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 프로필 조회
-	@RequestMapping("/profile")
+	@RequestMapping("")
 	public String profile(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -85,7 +87,7 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + idx;
+				return "redirect:/main/" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -156,7 +158,7 @@ public class ProfileController {
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main?idx=" + idx;
+			return "redirect:/main/" + idx;
 		}
 
 		// 미니홈피 유저 정보 조회
@@ -188,8 +190,8 @@ public class ProfileController {
 	}
 	
 	// 미니미 팝업
-	@RequestMapping("/profile_minimi_popup")
-	public String popup(int idx, Model model) {
+	@RequestMapping("/profile_minimi_popup/{idx}") // 경로 매개변수
+	public String popup(@PathVariable int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -214,7 +216,7 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + idx;
+				return "redirect:/main/" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -285,7 +287,7 @@ public class ProfileController {
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main?idx=" + idx;
+			return "redirect:/main/" + idx;
 		}
 		
 		// idx에 해당하는 프로필 조회
@@ -299,6 +301,9 @@ public class ProfileController {
 		List<BuyMinimi> buyMinimiList = profileService.findByBuyIdx(idx);
 		// 조회된 구매한 미니미를 리스트 형태로 바인딩
 		model.addAttribute("buyMinimi", buyMinimiList);
+
+		// 로그인 유저 idx 바인딩
+		model.addAttribute("loginIdx", loginIdx);
 
 		// 미니미 팝업으로 이동
 		return "Page/minimiPopUp";
@@ -331,7 +336,7 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + sign.getIdx();
+				return "redirect:/main/" + sign.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -402,14 +407,14 @@ public class ProfileController {
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != sign.getIdx() ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main?idx=" + sign.getIdx();
+			return "redirect:/main/" + sign.getIdx();
 		}
 		
 		// 변경할 미니미 정보로 갱신
 		profileService.updateSetMinimiByIdx(sign);
 
 		// idx를 들고 미니미 팝업으로 URL로 이동
-		return "redirect:/profile_minimi_popup?idx=" + sign.getIdx();
+		return "redirect:/profile/profile_minimi_popup/" + sign.getIdx();
 	}
 	
 	// 미니미 구매
@@ -506,7 +511,7 @@ public class ProfileController {
 			return "-4";
 		}
 
-		// 미니미 Idx에 AUTO_INCREMENT로 null 지정
+		// 미니미 idx에 AUTO_INCREMENT로 null 지정
 		buyMinimi.setIdx(null);
 		// 미니미를 구매한 idx를 지정
 		buyMinimi.setBuyIdx(sign.getIdx());
@@ -556,7 +561,7 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + leftProfileDTO.getIdx();
+				return "redirect:/main/" + leftProfileDTO.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -627,11 +632,11 @@ public class ProfileController {
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != leftProfileDTO.getIdx() ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main?idx=" + leftProfileDTO.getIdx();
+			return "redirect:/main/" + leftProfileDTO.getIdx();
 		}
 		
 		// 메인 사진 업로드를 위해 절대 경로를 생성
-		String savePath = "/Users/p._.sc/IT/Project/CyworldProject/util/files/profile"; // 절대 경로
+		String savePath = "/Users/p._.sc/IT/ToyProject/CyworldProject/util/files/profile"; // 절대 경로
 		// 메인 사진 업로드를 위해 파라미터로 넘어온 사진의 정보
 		MultipartFile mainPhotoFile = leftProfileDTO.getMainPhotoFile();
 		// 업로드된 사진이 없을 경우 이미 저장되어 있는 사진 이름 지정

@@ -67,7 +67,7 @@
 								<tr>
 									<td colspan="2" >
 										<input id="btn-cover" class="modify" type="button" value="수정" onclick="modify(this.form);">
-										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{gallery(idx=${ galleryDTO.galleryIdx })}'|">
+										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{/gallery/{idx}(idx=${ galleryDTO.galleryIdx })}'|">
 									</td>
 								</tr>
 							</table>
@@ -81,7 +81,7 @@
 	<script>
 		// 게시글 수정
 		function modify(f) {
-			f.action = "gallery_modify";
+			f.action = "/gallery/gallery_modify";
 			f.submit();
 		}
 	</script>

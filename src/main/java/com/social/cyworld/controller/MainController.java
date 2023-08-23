@@ -21,6 +21,7 @@ import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -39,8 +40,8 @@ public class MainController {
 	MainService mainService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 메인 페이지로 이동
-	@RequestMapping("/main")
-	public String main(int idx, Model model) {
+	@RequestMapping("/main/{idx}") // 경로 매개변수
+	public String main(@PathVariable int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -487,7 +488,7 @@ public class MainController {
 		// 일촌평에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
 		Sign loginUser = signService.findByIdx(loginIdx);
 
-		// 일촌평 Idx에 AUTO_INCREMENT로 null 지정
+		// 일촌평 idx에 AUTO_INCREMENT로 null 지정
 		ilchonpyeong.setIdx(null);
 
 		// 일촌평에 작성자 정보 지정
@@ -528,8 +529,8 @@ public class MainController {
 	/////////////// 도토리 구매 구역 ///////////////
 
 	// 도토리 구매 팝업
-	@RequestMapping("/dotory")
-	public String dotory(int idx, Model model) {
+	@RequestMapping("/dotory/{idx}") // 경로 매개변수
+	public String dotory(@PathVariable int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -554,7 +555,7 @@ public class MainController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + idx;
+				return "redirect:/main/" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -648,7 +649,7 @@ public class MainController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + sign.getIdx();
+				return "redirect:/main/" + sign.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -718,7 +719,7 @@ public class MainController {
 		signService.updateSetDotoryByIdx(sign);
 
 		// idx와 갱신된 도토리 개수를 들고 도토리 구매 페이지 URL로 이동
-		return "redirect:/dotory?idx=" + sign.getIdx() + "&dotory=" + sign.getDotory();
+		return "redirect:/dotory/" + sign.getIdx() + "?dotory=" + sign.getDotory();
 	}
 
 	/////////////// 일촌 구역 ///////////////
@@ -839,7 +840,7 @@ public class MainController {
 		// 로그인한 유저 및 해당 미니홈피 유저 둘다 일촌 신청 안 한 경우
 		// 이때는 다른 것을 더 조회할 필요없이 바로 INSERT해서 일촌 신청 상태로 만든다
 		if ( followNum == 0 ) {
-			// 일촌 Idx에 AUTO_INCREMENT로 null 지정
+			// 일촌 idx에 AUTO_INCREMENT로 null 지정
 			ilchon.setIdx(null);
 			// 로그인한 유저만 일방적으로 일촌 신청을 하였기에 ilchonUp을 1로 만든다
 			ilchon.setIlchonUp(1);
@@ -878,7 +879,7 @@ public class MainController {
 			// 로그인한 유저가 해당 미니홈피 유저에게 일촌 신청 X
 			// 해당 미니홈피 유저가 로그인한 유저에게 일촌 신청 O
 			if ( ilchonUser == null ) {
-				// 일촌 Idx에 AUTO_INCREMENT로 null 지정
+				// 일촌 idx에 AUTO_INCREMENT로 null 지정
 				ilchon.setIdx(null);
 				// 로그인한 유저가 마저 일촌 신청을 하면서 이제 맞일촌 상태가 됐으므로 ilchonUp을 2로 만든다
 				ilchon.setIlchonUp(2);

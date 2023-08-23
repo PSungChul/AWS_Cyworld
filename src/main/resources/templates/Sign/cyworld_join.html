@@ -52,7 +52,7 @@
 														<input class="address2 address_kakao" id="btn-cover" type="button" value="주소찾기"> <br>
 							<p class="rAddress">상세 주소 <br> <input class="address_kakao" name="addressDetail" type="text"></p>
 							<input class="mJoin" id="btn-cover" type="button" value="가입" onclick="cyworldJoin(this.form);">
-							<input  id="btn-cover" class="cancel" type="button" value="취소" onclick="location.href='logout'">
+							<input  id="btn-cover" class="cancel" type="button" value="취소" onclick="location.href='/logout'">
 						</form>
 						
 					</div>
@@ -485,11 +485,11 @@
 				if ( data == "no" ) {
 					alert("가입된 회원정보가 있습니다");
 					alert("로그인 혹은 아이디/비밀번호 찾기를 이용해주세요");
-					location.href = "login";
+					location.href = "/login";
 				} else {
 					alert("가입이 완료되었습니다");
 					alert("로그인 페이지로 이동합니다");
-					location.href = "login";
+					location.href = "/login";
 				}
 			}
 		}

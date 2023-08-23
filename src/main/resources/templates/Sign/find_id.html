@@ -28,7 +28,7 @@
 							<div class="PNum">인증번호 <br> <input id="i_phoneNumber" type="text"></div>
 							<input class="sendPNum2" type="button" value="인증번호 확인" onclick="phoneCheck();">
 							<input id="btn-cover" type="button" value="아이디 찾기" onclick="findID(this.form)">
-							<input  id="btn_cover" class="cancel" type="button" value="취소" onclick="location.href='logout'">
+							<input  id="btn_cover" class="cancel" type="button" value="취소" onclick="location.href='/logout'">
 						</form>
 						
 					</div>
@@ -150,7 +150,7 @@
 				}
 				
 				alert("아이디는 '" + data + "' 입니다");
-				location.href = "login";
+				location.href = "/login";
 			}
 		}
 	</script>

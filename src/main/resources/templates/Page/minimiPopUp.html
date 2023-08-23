@@ -36,12 +36,12 @@
 			<p class="subTitle">-보유 미니미-</p>
 			<div class="myMinimiList">
 				<!-- 보유 미니미 - 나의 미니미 변경 -->
-				<form action="">
+				<form>
 					<div class="tabs">
 						<!-- 미니미 변경 완료 버튼 -->
-						<input id="btn-cover" class="close "type="button" value="완료" th:onclick="|opener.location.href='@{main(idx=${ param.idx })}'; buyclose();|">
+						<input id="btn-cover" class="close "type="button" value="완료" onclick="buyclose();">
 						
-						<input name="idx" type="hidden" th:value="${ param.idx }">
+						<input name="idx" type="hidden" th:value="${loginIdx}">
 						<!-- 현제 보유중인 미니미 -->
 						<input id="tab1" class="btn" name="minimi" type="checkbox"  value="Spongebob.gif" onclick="NoMultiChk1(this)">
 						<input id="tab2" class="btn" name="minimi" type="checkbox"  value="stitch.gif" onclick="NoMultiChk1(this)">
@@ -88,9 +88,9 @@
 			<p class="subTitle" id="lastTitle">※ 구매 가능</p>
 			<p class="subTitle" >-액션 미니미-</p>
 			<!-- 액션 미니미 구매 - 구매하면 내가 구매한 미니미가 보유 미니미로 가고 리스트 갱신-->
-			<form action="">
+			<form>
 				<div class="tabs">
-					<input id="idx" name="idx" type="hidden" th:value="${ param.idx }">
+					<input id="idx" name="idx" type="hidden" th:value="${loginIdx}">
 					<input name="dotory" type="hidden" th:value="${ dotory }">
 					<!-- 유료 미니미 -->
 					<input id="tab7" class="btn" name="buyMinimiName" type="checkbox" value="cat.gif" onclick="NoMultiChk2(this)">
@@ -155,7 +155,7 @@
 			
 			for ( let i = 0; i < minimi.length; i++ ) {
 				if ( minimi[i].checked == true ) {
-					f.action = "profile_minimi_change";
+					f.action = "/profile/profile_minimi_change";
 					f.method = "GET";
 					f.submit();
 					return;
@@ -179,10 +179,10 @@
 					// 보유 도토리 수가 미니미 가격보다 많을 경우
 					} else {
 						dotory -= parseInt(price[i].value);
-						url = "profile_minimi_buy";
-						param = "idx=" + idx +
-								"&dotory=" + dotory +
-								"&buyMinimiName=" + buyMinimiName[i].value;
+						let url = "/profile/profile_minimi_buy";
+						let param = "idx=" + idx +
+									"&dotory=" + dotory +
+									"&buyMinimiName=" + buyMinimiName[i].value;
 						sendRequest(url, param, resultBuy, "GET");
 						return;
 					}
@@ -197,7 +197,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					opener.location.href = "/main?idx=" + idx;
+					opener.location.href = "/main/" + idx;
 					window.close();
 					return;
 				}
@@ -232,7 +232,7 @@
 				}
 				
 				alert("구매 완료");
-				location.href = "profile_minimi_popup?idx=" + idx;
+				location.href = "/profile/profile_minimi_popup/" + idx;
 			}
 		}
 	</script>

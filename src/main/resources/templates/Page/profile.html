@@ -62,7 +62,7 @@
 						<select class="myFriend" onchange="if(this.value) location.href=(this.value);">
 							<option value="">::: 파도타기 :::</option>
 							<!-- 프로필에서 파도타기는 해당 미니홈피 유저의 프로필로 이동하는것이 아닌 메인으로 이동한다 -->
-							<option th:each="ilchon : ${ilchonList}" th:value="${'main?idx=' + ilchon.ilchonIdx}" th:text="'ㆍ ' + ilchon.ilchonName"></option>
+							<option th:each="ilchon : ${ilchonList}" th:value="${'/main/' + ilchon.ilchonIdx}" th:text="'ㆍ ' + ilchon.ilchonName"></option>
 						</select>
 					</aside>
 				</div>
@@ -117,7 +117,7 @@
 								<h2>::개인정보 수정::</h2>
 								<p id="my-minimi">My minimi</p>
 								<!-- 미니미 수정 -->
-								<input class="minimi-main" type="button" th:src="@{/filePath/} + ${ sign.minimi }" onclick="minimiPopUp();">
+								<input class="minimi-main" type="button" th:src="@{/filePath/minimi/} + ${ sign.minimi }" onclick="minimiPopUp();">
 								<!-- 해당 미니홈피 유저의 idx -->
 								<input name="idx" th:value="${ sign.idx }" type="hidden">
 								<!-- 해당 미니홈피 유저의 플랫폼 -->
@@ -178,19 +178,19 @@
 						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
-						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main(idx=${ sign.idx })}'|">
+						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{/main/{idx}(idx=${ sign.idx })}'|">
 						<!-- 프로필 탭 -->
 						<label for="tab2" id="btn2">프로필</label>
 						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
 						<!-- 다이어리 탭 -->
 						<label for="tab3" id="btn3">다이어리</label>
-						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{diary(idx=${ sign.idx })}'|">
+						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{/diary/{idx}(idx=${ sign.idx })}'|">
 						<!-- 사진첩 탭 -->
 						<label for="tab4" id="btn4">사진첩</label>
-						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{gallery(idx=${ sign.idx })}'|">
+						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{/gallery/{idx}(idx=${ sign.idx })}'|">
 						<!-- 방명록 탭 -->
 						<label for="tab5" id="btn5">방명록</label>
-						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{guestbook(idx=${ sign.idx })}'|">
+						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{/guestbook/{idx}(idx=${ sign.idx })}'|">
 					</div>
 				</form>
 			</div>
@@ -227,10 +227,10 @@
 			
 			// 소셜 가입자는 가입할때 따로 작성한 아이디 비밀번호가 없기에 메인타이틀만 수정 가능하다.
 			if ( platform != 'cyworld' ) {
-				url = "profile_modify_userdata"
-				param = "idx=" + idx +
-						"&mainTitle=" + mainTitle +
-						"&platform=" + platform;
+				let url = "/profile/profile_modify_userdata"
+				let param = "idx=" + idx +
+							"&mainTitle=" + mainTitle +
+							"&platform=" + platform;
 				sendRequest(url, param, resultModify, "POST");
 			// cyworld 가입자는 가입할때 따로 작성한 아이디와 비밀번호가 있기에 비밀번호도 수정 가능하다.
 			} else {
@@ -256,18 +256,18 @@
 						return;
 					}
 					
-					url = "profile_modify_userdata"
-					param = "idx=" + idx +
-							"&info=" + info +
-							"&mainTitle=" + mainTitle +
-							"&platform=" + platform;
+					let url = "/profile/profile_modify_userdata"
+					let param = "idx=" + idx +
+								"&info=" + info +
+								"&mainTitle=" + mainTitle +
+								"&platform=" + platform;
 					sendRequest(url, param, resultModify, "POST");
 				// 비밀번호를 변경하지 않고 그대로 가져갈시
 				} else {
-					url = "profile_modify_userdata"
-					param = "idx=" + idx +
-							"&mainTitle=" + mainTitle +
-							"&platform=" + platform;
+					let url = "/profile/profile_modify_userdata"
+					let param = "idx=" + idx +
+								"&mainTitle=" + mainTitle +
+								"&platform=" + platform;
 					sendRequest(url, param, resultModify, "POST");
 				}
 			}
@@ -280,7 +280,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -310,7 +310,7 @@
 				}
 				
 				alert("수정 완료");
-				location.href = "profile?idx=" + idx;
+				window.location.reload();
 			}
 		}
 	</script>
@@ -328,7 +328,7 @@
 				return;
 			}
 			
-			f.action = "profile_modify_main";
+			f.action = "/profile/profile_modify_main";
 			f.submit();
 		}
 	</script>
@@ -336,7 +336,7 @@
 	<script th:inline="javascript">
 		//window.open (미니미 수정창)
 		function minimiPopUp() {
-			let popUrl = "profile_minimi_popup?idx=" + [[${ sign.idx }]];
+			let popUrl = "/profile/profile_minimi_popup/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open(popUrl, "minimi", popOption);
 		}
@@ -436,7 +436,7 @@
 				return;
 			}
 
-			let url = "profile_phone_send";
+			let url = "/profile/profile_phone_send";
 			let param = "idx=" + idx +
 						"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultPhoneSend, "POST");
@@ -451,7 +451,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -497,7 +497,7 @@
 				return;
 			}
 
-			let url = "profile_phone_check";
+			let url = "/profile/profile_phone_check";
 			let param = "idx=" + idx +
 						"&phoneKey=" + i_phoneNumber +
 						"&hPhoneKey=" + h_phone_key;
@@ -514,7 +514,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -576,9 +576,9 @@
 				return;
 			}
 
-			url = "profile_phone_update";
-			param = "idx=" + idx +
-					"&phoneNumber=" + phoneNumber;
+			let url = "/profile/profile_phone_update";
+			let param = "idx=" + idx +
+						"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultPhoneUpdate, "POST");
 		}
 		// 휴대폰 번호 변경 콜백메소드
@@ -589,7 +589,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -628,7 +628,7 @@
 	<script th:inline="javascript">
 		// window.open (API 발급창)
 		function apiPopUp() {
-			let popUrl = "/api/profile_api_popup?idx=" + [[${ sign.idx }]];
+			let popUrl = "/api/profile_api_popup/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open(popUrl, "api", popOption);
 		}
@@ -647,7 +647,7 @@
 				return;
 			}
 			
-			f.action = "profile";
+			f.action = "/profile";
 			f.method = "POST";
 			f.submit();
 		}

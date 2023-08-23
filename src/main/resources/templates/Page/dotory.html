@@ -24,7 +24,7 @@
 		<div class="buyDotory">
 			<p class="subTitle" >충전하실 도토리 개수를 선택해 주세요</p>
 			<div class="selectDotory">
-				<form action="">
+				<form>
 					<div class="tabs">
 						<input type="hidden" th:value="${ param.idx }" name="idx">
 						<p class="myDotory"><img class="dotory" src="/images/dotory.png" alt=""><span th:text="'도토리 보유량 : ' + ${ param.dotory } + ' 개'"></span></p>
@@ -44,7 +44,7 @@
 						
 						<div id="buyButton">
 							<input id="btn-cover" class="buy" type="submit" value="충전하기" onclick="buy(this.form);">
-							<input id="btn-cover" class="close "type="button" value="구매완료" th:onclick="|opener.location.href='@{main(idx=${ param.idx })}'; buyclose();|">
+							<input id="btn-cover" class="close "type="button" value="구매완료" th:onclick="|opener.location.href='@{/main/{idx}(idx=${ param.idx })}'; buyclose();|">
 						</div>
 					</div>
 				</form>

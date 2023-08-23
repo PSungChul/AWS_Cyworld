@@ -52,7 +52,7 @@
 								<tr>
 									<td colspan="2" class="lastTd">
 										<input id="btn-cover"type="button" class="write" value="수정" onclick="send(this.form)">
-										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{guestbook(idx=${ updateGuestbook.guestbookIdx })}'|">
+										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{/guestbook/{idx}(idx=${ updateGuestbook.guestbookIdx })}'|">
 										<select class="textChoice" name="guestbookSecretCheck" onchange="selectbox">
 											<!-- 수정할 방명록이 공개글일 경우 -->
 											<th:block th:if="${ updateGuestbook.guestbookSecretCheck eq 0 }">
@@ -80,14 +80,22 @@
 	<script>
 		// 방명록 수정
 		function send(f) {
-			var url = "guestbook_modify";
-			var param = "guestbookIdx=" + f.guestbookIdx.value +
-						"&idx=" + f.idx.value +
-						"&guestbookContent=" + encodeURIComponent(f.guestbookContent.value) +
-						"&guestbookName=" + encodeURIComponent(f.guestbookName.value) +
-						"&guestbookSecretCheck=" + f.guestbookSecretCheck.value +
-						"&guestbookSessionIdx=" + f.guestbookSessionIdx.value +
-						"&guestbookMinimi=" + f.guestbookMinimi.value;
+			let idx = f.idx.value;
+			let guestbookIdx = f.guestbookIdx.value;
+			let guestbookContent = f.guestbookContent.value;
+			let guestbookName = f.guestbookName.value;
+			let guestbookSecretCheck = f.guestbookSecretCheck.value;
+			let guestbookSessionIdx = f.guestbookSessionIdx.value;
+			let guestbookMinimi = f.guestbookMinimi.value;
+
+			var url = "/guestbook/guestbook_modify";
+			var param = "idx=" + idx +
+						"&guestbookIdx=" + guestbookIdx +
+						"&guestbookContent=" + encodeURIComponent(guestbookContent) +
+						"&guestbookName=" + encodeURIComponent(guestbookName) +
+						"&guestbookSecretCheck=" + guestbookSecretCheck +
+						"&guestbookSessionIdx=" + guestbookSessionIdx +
+						"&guestbookMinimi=" + guestbookMinimi;
 			sendRequest(url, param, sendCallback, "GET");
 		}
 		// 방명록 수정 콜백메소드
@@ -98,7 +106,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + guestbookIdx;
+					location.href = "/main/" + guestbookIdx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -127,7 +135,7 @@
 				}
 				
 				alert("수정성공");
-				location.href = "/guestbook?idx=" + guestbookIdx;
+				location.href = "/guestbook/" + guestbookIdx;
 			}
 		}
 	</script>

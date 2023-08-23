@@ -18,9 +18,11 @@ import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+@RequestMapping("/guestbook")
 @Controller
 public class GuestbookController {
 	// @Autowired
@@ -38,8 +40,8 @@ public class GuestbookController {
 	GuestbookService guestbookService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 방명록 조회
-	@RequestMapping("/guestbook")
-	public String guestbook_list (int idx, Model model) {
+	@RequestMapping("/{idx}") // 경로 매개변수
+	public String guestbook_list (@PathVariable int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -64,7 +66,7 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + idx;
+				return "redirect:/main/" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -316,7 +318,7 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + idx;
+				return "redirect:/main/" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -451,7 +453,7 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + guestbook.getGuestbookIdx();
+				return "redirect:/main/" + guestbook.getGuestbookIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -522,7 +524,7 @@ public class GuestbookController {
 		// 토큰에서 추출한 로그인 유저 idx와 좋아요에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
 		if ( loginIdx != guestbook.getGuestbookSessionIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/guestbook?idx=" + guestbook.getGuestbookIdx();
+			return "redirect:/guestbook/" + guestbook.getGuestbookIdx();
 		}
 
 		// 작성 시간을 기록하기 위해 Date객체 사용
@@ -530,7 +532,7 @@ public class GuestbookController {
 		// Date객체를 원하는 모양대로 재조합
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		// 방명록 Idx에 AUTO_INCREMENT로 null 지정
+		// 방명록 idx에 AUTO_INCREMENT로 null 지정
 		guestbook.setIdx(null);
 		// 방문글에 좋아요 시작 개수 0 지정
 		guestbook.setGuestbookLikeNum(0);
@@ -541,7 +543,7 @@ public class GuestbookController {
 		guestbookService.insertIntoGuestbook(guestbook);
 
 		// idx를 들고 방명록 페이지 URL로 이동
-		return "redirect:/guestbook?idx=" + guestbook.getGuestbookIdx();
+		return "redirect:/guestbook/" + guestbook.getGuestbookIdx();
 	}
 	
 	// 방명록 방문글 삭제
@@ -679,7 +681,7 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + guestbook.getGuestbookIdx();
+				return "redirect:/main/" + guestbook.getGuestbookIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -750,7 +752,7 @@ public class GuestbookController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 방문글은 오로지 작성자만 수정할 수 있다.
 		if ( loginIdx != guestbook.getGuestbookSessionIdx() ) {
 			// 해당 미니홈피 유저의 방명록 페이지로 이동
-			return "redirect:/guestbook?idx=" + guestbook.getGuestbookIdx();
+			return "redirect:/guestbook/" + guestbook.getGuestbookIdx();
 		}
 		
 		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
@@ -1014,7 +1016,7 @@ public class GuestbookController {
 			return guestbook;
 		// 좋아요를 안 눌렀을 경우
 		} else {
-			// 좋아요 Idx에 AUTO_INCREMENT로 null 지정
+			// 좋아요 idx에 AUTO_INCREMENT로 null 지정
 			guestbookLike.setIdx(null);
 			// 좋아요를 누를 경우 좋아요 내역을 추가
 			guestbookService.insertIntoGuestbookLike(guestbookLike);

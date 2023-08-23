@@ -83,7 +83,7 @@
 								<h1>사진첩 목록</h1>
 								<!-- 로그인한 유저가 사진첩 주인일 경우에만 보인다 -->
 								<th:block th:if="${ loginIdx eq sign.idx }">
-									<input id="btn-cover" type="button" value="글쓰기" th:onclick="|location.href='@{gallery_insert_form(idx=${ sign.idx })}'|">
+									<input id="btn-cover" type="button" value="글쓰기" th:onclick="|location.href='@{/gallery/gallery_insert_form(idx=${ sign.idx })}'|">
 								</th:block>
 							</div>
 							<!-- status - forEach를 돌리면서 추가로 숫자를 순서대로 지정할 수 있게 만들어준다 -->
@@ -217,19 +217,19 @@
 						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
-						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main(idx=${ sign.idx })}'|">
+						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{/main/{idx}(idx=${ sign.idx })}'|">
 						<!-- 프로필 탭 -->
 						<label for="tab2" id="btn2">프로필</label>
 						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
 						<!-- 다이어리 탭 -->
 						<label for="tab3" id="btn3">다이어리</label>
-						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{diary(idx=${ sign.idx })}'|">
+						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{/diary/{idx}(idx=${ sign.idx })}'|">
 						<!-- 사진첩 탭 -->
 						<label for="tab4" id="btn4">사진첩</label>
-						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{gallery(idx=${ sign.idx })}'|">
+						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{/gallery/{idx}(idx=${ sign.idx })}'|">
 						<!-- 방명록 탭 -->
 						<label for="tab5" id="btn5">방명록</label>
-						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{guestbook(idx=${ sign.idx })}'|">
+						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{/guestbook/{idx}(idx=${ sign.idx })}'|">
 					</div>
 				</form>
 			</div>
@@ -251,13 +251,16 @@
 	<script>
 		// 게시글 삭제
 		function del(f){
+			let idx = f.idx.value;
+			let galleryIdx = f.galleryIdx.value;
+
 			if ( !confirm('정말 삭제하시겠습니까?') ) {
 				return;
 			}
 			
 			var url = "gallery_delete";
-			var param = "galleryIdx=" + f.galleryIdx.value + 
-						"&idx=" + f.idx.value;
+			var param = "idx=" + idx +
+						"&galleryIdx=" + galleryIdx;
 			sendRequest(url, param, resultDel, "GET");
 		}
 		// 게시글 삭제 콜백메소드
@@ -268,7 +271,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -297,13 +300,13 @@
 				}
 				
 				alert("삭제성공");
-				location.href = "/gallery?idx=" + idx;
+				location.href = "/gallery/" + idx;
 			}
 		}
 		
 		// 게시글 수정
 		function modify(f) {
-			f.action = 'gallery_modify_form';
+			f.action = '/gallery/gallery_modify_form';
 			f.method = "GET";
 			f.submit();
 		}
@@ -317,7 +320,7 @@
 			let idx = f.idx.value;
 			let loginIdx = document.getElementById("loginIdx").value;
 			
-			let url = "gallery_like";
+			let url = "/gallery/gallery_like";
 			let param = "galleryLikeIdx=" + galleryIdx +
 						"&galleryLikeRef=" + idx +
 						"&galleryLikeSessionIdx=" + loginIdx;
@@ -326,7 +329,7 @@
 		// 게시글 좋아요 콜백메소드
 		function resultLike() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
-				// Controller에서 보낸 VO가 JSON형태로 들어온다
+				// Controller에서 보낸 갱신된 게시글 정보가 JSON형태로 들어온다
 				let data = xhr.responseText;
 				
 				// JSON형태로 들어온 data를 실제 JSON타입으로 변경
@@ -335,7 +338,7 @@
 
 				// 로그인 에러
 				if ( json.GalleryContent == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( json.GalleryContent == "0" ) {
@@ -363,11 +366,11 @@
 				
 				// name으로 가져온 게시글 번호로 for문 생성
 				for ( let i = 0; i < galleryRef.length; i++ ) {
-					// 갱신된 정보중 게시글 번호를 가져와 일치하는 게시글이 나올때까지 for문을 돌린다
+					// 갱신된 게시글 정보중 게시글 번호를 가져와 일치하는 게시글이 나올때까지 for문을 돌린다
 					if ( galleryRef[i].value == json.idx ) {
 						// 좋아요 수가 작성되는곳을 id로 가져오는데 추가로 같이 작성한 숫자로 어느 게시글의 좋아요인지 찾는다
 						let galleryLikeNum = document.getElementById("galleryLikeNum" + i);
-						// 갱신된 정보중 좋아요 수를 가져와 작성한다
+						// 갱신된 게시글 정보중 좋아요 수를 가져와 작성한다
 						galleryLikeNum.innerText = json.galleryLikeNum;
 					}
 				}
@@ -392,7 +395,7 @@
 				return;
 			}
 			
-			url = "comment_insert";
+			url = "/gallery/comment_insert";
 			param = "galleryCommentIdx=" + galleryCommentIdx +
 					"&galleryIdxComment=" + galleryIdxComment +
 					"&galleryCommentSessionIdx=" + galleryCommentSessionIdx +
@@ -408,7 +411,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -437,21 +440,26 @@
 				}
 				
 				alert("작성 완료");
-				location.href = "/gallery?idx=" + idx;
+				location.href = "/gallery/" + idx;
 			}
 		}
 		
 		// 댓글 삭제
 		function gcdel(f) {
+			let idx = f.idx.value;
+			let galleryCommentIdx = f.galleryCommentIdx.value;
+			let galleryIdxComment = f.galleryIdxComment.value;
+			let galleryCommentSessionIdx = f.galleryCommentSessionIdx.value;
+
 			if ( !confirm('정말 삭제하시겠습니까?') ) {
 				return;
 			}
 			
-			var url = "gcomment_delete";
-			var param = "idx=" + f.idx.value +
-						"&galleryCommentIdx=" + f.galleryCommentIdx.value +
-						"&galleryIdxComment=" + f.galleryIdxComment.value +
-						"&galleryCommentSessionIdx=" + f.galleryCommentSessionIdx.value;
+			var url = "/gallery/gcomment_delete";
+			var param = "idx=" + idx +
+						"&galleryCommentIdx=" + galleryCommentIdx +
+						"&galleryIdxComment=" + galleryIdxComment +
+						"&galleryCommentSessionIdx=" + galleryCommentSessionIdx;
 			sendRequest(url, param, resultgcDel, "GET");
 		}
 		// 댓글 삭제 콜백메소드
@@ -462,7 +470,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -491,7 +499,7 @@
 				}
 				
 				alert("삭제성공");
-				location.href = "/gallery?idx=" + idx;
+				location.href = "/gallery/" + idx;
 			}
 		}
 	</script>
@@ -509,7 +517,7 @@
 				return;
 			}
 			
-			f.action = "profile";
+			f.action = "/profile";
 			f.method = "POST";
 			f.submit();
 		}

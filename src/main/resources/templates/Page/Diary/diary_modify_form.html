@@ -37,7 +37,7 @@
 								<tr>
 									<td colspan="2">
 										<input class="write" id="btn-cover" type="button" value="수정" onclick="send(this.form);">
-										<input class="cancel" id="btn-cover" type="button" value="취소" th:onclick="|location.href='@{diary(idx=${ updateDiary.diaryIdx })}'|">
+										<input class="cancel" id="btn-cover" type="button" value="취소" th:onclick="|location.href='@{/diary/{idx}(idx=${ updateDiary.diaryIdx })}'|">
 									</td>
 								</tr>
 							</table>
@@ -53,10 +53,14 @@
 	<script>
 		// 다이어리 글 수정
 		function send(f) {
-			var url = "diary_modify";
-			var param = "idx=" + f.idx.value +
-						"&diaryIdx=" + f.diaryIdx.value +
-						"&diaryContent=" + encodeURIComponent(f.diaryContent.value);
+			let idx = f.idx.value;
+			let diaryIdx = f.diaryIdx.value;
+			let diaryContent = f.diaryContent.value;
+
+			var url = "/diary/diary_modify";
+			var param = "idx=" + idx +
+						"&diaryIdx=" + diaryIdx +
+						"&diaryContent=" + encodeURIComponent(diaryContent);
 			sendRequest(url, param, sendCallback, "GET");
 		}
 		// 다이어리 글 수정 콜백메소드
@@ -67,7 +71,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + diaryIdx;
+					location.href = "/main/" + diaryIdx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -96,7 +100,7 @@
 				}
 				
 				alert("수정성공");
-				location.href = "/diary?idx=" + diaryIdx;
+				location.href = "/diary/" + diaryIdx;
 			}
 		}
 	</script>

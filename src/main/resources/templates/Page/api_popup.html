@@ -95,18 +95,18 @@
 				return;
 			}
 
-			fetch('/api/profile_api_check?' + 'idx=' + idx +
-												 '&redirectUri=' + redirectUri +
-												 '&gender=' + gender +
-												 '&name=' + name +
-												 '&birthday=' + birthday +
-												 '&phoneNumber=' + phoneNumber +
-												 '&email=' + email)
+			fetch('/api/profile_api_check' + '?idx=' + idx +
+											 '&redirectUri=' + redirectUri +
+											 '&gender=' + gender +
+											 '&name=' + name +
+											 '&birthday=' + birthday +
+											 '&phoneNumber=' + phoneNumber +
+											 '&email=' + email)
 				.then(response => response.text())
 				.then(data => {
 					// 로그인 에러
 					if ( data == '-4' ) {
-						location.href = '/main?idx=' + idx;
+						location.href = '/main/' + idx;
 						return;
 					}
 					if ( data == '0' ) {

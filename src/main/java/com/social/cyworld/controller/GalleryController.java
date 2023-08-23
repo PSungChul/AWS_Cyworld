@@ -22,10 +22,12 @@ import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+@RequestMapping("/gallery")
 @Controller
 public class GalleryController {
 	// @Autowired
@@ -41,8 +43,8 @@ public class GalleryController {
 	GalleryService galleryService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 사진첩 조회
-	@RequestMapping("/gallery")
-	public String gallery(int idx, Model model) {
+	@RequestMapping("/{idx}") // 경로 매개변수
+	public String gallery(@PathVariable int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -67,7 +69,7 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + idx;
+				return "redirect:/main/" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -211,7 +213,7 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + idx;
+				return "redirect:/main/" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -282,7 +284,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery?idx=" + idx;
+			return "redirect:/gallery/" + idx;
 		}
 
 		// 게시글 DTO 생성
@@ -324,7 +326,7 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + galleryDTO.getGalleryIdx();
+				return "redirect:/main/" + galleryDTO.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -395,11 +397,11 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
 		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery?idx=" + galleryDTO.getGalleryIdx();
+			return "redirect:/gallery/" + galleryDTO.getGalleryIdx();
 		}
 		
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
-		String savePath = "/Users/p._.sc/IT/Project/CyworldProject/util/files/gallery"; // 절대 경로
+		String savePath = "/Users/p._.sc/IT/ToyProject/CyworldProject/util/files/gallery"; // 절대 경로
 		// 업로드를 위해 파라미터로 넘어온 파일의 정보
 		MultipartFile galleryFile = galleryDTO.getGalleryFile();
 		// 업로드된 파일이 없을 경우 파일 이름 지정
@@ -463,7 +465,7 @@ public class GalleryController {
 		galleryService.insertIntoGallery(galleryDTO.toInsertEntity());
 
 		// idx를 들고 사진첩 페이지 URL로 이동
-		return "redirect:/gallery?idx=" + galleryDTO.getGalleryIdx();
+		return "redirect:/gallery/" + galleryDTO.getGalleryIdx();
 	}
 	
 	// 사진첩 글 삭제
@@ -601,7 +603,7 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + gallery.getGalleryIdx();
+				return "redirect:/main/" + gallery.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -672,7 +674,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
 		if ( loginIdx != gallery.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery?idx=" + gallery.getGalleryIdx();
+			return "redirect:/gallery/" + gallery.getGalleryIdx();
 		}
 		
 		// 해당 idx의 사진첩에 수정할 게시글을 조회
@@ -715,7 +717,7 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main?idx=" + galleryDTO.getGalleryIdx();
+				return "redirect:/main/" + galleryDTO.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
@@ -786,11 +788,11 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
 		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery?idx=" + galleryDTO.getGalleryIdx();
+			return "redirect:/gallery/" + galleryDTO.getGalleryIdx();
 		}
 
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
-		String savePath = "/Users/p._.sc/IT/Project/CyworldProject/util/files/gallery"; // 절대 경로
+		String savePath = "/Users/p._.sc/IT/ToyProject/CyworldProject/util/files/gallery"; // 절대 경로
 		// 업로드를 위해 파라미터로 넘어온 파일의 정보
 		MultipartFile galleryFile = galleryDTO.getGalleryFile();
 		
@@ -853,7 +855,7 @@ public class GalleryController {
 		galleryService.updateSetGalleryTitleAndGalleryRegDateAndGalleryContentAndGalleryFileNameAndGalleryFileExtensionByGalleryIdxAndIdx(galleryDTO.toModifyEntity());
 		
 		// idx를 들고 사진첩 페이지 URL로 이동
-		return "redirect:/gallery?idx=" + galleryDTO.getGalleryIdx();
+		return "redirect:/gallery/" + galleryDTO.getGalleryIdx();
 	}
 	
 	/////////////// 사진첩 댓글 구역 ///////////////
@@ -957,7 +959,7 @@ public class GalleryController {
 		// Date객체를 원하는 모양대로 재조합
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		// 댓글 Idx에 AUTO_INCREMENT로 null 지정
+		// 댓글 idx에 AUTO_INCREMENT로 null 지정
 		galleryComment.setIdx(null);
 		// 댓글의 삭제 여부 0 지정
 		galleryComment.setGalleryCommentDeleteCheck(0);
@@ -1218,7 +1220,7 @@ public class GalleryController {
 			return gallery;
 		// 좋아요를 안 눌렀을 경우
 		} else {
-			// 좋아요 Idx에 AUTO_INCREMENT로 null 지정
+			// 좋아요 idx에 AUTO_INCREMENT로 null 지정
 			galleryLike.setIdx(null);
 			// 좋아요를 누를 경우 좋아요 내역을 추가
 			galleryService.insertIntoGalleryLike(galleryLike);

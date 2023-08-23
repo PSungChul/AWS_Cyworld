@@ -63,7 +63,7 @@
 			<div class="right-dashed-line">
 				<div class="right-gray-background">
 					<!-- 메인 타이틀 - 클릭시 새로고침 역할 -->
-					<p class="title"><a href="@{main(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
+					<p class="title"><a href="@{/main/{idx}(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
 					<!-- bgm - 페이지 오른쪽 상단에 재생 플레이어와 노래 제목 표시 -->
 					<img class="musicLogo" src="/images/noneMain15.gif" alt="">
 					<a class="mp3_title" href="#" ><div class="circle-container">
@@ -80,7 +80,7 @@
 							<!-- 로그인한 유저가 다이어리 주인일 경우에만 보인다 -->
 							<th:block th:if="${ loginIdx eq sign.idx }">
 								<div>
-									<input class="writing" type="button" value="글쓰기" th:onclick="|location.href='@{diary_insert_form(idx=${ sign.idx })}'|">
+									<input class="writing" type="button" value="글쓰기" th:onclick="|location.href='@{/diary/diary_insert_form(idx=${ sign.idx })}'|">
 								</div>
 							</th:block>
 						</div>
@@ -121,19 +121,19 @@
 						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
-						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main(idx=${ sign.idx })}'|">
+						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{/main/{idx}(idx=${ sign.idx })}'|">
 						<!-- 프로필 탭 -->
 						<label for="tab2" id="btn2">프로필</label>
 						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
 						<!-- 다이어리 탭 -->
 						<label for="tab3" id="btn3">다이어리</label>
-						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{diary(idx=${ sign.idx })}'|">
+						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{/diary/{idx}(idx=${ sign.idx })}'|">
 						<!-- 사진첩 탭 -->
 						<label for="tab4" id="btn4">사진첩</label>
-						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{gallery(idx=${ sign.idx })}'|">
+						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{/gallery/{idx}(idx=${ sign.idx })}'|">
 						<!-- 방명록 탭 -->
 						<label for="tab5" id="btn5">방명록</label>
-						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{guestbook(idx=${ sign.idx })}'|">
+						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{/guestbook/{idx}(idx=${ sign.idx })}'|">
 					</div>
 				</form>
 			</div>
@@ -155,13 +155,16 @@
 	<script>
 		// 다이어리 글 삭제
 		function del(f) {
+			let diaryIdx = f.diaryIdx.value;
+			let idx = f.idx.value;
+
 			if ( !confirm('정말 삭제하시겠습니까?') ) {
 				return;
 			}
 			
-			var url = "diary_delete";
-			var param = "diaryIdx=" + f.diaryIdx.value + 
-						"&idx=" + f.idx.value;
+			var url = "/diary/diary_delete";
+			var param = "idx=" + idx +
+						"&diaryIdx=" + diaryIdx;
 			sendRequest(url, param, resultFn, "GET");
 		}
 		// 다이어리 글 삭제 콜백메소드
@@ -172,7 +175,7 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main?idx=" + idx;
+					location.href = "/main/" + idx;
 					return;
 				}
 				if ( data == "0" ) {
@@ -201,13 +204,13 @@
 				}
 				
 				alert("삭제성공");
-				location.href = "/diary?idx=" + idx;
+				location.href = "/diary/" + idx;
 			}
 		}
 		
 		// 다이어리 글 수정
 		function modify(f) {
-			f.action = 'diary_modify_form';
+			f.action = '/diary/diary_modify_form';
 			f.method = "GET";
 			f.submit();
 		}
@@ -226,7 +229,7 @@
 				return;
 			}
 			
-			f.action = "profile";
+			f.action = "/profile";
 			f.method = "POST";
 			f.submit();
 		}

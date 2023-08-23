@@ -160,7 +160,7 @@ public class SignUpController {
 		}
 
 		// 토큰과 세션이 모두 존재한다면 로그인은 건너뛰고 토큰에서 추출한 로그인 유저 idx에 해당하는 메인 페이지로 이동
-		return "redirect:/main?idx=" + loginIdx;
+		return "redirect:/main/" + loginIdx;
 	}
 	
 	// 로그아웃
@@ -290,7 +290,7 @@ public class SignUpController {
 					signService.updateTodayDate(login);
 
 					// 로그인 유저 idx에 해당하는 메인 페이지로 이동
-					return "redirect:/main?idx=" + login.getIdx();
+					return "redirect:/main/" + login.getIdx();
 				}
 			}
 		}
@@ -324,7 +324,7 @@ public class SignUpController {
 		signService.updateTodayDate(login);
 
 		// 로그인 유저 idx에 해당하는 메인 페이지로 이동
-		return "redirect:/main?idx=" + login.getIdx();
+		return "redirect:/main/" + login.getIdx();
 	}
 
 	// 카카오 가입자 비가입자 구별
@@ -834,7 +834,7 @@ public class SignUpController {
 			return "false";
 		}
 	}
-	
+
 	// 로그인 체크
 	@RequestMapping("/login_check")
 	@ResponseBody
@@ -842,10 +842,10 @@ public class SignUpController {
 		// 가져온 VO에서 ID와 비밀번호를 변수를 생성해 분리
 		String id = sign.getUserId(); // ID 입력값
 		String pw = sign.getInfo(); // 비밀번호 입력값
-		
+
 		// ID값으로 회원 정보를 가져온다
 		Sign login = signService.findByUserId(id);
-		
+
 		// 존재하지 않는 ID
 		if ( login == null ) {
 			// 콜백 메소드에 JSON형태로 전달
@@ -858,7 +858,7 @@ public class SignUpController {
 			// 콜백 메소드에 JSON형태로 전달
 			return "{'result':'no_info'}";
 		}
-		
+
 		// 모두 일치 - 로그인 가능
 		// 콜백 메소드에 JSON형태로 전달
 		return "{'result':'clear'}";
