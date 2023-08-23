@@ -41,7 +41,7 @@ public class GalleryController {
 	GalleryService galleryService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 사진첩 조회
-	@RequestMapping("/gallery.do")
+	@RequestMapping("/gallery")
 	public String gallery(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -67,11 +67,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -185,7 +185,7 @@ public class GalleryController {
 	}
 	
 	// 사진첩 글 작성 페이지로 이동
-	@RequestMapping("/gallery_insert_form.do")
+	@RequestMapping("/gallery_insert_form")
 	public String gallery_insert_form(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -211,11 +211,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -282,7 +282,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery.do?idx=" + idx;
+			return "redirect:/gallery?idx=" + idx;
 		}
 
 		// 게시글 DTO 생성
@@ -298,7 +298,7 @@ public class GalleryController {
 	}
 	
 	// 사진첩 새 글 작성
-	@RequestMapping("/gallery_insert.do")
+	@RequestMapping("/gallery_insert")
 	public String insert(GalleryDTO galleryDTO, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -324,11 +324,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + galleryDTO.getGalleryIdx();
+				return "redirect:/main?idx=" + galleryDTO.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -395,7 +395,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
 		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery.do?idx=" + galleryDTO.getGalleryIdx();
+			return "redirect:/gallery?idx=" + galleryDTO.getGalleryIdx();
 		}
 		
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
@@ -463,11 +463,11 @@ public class GalleryController {
 		galleryService.insertIntoGallery(galleryDTO.toInsertEntity());
 
 		// idx를 들고 사진첩 페이지 URL로 이동
-		return "redirect:/gallery.do?idx=" + galleryDTO.getGalleryIdx();
+		return "redirect:/gallery?idx=" + galleryDTO.getGalleryIdx();
 	}
 	
 	// 사진첩 글 삭제
-	@RequestMapping("/gallery_delete.do")
+	@RequestMapping("/gallery_delete")
 	@ResponseBody // Ajax로 요청된 메서드는 결과를 콜백 메서드로 돌려주기 위해 반드시 @ResponseBody가 필요!!
 	public String delete(Gallery gallery) {
 		// 토큰 값
@@ -575,7 +575,7 @@ public class GalleryController {
 	}
 	
 	// 사진첩 게시글 수정 페이지로 이동
-	@RequestMapping("/gallery_modify_form.do")
+	@RequestMapping("/gallery_modify_form")
 	public String modify_form(Gallery gallery, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -601,11 +601,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + gallery.getGalleryIdx();
+				return "redirect:/main?idx=" + gallery.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -672,7 +672,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
 		if ( loginIdx != gallery.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery.do?idx=" + gallery.getGalleryIdx();
+			return "redirect:/gallery?idx=" + gallery.getGalleryIdx();
 		}
 		
 		// 해당 idx의 사진첩에 수정할 게시글을 조회
@@ -689,7 +689,7 @@ public class GalleryController {
 	}
 	
 	// 게시글 수정하기
-	@RequestMapping("/gallery_modify.do")
+	@RequestMapping("/gallery_modify")
 	public String modify(GalleryDTO galleryDTO, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -715,11 +715,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + galleryDTO.getGalleryIdx();
+				return "redirect:/main?idx=" + galleryDTO.getGalleryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -786,7 +786,7 @@ public class GalleryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
 		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery.do?idx=" + galleryDTO.getGalleryIdx();
+			return "redirect:/gallery?idx=" + galleryDTO.getGalleryIdx();
 		}
 
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
@@ -853,13 +853,13 @@ public class GalleryController {
 		galleryService.updateSetGalleryTitleAndGalleryRegDateAndGalleryContentAndGalleryFileNameAndGalleryFileExtensionByGalleryIdxAndIdx(galleryDTO.toModifyEntity());
 		
 		// idx를 들고 사진첩 페이지 URL로 이동
-		return "redirect:/gallery.do?idx=" + galleryDTO.getGalleryIdx();
+		return "redirect:/gallery?idx=" + galleryDTO.getGalleryIdx();
 	}
 	
 	/////////////// 사진첩 댓글 구역 ///////////////
 	
 	// 댓글 작성
-	@RequestMapping("/comment_insert.do")
+	@RequestMapping("/comment_insert")
 	@ResponseBody
 	public String gallery_reply(GalleryComment galleryComment) {
 		// 토큰 값
@@ -979,7 +979,7 @@ public class GalleryController {
 	}
 	
 	// 댓글 삭제 - 완전 삭제가 아닌 삭제된 것처럼 만들기
-	@RequestMapping("/gcomment_delete.do")
+	@RequestMapping("/gcomment_delete")
 	@ResponseBody
 	public String comment_delete(GalleryComment galleryComment) {
 		// 토큰 값
@@ -1091,7 +1091,7 @@ public class GalleryController {
 	
 	/////////////// 사진첩 좋아요 구역 ///////////////
 	
-	@RequestMapping("/gallery_like.do")
+	@RequestMapping("/gallery_like")
 	@ResponseBody
 	public Gallery gallery_like(Gallery gallery, GalleryLike galleryLike) {
 		// 토큰 값

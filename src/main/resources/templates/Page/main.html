@@ -14,23 +14,23 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			location.href = "/logout.do";
+			location.href = "/logout";
 		}
 	};
 </script>
 <body th:if="${ errMsg eq null }">
 	<!-- 비회원용 로그인 버튼 -->
 	<th:block th:if="${ loginUser.idx <= 0 }">
-		<input id="btn_cover" class="returnMyHome" type="button" value="로그인하러 가기" onclick="location.href='logout.do'">
+		<input id="btn_cover" class="returnMyHome" type="button" value="로그인하러 가기" onclick="location.href='logout'">
 	</th:block>
 	<!-- 타 유저의 미니홈피에서 내 미니홈피로 바로 갈수 있는 버튼 -->
 	<th:block th:if="${ sign.idx ne loginUser.idx && loginUser.idx > 0 }">
-		<input id="btn_cover" class="returnMyHome" type="button" value="내 미니홈피로 가기" th:onclick="|location.href='@{main.do(idx=${ loginUser.idx })}'|">
+		<input id="btn_cover" class="returnMyHome" type="button" value="내 미니홈피로 가기" th:onclick="|location.href='@{main(idx=${ loginUser.idx })}'|">
 	</th:block>
 	<!-- 로그인한 유저의 플랫폼에 따른 로그아웃 버튼 생성 -->
 	<!-- 플랫폼이 싸이월드일 경우 -->
 	<th:block th:if="${ loginUser.platform eq 'cyworld' }">
-		<input id="btn_cover" class="cy_logout" type="button" value="로그아웃" onclick="location.href='logout.do'">
+		<input id="btn_cover" class="cy_logout" type="button" value="로그아웃" onclick="location.href='logout'">
 	</th:block>
 	<!-- 플랫폼이 네이버일 경우 -->
 	<th:block th:if="${ loginUser.platform eq 'naver' }">
@@ -42,7 +42,7 @@
 	</th:block>
 	<!-- 비회원일 경우 -->
 	<th:block th:if="${ loginUser eq null }">
-		<input id="btn_cover" class="ka_logout" type="button" value="로그인" onclick="location.href='logout.do'">
+		<input id="btn_cover" class="ka_logout" type="button" value="로그인" onclick="location.href='logout'">
 	</th:block>
 
 	<div class="container">
@@ -110,7 +110,7 @@
 						<select class="myFriend" onchange="if(this.value) location.href=(this.value);">
 							<option value="">::: 파도타기 :::</option>
 							<th:block th:each="ilchon : ${ilchonList}">
-								<option th:value="${'main.do?idx=' + ilchon.ilchonIdx}" th:text="'ㆍ ' + ${ ilchon.ilchonName }"></option>
+								<option th:value="${'main?idx=' + ilchon.ilchonIdx}" th:text="'ㆍ ' + ${ ilchon.ilchonName }"></option>
 							</th:block>
 						</select>
 					</aside>
@@ -122,7 +122,7 @@
 			<div class="right-dashed-line">
 				<div class="right-gray-background">
 					<!-- 메인 타이틀 - 클릭시 새로고침 역할 -->
-					<p class="title"><a th:href="@{main.do(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
+					<p class="title"><a th:href="@{main(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
 					<!-- 검색 -->
 					<form name="sf" method="GET">
 						<input id="btn_cover" class="search" type="button" value="회원 검색" onclick="searchPopUp();">
@@ -188,7 +188,7 @@
 						<input id="loginIdx" type="hidden" th:value="${ loginUser.idx }">
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
-						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main.do(idx=${ sign.idx })}'|">
+						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main(idx=${ sign.idx })}'|">
 						<!-- 프로필 탭 -->
 						<label for="tab2" id="btn2">프로필</label>
 						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
@@ -270,17 +270,17 @@
 	<script th:inline="javascript">
 		// 도토리 구매 팝업창
 		function DotoryPopUp() {
-			let popUrl = "dotory.do?idx=" + [[${ sign.idx }]] + "&dotory=" + [[${ sign.dotory }]];
+			let popUrl = "dotory?idx=" + [[${ sign.idx }]] + "&dotory=" + [[${ sign.dotory }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			let pop = window.open(popUrl, "_blank", popOption);
 		}
 		
 		// 검색 팝업창
 		function searchPopUp() {
-			//let popUrl = "main_search_popup.do";
+			//let popUrl = "main_search_popup";
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open("", "search", popOption);
-			document.sf.action = "main_search_popup.do";
+			document.sf.action = "main_search_popup";
 			document.sf.target="search";
 			document.sf.submit();
 		}
@@ -301,7 +301,7 @@
 				return;
 			}
 
-			url = "main_ilchon.do";
+			url = "main_ilchon";
 			param = "ilchonIdx=" + idx +
 					"&ilchonSessionIdx=" + loginIdx;
 			sendRequest(url, param, resultIlchon, "GET");
@@ -314,37 +314,37 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 
 				if ( data == "no" ) {
 					alert("일촌 취소");
-					location.href = "main.do?idx=" + idx;
+					location.href = "main?idx=" + idx;
 					return;
 				}
 
 				alert("일촌 신청 완료");
-				location.href = "main.do?idx=" + idx;
+				location.href = "main?idx=" + idx;
 			}
 		}
 		
@@ -377,7 +377,7 @@
 				return;
 			}
 			
-			url = "ilchon_write.do";
+			url = "ilchon_write";
 			param = "ilchonpyeongIdx=" + idx +
 					"&ilchonpyeongContent=" + ilchonpyeongContent +
 					"&loginUserIdx=" + loginIdx;
@@ -391,26 +391,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 
@@ -421,7 +421,7 @@
 				}
 			
 				alert("작성 완료");
-				location.href = "main.do?idx=" + idx;
+				location.href = "main?idx=" + idx;
 			}
 		}
 	</script>
@@ -430,7 +430,7 @@
 	<script th:inline="javascript">
 		// 액션 미니미 광고 배너 클릭시 --> 미니미 수정 팝업창
 		function minimiPopUp() {
-			let popUrl = "profile_minimi_popup.do?idx=" + [[${ sign.idx }]];
+			let popUrl = "profile_minimi_popup?idx=" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open(popUrl, "minimi", popOption);
 		}
@@ -479,7 +479,7 @@
 				return;
 			}
 			
-			f.action = "profile.do";
+			f.action = "profile";
 			f.method = "POST";
 			f.submit();
 		}
@@ -495,7 +495,7 @@
 				return;
 			}
 			
-			f.action = "diary.do";
+			f.action = "diary";
 			f.method = "GET";
 			f.submit();
 		}
@@ -511,7 +511,7 @@
 				return;
 			}
 			
-			f.action = "gallery.do";
+			f.action = "gallery";
 			f.method = "GET";
 			f.submit();
 		}
@@ -527,7 +527,7 @@
 				return;
 			}
 			
-			f.action = "guestbook.do";
+			f.action = "guestbook";
 			f.method = "GET";
 			f.submit();
 		}
@@ -577,7 +577,7 @@
 			naverOpenPopUp(); // 팝업창 열기
 			setTimeout(function() {
 				naverClosePopUp(); // 팝업창 닫기
-				location.href = "logout.do"; // 첫 페이지로 이동
+				location.href = "logout"; // 첫 페이지로 이동
 			}, 500); // 팝업창 여는거부터 순차적으로 0.5초 간격으로 실행
 		}
 	</script>
@@ -601,7 +601,7 @@
 			kakaoOpenPopUp(); // 팝업창 열기
 			setTimeout(function() {
 				kakaoClosePopUp(); // 팝업창 닫기
-				location.href = "logout.do"; // 첫 페이지로 이동
+				location.href = "logout"; // 첫 페이지로 이동
 			}, 500); // 팝업창 여는거부터 순차적으로 0.5초 간격으로 실행
 		}
 	</script>
@@ -621,7 +621,7 @@
 					//// 위에 코드가 성공하면 실행
 					//success: function (response) {
 						//// 로그아웃이 성공하면 이동할 페이지
-						//location.href = "logout.do";
+						//location.href = "logout";
 					//},
 					//fail: function (error) {
 						//console.log(error)

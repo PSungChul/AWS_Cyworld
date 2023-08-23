@@ -39,7 +39,7 @@ public class MainController {
 	MainService mainService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 메인 페이지로 이동
-	@RequestMapping("/main.do")
+	@RequestMapping("/main")
 	public String main(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -98,7 +98,7 @@ public class MainController {
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -337,7 +337,7 @@ public class MainController {
 	}
 	
 	// 비회원 로그인
-	@RequestMapping("/nmain.do")
+	@RequestMapping("/nmain")
 	public String nmanin() {
 		// 비회원용 세션이 존재하는지 체크한다.
 		HttpSession session = request.getSession();
@@ -354,14 +354,14 @@ public class MainController {
 	/////////////// 검색 구역 ///////////////
 
 	// 검색 팝업
-	@RequestMapping("/main_search_popup.do")
+	@RequestMapping("/main_search_popup")
 	public String main_search_popup() {
 		// 검색 팝업으로 이동
 		return "Page/searchPopUp";
 	}
 
 	// 이름 및 ID 및 Email로 유저 검색
-	@RequestMapping("/main_search.do")
+	@RequestMapping("/main_search")
 	public String main_search(String searchType, String searchValue, Model model) {
 		// 이름으로 검색할 경우
 		if ( searchType.equals("name") ) {
@@ -391,7 +391,7 @@ public class MainController {
 	}
 
 	// 일촌평 작성
-	@RequestMapping("/ilchon_write.do")
+	@RequestMapping("/ilchon_write")
 	@ResponseBody
 	public String insert(Ilchonpyeong ilchonpyeong, int loginUserIdx) {
 		// 토큰 값
@@ -528,7 +528,7 @@ public class MainController {
 	/////////////// 도토리 구매 구역 ///////////////
 
 	// 도토리 구매 팝업
-	@RequestMapping("/dotory.do")
+	@RequestMapping("/dotory")
 	public String dotory(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -554,11 +554,11 @@ public class MainController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -622,7 +622,7 @@ public class MainController {
 	}
 
 	// 도토리 구매
-	@RequestMapping("/dotoryBuy.do")
+	@RequestMapping("/dotoryBuy")
 	public String dotoryBuy(Sign sign, int nowDotory, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -648,11 +648,11 @@ public class MainController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + sign.getIdx();
+				return "redirect:/main?idx=" + sign.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -718,12 +718,12 @@ public class MainController {
 		signService.updateSetDotoryByIdx(sign);
 
 		// idx와 갱신된 도토리 개수를 들고 도토리 구매 페이지 URL로 이동
-		return "redirect:/dotory.do?idx=" + sign.getIdx() + "&dotory=" + sign.getDotory();
+		return "redirect:/dotory?idx=" + sign.getIdx() + "&dotory=" + sign.getDotory();
 	}
 
 	/////////////// 일촌 구역 ///////////////
 
-	@RequestMapping("/main_ilchon.do")
+	@RequestMapping("/main_ilchon")
 	@ResponseBody
 	public String main_follow(Ilchon ilchon) {
 		// 토큰 값

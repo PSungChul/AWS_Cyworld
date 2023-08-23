@@ -13,7 +13,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			location.href = "/logout.do";
+			location.href = "/logout";
 		}
 	};
 </script>
@@ -50,7 +50,7 @@
 								<tr>
 									<td class="lastTd"colspan="2" >
 										<input id="btn-cover" class="write" type="button" value="글쓰기" onclick="send(this.form);">
-										<input class="cancel" id="btn-cover" type="button" value="취소" th:onclick="|location.href='@{guestbook.do(idx=${ guestbook.guestbookIdx })}'|">
+										<input class="cancel" id="btn-cover" type="button" value="취소" th:onclick="|location.href='@{guestbook(idx=${ guestbook.guestbookIdx })}'|">
 										<!-- 비밀글 설정 여부 -->
 										<select class="textChoice" id="guestsecret" name="guestbookSecretCheck" onchange="selectbox">
 											<!-- 공개글 -->
@@ -71,7 +71,7 @@
 	<script>
 		// 방명록 작성
 		function send(f) {
-			f.action = "guestbook_insert.do";
+			f.action = "guestbook_insert";
 			f.method = "GET";
 			f.submit();
 		}

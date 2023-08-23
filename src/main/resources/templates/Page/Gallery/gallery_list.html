@@ -14,7 +14,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			location.href = "/logout.do";
+			location.href = "/logout";
 		}
 	};
 </script>
@@ -66,7 +66,7 @@
 			<div class="right-dashed-line">
 				<div class="right-gray-background">
 					<!-- 메인 타이틀 - 클릭시 새로고침 역할 -->
-					<p class="title"><a th:href="@{main.do(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
+					<p class="title"><a th:href="@{main(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
 					<!-- bgm - 페이지 오른쪽 상단에 재생 플레이어와 노래 제목 표시 -->
 					<img class="musicLogo" src="/images/noneMain15.gif" alt="">
 					<a class="mp3_title" href="#" ><div class="circle-container">
@@ -83,7 +83,7 @@
 								<h1>사진첩 목록</h1>
 								<!-- 로그인한 유저가 사진첩 주인일 경우에만 보인다 -->
 								<th:block th:if="${ loginIdx eq sign.idx }">
-									<input id="btn-cover" type="button" value="글쓰기" th:onclick="|location.href='@{gallery_insert_form.do(idx=${ sign.idx })}'|">
+									<input id="btn-cover" type="button" value="글쓰기" th:onclick="|location.href='@{gallery_insert_form(idx=${ sign.idx })}'|">
 								</th:block>
 							</div>
 							<!-- status - forEach를 돌리면서 추가로 숫자를 순서대로 지정할 수 있게 만들어준다 -->
@@ -217,19 +217,19 @@
 						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
-						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main.do(idx=${ sign.idx })}'|">
+						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main(idx=${ sign.idx })}'|">
 						<!-- 프로필 탭 -->
 						<label for="tab2" id="btn2">프로필</label>
 						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
 						<!-- 다이어리 탭 -->
 						<label for="tab3" id="btn3">다이어리</label>
-						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{diary.do(idx=${ sign.idx })}'|">
+						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{diary(idx=${ sign.idx })}'|">
 						<!-- 사진첩 탭 -->
 						<label for="tab4" id="btn4">사진첩</label>
-						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{gallery.do(idx=${ sign.idx })}'|">
+						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{gallery(idx=${ sign.idx })}'|">
 						<!-- 방명록 탭 -->
 						<label for="tab5" id="btn5">방명록</label>
-						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{guestbook.do(idx=${ sign.idx })}'|">
+						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{guestbook(idx=${ sign.idx })}'|">
 					</div>
 				</form>
 			</div>
@@ -255,7 +255,7 @@
 				return;
 			}
 			
-			var url = "gallery_delete.do";
+			var url = "gallery_delete";
 			var param = "galleryIdx=" + f.galleryIdx.value + 
 						"&idx=" + f.idx.value;
 			sendRequest(url, param, resultDel, "GET");
@@ -268,26 +268,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				
@@ -297,13 +297,13 @@
 				}
 				
 				alert("삭제성공");
-				location.href = "/gallery.do?idx=" + idx;
+				location.href = "/gallery?idx=" + idx;
 			}
 		}
 		
 		// 게시글 수정
 		function modify(f) {
-			f.action = 'gallery_modify_form.do';
+			f.action = 'gallery_modify_form';
 			f.method = "GET";
 			f.submit();
 		}
@@ -317,7 +317,7 @@
 			let idx = f.idx.value;
 			let loginIdx = document.getElementById("loginIdx").value;
 			
-			let url = "gallery_like.do";
+			let url = "gallery_like";
 			let param = "galleryLikeIdx=" + galleryIdx +
 						"&galleryLikeRef=" + idx +
 						"&galleryLikeSessionIdx=" + loginIdx;
@@ -335,26 +335,26 @@
 
 				// 로그인 에러
 				if ( json.GalleryContent == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( json.GalleryContent == "0" ) {
-					location.href = "/login.do";
+					location.href = "/login";
 					return;
 				}
 				if ( json.GalleryContent == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/login.do";
+					location.href = "/login";
 					return;
 				}
 				if ( json.GalleryContent == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/login.do";
+					location.href = "/login";
 					return;
 				}
 				if ( json.GalleryContent == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/login.do";
+					location.href = "/login";
 					return;
 				}
 				
@@ -392,7 +392,7 @@
 				return;
 			}
 			
-			url = "comment_insert.do";
+			url = "comment_insert";
 			param = "galleryCommentIdx=" + galleryCommentIdx +
 					"&galleryIdxComment=" + galleryIdxComment +
 					"&galleryCommentSessionIdx=" + galleryCommentSessionIdx +
@@ -408,26 +408,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				
@@ -437,7 +437,7 @@
 				}
 				
 				alert("작성 완료");
-				location.href = "/gallery.do?idx=" + idx;
+				location.href = "/gallery?idx=" + idx;
 			}
 		}
 		
@@ -447,7 +447,7 @@
 				return;
 			}
 			
-			var url = "gcomment_delete.do";
+			var url = "gcomment_delete";
 			var param = "idx=" + f.idx.value +
 						"&galleryCommentIdx=" + f.galleryCommentIdx.value +
 						"&galleryIdxComment=" + f.galleryIdxComment.value +
@@ -462,26 +462,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				
@@ -491,7 +491,7 @@
 				}
 				
 				alert("삭제성공");
-				location.href = "/gallery.do?idx=" + idx;
+				location.href = "/gallery?idx=" + idx;
 			}
 		}
 	</script>
@@ -509,7 +509,7 @@
 				return;
 			}
 			
-			f.action = "profile.do";
+			f.action = "profile";
 			f.method = "POST";
 			f.submit();
 		}

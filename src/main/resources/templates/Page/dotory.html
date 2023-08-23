@@ -13,7 +13,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			opener.location.href = "/logout.do";
+			opener.location.href = "/logout";
 			window.close();
 		}
 	};
@@ -44,7 +44,7 @@
 						
 						<div id="buyButton">
 							<input id="btn-cover" class="buy" type="submit" value="충전하기" onclick="buy(this.form);">
-							<input id="btn-cover" class="close "type="button" value="구매완료" th:onclick="|opener.location.href='@{main.do(idx=${ param.idx })}'; buyclose();|">
+							<input id="btn-cover" class="close "type="button" value="구매완료" th:onclick="|opener.location.href='@{main(idx=${ param.idx })}'; buyclose();|">
 						</div>
 					</div>
 				</form>
@@ -61,19 +61,19 @@
 			
 			// 선택한 도토리 구매
 			if (dotory[0].checked == true) {
-				f.action = "dotoryBuy.do";
+				f.action = "dotoryBuy";
 				f.method = "GET";
 				f.submit();
 			} else if (dotory[1].checked == true) {
-				f.action = "dotoryBuy.do";
+				f.action = "dotoryBuy";
 				f.method = "GET";
 				f.submit();
 			} else if (dotory[2].checked == true) {
-				f.action = "dotoryBuy.do";
+				f.action = "dotoryBuy";
 				f.method = "GET";
 				f.submit();
 			} else if (dotory[3].checked == true) {
-				f.action = "dotoryBuy.do";
+				f.action = "dotoryBuy";
 				f.method = "GET";
 				f.submit();
 			}

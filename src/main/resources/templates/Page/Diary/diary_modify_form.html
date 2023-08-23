@@ -13,7 +13,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			location.href = "/logout.do";
+			location.href = "/logout";
 		}
 	};
 </script>
@@ -37,7 +37,7 @@
 								<tr>
 									<td colspan="2">
 										<input class="write" id="btn-cover" type="button" value="수정" onclick="send(this.form);">
-										<input class="cancel" id="btn-cover" type="button" value="취소" th:onclick="|location.href='@{diary.do(idx=${ updateDiary.diaryIdx })}'|">
+										<input class="cancel" id="btn-cover" type="button" value="취소" th:onclick="|location.href='@{diary(idx=${ updateDiary.diaryIdx })}'|">
 									</td>
 								</tr>
 							</table>
@@ -53,7 +53,7 @@
 	<script>
 		// 다이어리 글 수정
 		function send(f) {
-			var url = "diary_modify.do";
+			var url = "diary_modify";
 			var param = "idx=" + f.idx.value +
 						"&diaryIdx=" + f.diaryIdx.value +
 						"&diaryContent=" + encodeURIComponent(f.diaryContent.value);
@@ -67,26 +67,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + diaryIdx;
+					location.href = "/main?idx=" + diaryIdx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				
@@ -96,7 +96,7 @@
 				}
 				
 				alert("수정성공");
-				location.href = "/diary.do?idx=" + diaryIdx;
+				location.href = "/diary?idx=" + diaryIdx;
 			}
 		}
 	</script>

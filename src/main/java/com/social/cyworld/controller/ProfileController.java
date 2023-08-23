@@ -59,7 +59,7 @@ public class ProfileController {
 	private String smsPhoneNumber;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 프로필 조회
-	@RequestMapping("/profile.do")
+	@RequestMapping("/profile")
 	public String profile(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -85,11 +85,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -156,7 +156,7 @@ public class ProfileController {
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main.do?idx=" + idx;
+			return "redirect:/main?idx=" + idx;
 		}
 
 		// 미니홈피 유저 정보 조회
@@ -188,7 +188,7 @@ public class ProfileController {
 	}
 	
 	// 미니미 팝업
-	@RequestMapping("/profile_minimi_popup.do")
+	@RequestMapping("/profile_minimi_popup")
 	public String popup(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -214,11 +214,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -285,7 +285,7 @@ public class ProfileController {
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main.do?idx=" + idx;
+			return "redirect:/main?idx=" + idx;
 		}
 		
 		// idx에 해당하는 프로필 조회
@@ -305,7 +305,7 @@ public class ProfileController {
 	}
 	
 	// 미니미 변경
-	@RequestMapping("/profile_minimi_change.do")
+	@RequestMapping("/profile_minimi_change")
 	public String minimiChange(Sign sign, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -331,11 +331,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + sign.getIdx();
+				return "redirect:/main?idx=" + sign.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -402,18 +402,18 @@ public class ProfileController {
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != sign.getIdx() ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main.do?idx=" + sign.getIdx();
+			return "redirect:/main?idx=" + sign.getIdx();
 		}
 		
 		// 변경할 미니미 정보로 갱신
 		profileService.updateSetMinimiByIdx(sign);
 
 		// idx를 들고 미니미 팝업으로 URL로 이동
-		return "redirect:/profile_minimi_popup.do?idx=" + sign.getIdx();
+		return "redirect:/profile_minimi_popup?idx=" + sign.getIdx();
 	}
 	
 	// 미니미 구매
-	@RequestMapping("/profile_minimi_buy.do")
+	@RequestMapping("/profile_minimi_buy")
 	@ResponseBody
 	public String minimiBuy(Sign sign, BuyMinimi buyMinimi) {
 		// 토큰 값
@@ -530,7 +530,7 @@ public class ProfileController {
 	}
 	
 	// 프로필 좌측 - 메인 사진 및 메인 소개글 수정
-	@RequestMapping("/profile_modify_main.do")
+	@RequestMapping("/profile_modify_main")
 	public String profileModifyMain(LeftProfileDTO leftProfileDTO, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -556,11 +556,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + leftProfileDTO.getIdx();
+				return "redirect:/main?idx=" + leftProfileDTO.getIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -627,7 +627,7 @@ public class ProfileController {
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != leftProfileDTO.getIdx() ) {
 			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main.do?idx=" + leftProfileDTO.getIdx();
+			return "redirect:/main?idx=" + leftProfileDTO.getIdx();
 		}
 		
 		// 메인 사진 업로드를 위해 절대 경로를 생성
@@ -676,11 +676,11 @@ public class ProfileController {
 		profileService.updateSetMainPhotoAndMainTextByIdx(leftProfileDTO.toEntity());
 
 		// idx를 들고 프로필 페이지 URL로 이동
-		return "redirect:/profile.do?idx=" + leftProfileDTO.getIdx();
+		return "redirect:/profile?idx=" + leftProfileDTO.getIdx();
 	}
 	
 	// 프로필 우측 - 메인 타이틀 및 비밀번호 수정
-	@RequestMapping("/profile_modify_userdata.do")
+	@RequestMapping("/profile_modify_userdata")
 	@ResponseBody
 	public String profileModifyUserData(Sign sign) {
 		// 토큰 값
@@ -807,7 +807,7 @@ public class ProfileController {
 	}
 
 	// 휴대폰 인증 - 회원가입 및 휴대폰 번호 변경
-	@RequestMapping("/profile_phone_send.do")
+	@RequestMapping("/profile_phone_send")
 	@ResponseBody
 	public String phoneSend(int idx, String phoneNumber) throws JSONException {
 		// 토큰 값
@@ -924,7 +924,7 @@ public class ProfileController {
 	}
 
 	// 휴대폰 인증 체크
-	@RequestMapping("/profile_phone_check.do")
+	@RequestMapping("/profile_phone_check")
 	@ResponseBody
 	public String phoneCheck(int idx, String phoneKey, String hPhoneKey) {
 		// 토큰 값
@@ -1027,7 +1027,7 @@ public class ProfileController {
 	}
 
 	// 휴대폰 번호 변경
-	@RequestMapping("/profile_phone_update.do")
+	@RequestMapping("/profile_phone_update")
 	@ResponseBody
 	public String phoneUpdate(Sign sign) {
 		// 토큰 값

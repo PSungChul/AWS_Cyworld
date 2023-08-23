@@ -13,7 +13,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			opener.location.href = "/logout.do";
+			opener.location.href = "/logout";
 			window.close();
 		}
 	};
@@ -74,7 +74,7 @@
 				</form>
 			</th:block>
 			<th:block th:if="${ apiKey eq null }">
-				<input id="btn-cover" type="button" value="API 발급" th:onclick="|location.href='@{/api/profile_api_key.do(idx=${loginIdx})}'|">
+				<input id="btn-cover" type="button" value="API 발급" th:onclick="|location.href='@{/api/profile_api_key(idx=${loginIdx})}'|">
 			</th:block>
 		</div>
 	</div>
@@ -95,7 +95,7 @@
 				return;
 			}
 
-			fetch('/api/profile_api_check.do?' + 'idx=' + idx +
+			fetch('/api/profile_api_check?' + 'idx=' + idx +
 												 '&redirectUri=' + redirectUri +
 												 '&gender=' + gender +
 												 '&name=' + name +
@@ -106,26 +106,26 @@
 				.then(data => {
 					// 로그인 에러
 					if ( data == '-4' ) {
-						location.href = '/main.do?idx=' + idx;
+						location.href = '/main?idx=' + idx;
 						return;
 					}
 					if ( data == '0' ) {
-						location.href = '/logout.do';
+						location.href = '/logout';
 						return;
 					}
 					if ( data == '-99' ) {
 						alert('다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
-						location.href = '/logout.do';
+						location.href = '/logout';
 						return;
 					}
 					if ( data == '-100' ) {
 						alert('로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
-						location.href = '/logout.do';
+						location.href = '/logout';
 						return;
 					}
 					if ( data == '-1' ) {
 						alert('세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
-						location.href = '/logout.do';
+						location.href = '/logout';
 						return;
 					}
 

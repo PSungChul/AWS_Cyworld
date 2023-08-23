@@ -14,7 +14,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			location.href = "/logout.do";
+			location.href = "/logout";
 		}
 	};
 </script>
@@ -37,7 +37,7 @@
 								<tr>
 									<td>
 										<input id="btn-cover" class="write" type="button" value="글쓰기" onclick="send(this.form);">
-										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{diary.do(idx=${ diary.diaryIdx })}'|">
+										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{diary(idx=${ diary.diaryIdx })}'|">
 									</td>
 								</tr>
 							</table>
@@ -62,7 +62,7 @@
 				return;
 			}
 			
-			f.action = "diary_insert.do";
+			f.action = "diary_insert";
 			f.method = "GET";
 			f.submit();
 		}

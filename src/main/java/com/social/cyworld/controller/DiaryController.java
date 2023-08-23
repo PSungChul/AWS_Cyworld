@@ -35,7 +35,7 @@ public class DiaryController {
 	DiaryService diaryService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 다이어리 조회
-	@RequestMapping("/diary.do")
+	@RequestMapping("/diary")
 	public String list(int idx,Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -61,11 +61,11 @@ public class DiaryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -146,7 +146,7 @@ public class DiaryController {
 	}
 	
 	// 다이어리 글 작성 페이지로 이동
-	@RequestMapping("/diary_insert_form.do")
+	@RequestMapping("/diary_insert_form")
 	public String insert_form(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -172,11 +172,11 @@ public class DiaryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -243,7 +243,7 @@ public class DiaryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 다이어리는 오로지 미니홈피 유저만 작성할 수 있다.
 		if ( loginIdx != idx ) {
 			// 해당 미니홈피 유저의 다이어리 페이지로 이동
-			return "redirect:/diary.do?idx=" + idx;
+			return "redirect:/diary?idx=" + idx;
 		}
 
 		// 다이어리 작성자 정보 생성
@@ -260,7 +260,7 @@ public class DiaryController {
 	}
 
 	// 다이어리 새 글 작성
-	@RequestMapping("/diary_insert.do")
+	@RequestMapping("/diary_insert")
 	public String insert(Diary diary, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -286,11 +286,11 @@ public class DiaryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + diary.getDiaryIdx();
+				return "redirect:/main?idx=" + diary.getDiaryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -357,7 +357,7 @@ public class DiaryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 다이어리는 오로지 미니홈피 유저만 작성할 수 있다.
 		if ( loginIdx != diary.getDiaryIdx() ) {
 			// 해당 미니홈피 유저의 다이어리 페이지로 이동
-			return "redirect:/diary.do?idx=" + diary.getDiaryIdx();
+			return "redirect:/diary?idx=" + diary.getDiaryIdx();
 		}
 
 		// 작성 시간를 기록하기 위해 Date객체 사용
@@ -374,11 +374,11 @@ public class DiaryController {
 		diaryService.insertIntoDiary(diary);
 
 		// idx를 들고 다이어리 페이지 URL로 이동
-		return "redirect:/diary.do?idx=" + diary.getDiaryIdx();
+		return "redirect:/diary?idx=" + diary.getDiaryIdx();
 	}
 	
 	// 다이어리 글 삭제
-	@RequestMapping("/diary_delete.do")
+	@RequestMapping("/diary_delete")
 	@ResponseBody
 	public String delete(Diary diary) {
 		// 토큰 값
@@ -486,7 +486,7 @@ public class DiaryController {
 	}
 	
 	// 다이어리 글 수정 페이지로 이동
-	@RequestMapping("/diary_modify_form.do")
+	@RequestMapping("/diary_modify_form")
 	public String modify_form(Diary diary, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -512,11 +512,11 @@ public class DiaryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + diary.getDiaryIdx();
+				return "redirect:/main?idx=" + diary.getDiaryIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -583,7 +583,7 @@ public class DiaryController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 다이어리는 오로지 미니홈피 유저만 수정할 수 있다.
 		if ( loginIdx != diary.getDiaryIdx() ) {
 			// 해당 미니홈피 유저의 다이어리 페이지로 이동
-			return "redirect:/diary.do?idx=" + diary.getDiaryIdx();
+			return "redirect:/diary?idx=" + diary.getDiaryIdx();
 		}
 		
 		// 해당 idx의 다이어리에 수정할 글을 조회
@@ -598,7 +598,7 @@ public class DiaryController {
 	}
 	
 	// 다이어리 글 수정하기
-	@RequestMapping("/diary_modify.do")
+	@RequestMapping("/diary_modify")
 	@ResponseBody
 	public String modify(Diary diary) {
 		// 토큰 값

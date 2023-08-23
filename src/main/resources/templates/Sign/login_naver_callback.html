@@ -4,7 +4,7 @@
 </head>
 <body>
 	<!-- 네이버 회원가입에 미리 작성될 정보들 -->
-	<form id="nf" action="naver_join_form.do" method="POST">
+	<form id="nf" action="naver_join_form" method="POST">
 		<input name="platform" type="hidden" value="naver">
 		<input name="gender" id="gender" type="hidden">
 		<input name="name" id="name" type="hidden">
@@ -35,7 +35,7 @@
 					const phoneNumber = naverLogin.user.getMobile(); // 휴대폰 번호
 					const email = naverLogin.user.getEmail(); // 이메일
 
-					fetch('naver_authentication.do', {
+					fetch('naver_authentication', {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded'
@@ -72,14 +72,14 @@
 								return;
 							} else if ( data == '1' ) {
 								alert('싸이월드로 가입한 이력이 있습니다.\n싸이월드로 로그인을 이용해주세요.');
-								location.href = 'login.do';
+								location.href = 'login';
 								return;
 							} else if ( data == '2' ) {
 								alert('카카오로 가입한 이력이 있습니다.\n카카오로 로그인을 이용해주세요.');
-								location.href = 'login.do';
+								location.href = 'login';
 								return;
 							} else {
-								location.href = 'main.do?idx=' + data;
+								location.href = 'main?idx=' + data;
 								return;
 							}
 						})

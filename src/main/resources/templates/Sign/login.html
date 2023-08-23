@@ -30,7 +30,7 @@
 							</form>
 							
 							<!-- cyworld 회원가입 -->
-							<form action="login_authentication.do" method="POST">
+							<form action="login_authentication" method="POST">
 								<!-- 회원가입을 구별할 플랫폼 -->
 								<input name="platform" type="hidden" value="cyworld">
 								<p class="join"><input id="btn-cover" type="submit" value="회원가입"></p>
@@ -43,7 +43,7 @@
 							<a class="kakao" href="javascript:kakaoLogin();"><img src="https://www.gb.go.kr/Main/Images/ko/member/certi_kakao_login.png" style="height: 40px; width: auto"></a>
 							
 							<!-- 카카오 회원가입 -->
-							<form id="kf" action="kakao_join_form.do" method="POST">
+							<form id="kf" action="kakao_join_form" method="POST">
 								<input name="platform" type="hidden" value="kakao">
 								<input name="email" id="email" type="hidden">
 								<input name="gender" id="gender" type="hidden">
@@ -66,7 +66,7 @@
 	<script>
 		function nmain() {
 			// idx로 -1을 부여받게 된다
-			location.href = "nmain.do";
+			location.href = "nmain";
 		}
 	</script>
 	
@@ -76,12 +76,12 @@
 	<script>
 		// ID 찾기
 		function find_id() {
-			location.href = "findID.do";
+			location.href = "findID";
 		}
 		
 		// PW 찾기
 		function find_pw() {
-			location.href = "findPW.do";
+			location.href = "findPW";
 		}
 		
 		// 로그인 ID & PW 체크
@@ -100,7 +100,7 @@
 			}
 			
 			// Ajax로 ID와 PWD를 전달
-			let url = "login_check.do";
+			let url = "login_check";
 			let param = "userId=" + userId +
 						"&info=" + info;
 			sendRequest(url, param, resultLogin, "POST");
@@ -125,7 +125,7 @@
 				alert("로그인 성공");
 				// 입력한 ID와 비밀번호를 들고 메인 페이지로 이동
 				const ff = document.getElementById("ff");
-				ff.action = "login_authentication.do";
+				ff.action = "login_authentication";
 				ff.method = "POST";
 				ff.submit();
 			}
@@ -139,7 +139,7 @@
 		const naverLogin = new naver.LoginWithNaverId(
 				{
 					clientId: [[${naverClientId}]], // 네이버에서 발급받은 API 사용 ID
-					callbackUrl: "http://localhost:9999/login_naver_callback.do", // 로그인을 하고 정보동의 후 이동할 페이지 - 네이버에서 미리 등록해야한다.
+					callbackUrl: "http://localhost:9999/login_naver_callback", // 로그인을 하고 정보동의 후 이동할 페이지 - 네이버에서 미리 등록해야한다.
 					loginButton: {color: "green", type: 3, height: 40}, // 위에 작성한 <div>태그에 만들어줄 로그인 버튼 모양 설정
 					isPopup: false, // callbackUrl을 팝업창으로 열건지 선택 - true : 팝업 / false : 다음 페이지 
 					callbackHandle: true // 콜백메소드에 핸들메소드 사용여부
@@ -174,7 +174,7 @@
 							const email = kakao_account.email; // 이메일
 							const gender = kakao_account.gender; // 성별
 
-							fetch('kakao_authentication.do', {
+							fetch('kakao_authentication', {
 								method: 'POST',
 								headers: {
 									'Content-Type': 'application/x-www-form-urlencoded'
@@ -196,14 +196,14 @@
 										return;
 									} else if ( data == '1' ) {
 										alert('싸이월드로 가입한 이력이 있습니다.\n싸이월드로 로그인을 이용해주세요.');
-										location.href = 'login.do';
+										location.href = 'login';
 										return;
 									} else if ( data == '2' ) {
 										alert('네이버로 가입한 이력이 있습니다.\n네이버로 로그인을 이용해주세요.');
-										location.href = 'login.do';
+										location.href = 'login';
 										return;
 									} else {
-										location.href = 'main.do?idx=' + data;
+										location.href = 'main?idx=' + data;
 										return;
 									}
 								})

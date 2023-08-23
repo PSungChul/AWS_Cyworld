@@ -28,7 +28,7 @@
 							<div class="PNum">인증번호 <br> <input id="i_phoneNumber" type="text"></div>
 							<input class="sendPNum2" type="button" value="인증번호 확인" onclick="phoneCheck();">
 							<input id="btn-cover" type="button" value="아이디 찾기" onclick="findID(this.form)">
-							<input  id="btn_cover" class="cancel" type="button" value="취소" onclick="location.href='logout.do'">
+							<input  id="btn_cover" class="cancel" type="button" value="취소" onclick="location.href='logout'">
 						</form>
 						
 					</div>
@@ -50,7 +50,7 @@
 				return;
 			}
 
-			let url = "findID_phone_send.do";
+			let url = "findID_phone_send";
 			let param = "phoneNumber=" + phoneNumber.value;
 			sendRequest(url, param, resultPhoneSend, "POST");
 		}
@@ -76,7 +76,7 @@
 				return;
 			}
 
-			let url = "phone_check.do";
+			let url = "phone_check";
 			let param = "phoneKey=" + i_phoneNumber.value +
 						"&hPhoneKey=" + h_phone_key.value;
 			sendRequest(url, param, resultPhoneCheck, "POST");
@@ -134,7 +134,7 @@
 				return;
 			}
 			
-			let url = "findIdCheck.do";
+			let url = "findIdCheck";
 			let param = "name=" + name +
 						"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultId, "POST");
@@ -150,7 +150,7 @@
 				}
 				
 				alert("아이디는 '" + data + "' 입니다");
-				location.href = "login.do";
+				location.href = "login";
 			}
 		}
 	</script>

@@ -22,7 +22,7 @@
 							<p class="myName">이름 <br> <input name="name" type="text"></p>
 							<p class="myEmail">이메일 <br> <input name="email" type="text"></p>
 							<input id="btn-cover" type="button" value="비밀번호 찾기" onclick="findPW(this.form)">
-							<input  id="btn_cover" class="cancel" type="button" value="취소" onclick="location.href='logout.do'">
+							<input  id="btn_cover" class="cancel" type="button" value="취소" onclick="location.href='logout'">
 						</form>
 						
 					</div>
@@ -67,7 +67,7 @@
 			}
 
 			// 이메일 형식이 맞는 경우
-			let url = "findPwSendEmail.do";
+			let url = "findPwSendEmail";
 			let param = "userId=" + userId +
 						"&name=" + name +
 						"&email=" + encodeURIComponent(email);
@@ -84,7 +84,7 @@
 				}
 				
 				alert("메일로 임시비밀번호 발급이 완료되었습니다");
-				location.href = "login.do";
+				location.href = "login";
 			}
 		}
 	</script>

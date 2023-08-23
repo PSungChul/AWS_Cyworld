@@ -85,7 +85,7 @@
 				return;
 			}
 			
-			url = "welcome.do";
+			url = "welcome";
 			param = "&gender=" + gender +
 					"&name=" + name +
 					"&birthday=" + birthday +
@@ -105,11 +105,11 @@
 				if ( data == "no" ) {
 					alert("가입된 회원정보가 있습니다");
 					alert("로그인 혹은 아이디/비밀번호 찾기를 이용해주세요");
-					location.href = "login.do";
+					location.href = "login";
 				} else {
 					alert("가입이 완료되었습니다");
 					alert("로그인 페이지로 이동합니다");
-					location.href = "login.do";
+					location.href = "login";
 				}
 			}
 		}
@@ -129,7 +129,7 @@
 			naverOpenPopUp(); // 팝업 열기
 			setTimeout(function() {
 				naverClosePopUp(); // 팝업 닫기
-				location.href = "logout.do"; // 첫 페이지로 이동
+				location.href = "logout"; // 첫 페이지로 이동
 			}, 500); // 팝업 여는거부터 순차적으로 0.5초 간격으로 실행
 		}
 	</script>

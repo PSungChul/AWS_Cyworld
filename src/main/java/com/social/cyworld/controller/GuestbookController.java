@@ -38,7 +38,7 @@ public class GuestbookController {
 	GuestbookService guestbookService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 방명록 조회
-	@RequestMapping("/guestbook.do")
+	@RequestMapping("/guestbook")
 	public String guestbook_list (int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -64,11 +64,11 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -290,7 +290,7 @@ public class GuestbookController {
 	}
 	
 	// 방명록 방문글 작성 페이지로 이동
-	@RequestMapping("/guestbook_insert_form.do")
+	@RequestMapping("/guestbook_insert_form")
 	public String guestbook_insert_form(int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -316,11 +316,11 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + idx;
+				return "redirect:/main?idx=" + idx;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -425,7 +425,7 @@ public class GuestbookController {
 	}
 	
 	// 방명록 새 방문글 작성
-	@RequestMapping("/guestbook_insert.do")
+	@RequestMapping("/guestbook_insert")
 	public String guestbook_insert(Guestbook guestbook, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -451,11 +451,11 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + guestbook.getGuestbookIdx();
+				return "redirect:/main?idx=" + guestbook.getGuestbookIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -522,7 +522,7 @@ public class GuestbookController {
 		// 토큰에서 추출한 로그인 유저 idx와 좋아요에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
 		if ( loginIdx != guestbook.getGuestbookSessionIdx() ) {
 			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/guestbook.do?idx=" + guestbook.getGuestbookIdx();
+			return "redirect:/guestbook?idx=" + guestbook.getGuestbookIdx();
 		}
 
 		// 작성 시간을 기록하기 위해 Date객체 사용
@@ -541,11 +541,11 @@ public class GuestbookController {
 		guestbookService.insertIntoGuestbook(guestbook);
 
 		// idx를 들고 방명록 페이지 URL로 이동
-		return "redirect:/guestbook.do?idx=" + guestbook.getGuestbookIdx();
+		return "redirect:/guestbook?idx=" + guestbook.getGuestbookIdx();
 	}
 	
 	// 방명록 방문글 삭제
-	@RequestMapping("/guestbook_delete.do")
+	@RequestMapping("/guestbook_delete")
 	@ResponseBody // Ajax로 요청된 메서드는 결과를 콜백 메서드로 돌아가기 위해 반드시 필요한 어노테이션
 	public String guestbook_delete(Guestbook guestbook) {
 		// 토큰 값
@@ -653,7 +653,7 @@ public class GuestbookController {
 	}
 	
 	// 방명록 방문글 수정 페이지로 이동
-	@RequestMapping("/guestbook_modify_form.do")
+	@RequestMapping("/guestbook_modify_form")
 	public String guestbook_modify_form(Guestbook guestbook, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -679,11 +679,11 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main.do?idx=" + guestbook.getGuestbookIdx();
+				return "redirect:/main?idx=" + guestbook.getGuestbookIdx();
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 로그인 페이지로 이동
-				return "redirect:/login.do";
+				return "redirect:/login";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -750,7 +750,7 @@ public class GuestbookController {
 		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 방문글은 오로지 작성자만 수정할 수 있다.
 		if ( loginIdx != guestbook.getGuestbookSessionIdx() ) {
 			// 해당 미니홈피 유저의 방명록 페이지로 이동
-			return "redirect:/guestbook.do?idx=" + guestbook.getGuestbookIdx();
+			return "redirect:/guestbook?idx=" + guestbook.getGuestbookIdx();
 		}
 		
 		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
@@ -770,7 +770,7 @@ public class GuestbookController {
 	}
 	
 	// 방문글 수정하기
-	@RequestMapping("/guestbook_modify.do")
+	@RequestMapping("/guestbook_modify")
 	@ResponseBody
 	public String guestbook_modify(Guestbook guestbook) {
 		// 토큰 값
@@ -887,7 +887,7 @@ public class GuestbookController {
 	
 	/////////////// 방명록 좋아요 구역 ///////////////
 	
-	@RequestMapping("/guestbook_like.do")
+	@RequestMapping("/guestbook_like")
 	@ResponseBody
 	public Guestbook guestbook_like(Guestbook guestbook, GuestbookLike guestbookLike) {
 		// 토큰 값

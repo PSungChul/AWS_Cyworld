@@ -13,7 +13,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			opener.location.href = "/logout.do";
+			opener.location.href = "/logout";
 			window.close();
 		}
 	};
@@ -39,7 +39,7 @@
 				<form action="">
 					<div class="tabs">
 						<!-- 미니미 변경 완료 버튼 -->
-						<input id="btn-cover" class="close "type="button" value="완료" th:onclick="|opener.location.href='@{main.do(idx=${ param.idx })}'; buyclose();|">
+						<input id="btn-cover" class="close "type="button" value="완료" th:onclick="|opener.location.href='@{main(idx=${ param.idx })}'; buyclose();|">
 						
 						<input name="idx" type="hidden" th:value="${ param.idx }">
 						<!-- 현제 보유중인 미니미 -->
@@ -155,7 +155,7 @@
 			
 			for ( let i = 0; i < minimi.length; i++ ) {
 				if ( minimi[i].checked == true ) {
-					f.action = "profile_minimi_change.do";
+					f.action = "profile_minimi_change";
 					f.method = "GET";
 					f.submit();
 					return;
@@ -179,7 +179,7 @@
 					// 보유 도토리 수가 미니미 가격보다 많을 경우
 					} else {
 						dotory -= parseInt(price[i].value);
-						url = "profile_minimi_buy.do";
+						url = "profile_minimi_buy";
 						param = "idx=" + idx +
 								"&dotory=" + dotory +
 								"&buyMinimiName=" + buyMinimiName[i].value;
@@ -197,30 +197,30 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					opener.location.href = "/main.do?idx=" + idx;
+					opener.location.href = "/main?idx=" + idx;
 					window.close();
 					return;
 				}
 				if ( data == "0" ) {
-					opener.location.href = "/logout.do";
+					opener.location.href = "/logout";
 					window.close();
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					opener.location.href = "/logout.do";
+					opener.location.href = "/logout";
 					window.close();
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					opener.location.href = "/logout.do";
+					opener.location.href = "/logout";
 					window.close();
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					opener.location.href = "/logout.do";
+					opener.location.href = "/logout";
 					window.close();
 					return;
 				}
@@ -232,7 +232,7 @@
 				}
 				
 				alert("구매 완료");
-				location.href = "profile_minimi_popup.do?idx=" + idx;
+				location.href = "profile_minimi_popup?idx=" + idx;
 			}
 		}
 	</script>

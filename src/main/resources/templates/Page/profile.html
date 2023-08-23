@@ -14,7 +14,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			location.href = "/logout.do";
+			location.href = "/logout";
 		}
 	};
 </script>
@@ -62,7 +62,7 @@
 						<select class="myFriend" onchange="if(this.value) location.href=(this.value);">
 							<option value="">::: 파도타기 :::</option>
 							<!-- 프로필에서 파도타기는 해당 미니홈피 유저의 프로필로 이동하는것이 아닌 메인으로 이동한다 -->
-							<option th:each="ilchon : ${ilchonList}" th:value="${'main.do?idx=' + ilchon.ilchonIdx}" th:text="'ㆍ ' + ilchon.ilchonName"></option>
+							<option th:each="ilchon : ${ilchonList}" th:value="${'main?idx=' + ilchon.ilchonIdx}" th:text="'ㆍ ' + ilchon.ilchonName"></option>
 						</select>
 					</aside>
 				</div>
@@ -178,19 +178,19 @@
 						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
-						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main.do(idx=${ sign.idx })}'|">
+						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{main(idx=${ sign.idx })}'|">
 						<!-- 프로필 탭 -->
 						<label for="tab2" id="btn2">프로필</label>
 						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
 						<!-- 다이어리 탭 -->
 						<label for="tab3" id="btn3">다이어리</label>
-						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{diary.do(idx=${ sign.idx })}'|">
+						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{diary(idx=${ sign.idx })}'|">
 						<!-- 사진첩 탭 -->
 						<label for="tab4" id="btn4">사진첩</label>
-						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{gallery.do(idx=${ sign.idx })}'|">
+						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{gallery(idx=${ sign.idx })}'|">
 						<!-- 방명록 탭 -->
 						<label for="tab5" id="btn5">방명록</label>
-						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{guestbook.do(idx=${ sign.idx })}'|">
+						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{guestbook(idx=${ sign.idx })}'|">
 					</div>
 				</form>
 			</div>
@@ -227,7 +227,7 @@
 			
 			// 소셜 가입자는 가입할때 따로 작성한 아이디 비밀번호가 없기에 메인타이틀만 수정 가능하다.
 			if ( platform != 'cyworld' ) {
-				url = "profile_modify_userdata.do"
+				url = "profile_modify_userdata"
 				param = "idx=" + idx +
 						"&mainTitle=" + mainTitle +
 						"&platform=" + platform;
@@ -256,7 +256,7 @@
 						return;
 					}
 					
-					url = "profile_modify_userdata.do"
+					url = "profile_modify_userdata"
 					param = "idx=" + idx +
 							"&info=" + info +
 							"&mainTitle=" + mainTitle +
@@ -264,7 +264,7 @@
 					sendRequest(url, param, resultModify, "POST");
 				// 비밀번호를 변경하지 않고 그대로 가져갈시
 				} else {
-					url = "profile_modify_userdata.do"
+					url = "profile_modify_userdata"
 					param = "idx=" + idx +
 							"&mainTitle=" + mainTitle +
 							"&platform=" + platform;
@@ -280,26 +280,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 
@@ -310,7 +310,7 @@
 				}
 				
 				alert("수정 완료");
-				location.href = "profile.do?idx=" + idx;
+				location.href = "profile?idx=" + idx;
 			}
 		}
 	</script>
@@ -328,7 +328,7 @@
 				return;
 			}
 			
-			f.action = "profile_modify_main.do";
+			f.action = "profile_modify_main";
 			f.submit();
 		}
 	</script>
@@ -336,7 +336,7 @@
 	<script th:inline="javascript">
 		//window.open (미니미 수정창)
 		function minimiPopUp() {
-			let popUrl = "profile_minimi_popup.do?idx=" + [[${ sign.idx }]];
+			let popUrl = "profile_minimi_popup?idx=" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open(popUrl, "minimi", popOption);
 		}
@@ -436,7 +436,7 @@
 				return;
 			}
 
-			let url = "profile_phone_send.do";
+			let url = "profile_phone_send";
 			let param = "idx=" + idx +
 						"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultPhoneSend, "POST");
@@ -451,26 +451,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 
@@ -497,7 +497,7 @@
 				return;
 			}
 
-			let url = "profile_phone_check.do";
+			let url = "profile_phone_check";
 			let param = "idx=" + idx +
 						"&phoneKey=" + i_phoneNumber +
 						"&hPhoneKey=" + h_phone_key;
@@ -514,26 +514,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 
@@ -576,7 +576,7 @@
 				return;
 			}
 
-			url = "profile_phone_update.do";
+			url = "profile_phone_update";
 			param = "idx=" + idx +
 					"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultPhoneUpdate, "POST");
@@ -589,26 +589,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + idx;
+					location.href = "/main?idx=" + idx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 
@@ -628,7 +628,7 @@
 	<script th:inline="javascript">
 		// window.open (API 발급창)
 		function apiPopUp() {
-			let popUrl = "/api/profile_api_popup.do?idx=" + [[${ sign.idx }]];
+			let popUrl = "/api/profile_api_popup?idx=" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open(popUrl, "api", popOption);
 		}
@@ -647,7 +647,7 @@
 				return;
 			}
 			
-			f.action = "profile.do";
+			f.action = "profile";
 			f.method = "POST";
 			f.submit();
 		}

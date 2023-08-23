@@ -64,7 +64,7 @@ public class SignUpController {
 	private String smsPhoneNumber;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 기본 및 로그인
-	@RequestMapping(value= {"/", "login.do"})
+	@RequestMapping(value= {"/", "login"})
 	public String basic(Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -90,7 +90,7 @@ public class SignUpController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 로그아웃 페이지로 이동
-				return "redirect:/logout.do";
+				return "redirect:/logout";
 			// 토큰도 세션도 존재하지 않는 경우 - 로그인
 			} else {
 				model.addAttribute("naverClientId", naverClientId);
@@ -160,11 +160,11 @@ public class SignUpController {
 		}
 
 		// 토큰과 세션이 모두 존재한다면 로그인은 건너뛰고 토큰에서 추출한 로그인 유저 idx에 해당하는 메인 페이지로 이동
-		return "redirect:/main.do?idx=" + loginIdx;
+		return "redirect:/main?idx=" + loginIdx;
 	}
 	
 	// 로그아웃
-	@RequestMapping("/logout.do")
+	@RequestMapping("/logout")
 	public String logout() {
 		// 토큰 값
 		String authorization = null;
@@ -194,7 +194,7 @@ public class SignUpController {
 			}
 
 			// 세션이 삭제되면 다시 로그인 페이지로 이동
-			return "redirect:/login.do";
+			return "redirect:/login";
 		}
 		// 쿠키에 토큰이 존재하는 경우 - Redis 블랙리스트에 토큰을 추가하고 토큰과 세션 모두 삭제
 		// 무효화한 토큰인지 체크한다.
@@ -221,11 +221,11 @@ public class SignUpController {
 		}
 
 		// 토큰과 세션이 모두 삭제되면 다시 로그인 페이지로 이동
-		return "redirect:/login.do";
+		return "redirect:/login";
 	}
 	
 	// 네이버 API 콜백용
-	@RequestMapping("/login_naver_callback.do")
+	@RequestMapping("/login_naver_callback")
 	public String naver_join(Model model) {
 		model.addAttribute("naverClientId", naverClientId);
 		// 네이버 콜백 페이지로 이동
@@ -233,7 +233,7 @@ public class SignUpController {
 	}
 	
 	// 싸이월드 가입자와 비가입자 구별
-	@RequestMapping("/login_authentication.do")
+	@RequestMapping("/login_authentication")
 	public String login_authentication(Sign sign, Model model) {
 		// 가져온 정보중에 ID가 없을경우 - 회원가입
 		if ( sign.getUserId() == null ) {
@@ -290,7 +290,7 @@ public class SignUpController {
 					signService.updateTodayDate(login);
 
 					// 로그인 유저 idx에 해당하는 메인 페이지로 이동
-					return "redirect:/main.do?idx=" + login.getIdx();
+					return "redirect:/main?idx=" + login.getIdx();
 				}
 			}
 		}
@@ -324,11 +324,11 @@ public class SignUpController {
 		signService.updateTodayDate(login);
 
 		// 로그인 유저 idx에 해당하는 메인 페이지로 이동
-		return "redirect:/main.do?idx=" + login.getIdx();
+		return "redirect:/main?idx=" + login.getIdx();
 	}
 
 	// 카카오 가입자 비가입자 구별
-	@RequestMapping("/kakao_authentication.do")
+	@RequestMapping("/kakao_authentication")
 	@ResponseBody
 	public int kakao_authentication(String email, Model model) {
 		// 카카오 가입자 조회 - 이메일
@@ -446,7 +446,7 @@ public class SignUpController {
 	}
 
 	// 네이버 가입자 비가입자 구별
-	@RequestMapping("/naver_authentication.do")
+	@RequestMapping("/naver_authentication")
 	@ResponseBody
 	public int naver_authentication(String phoneNumber, Model model) {
 		// 휴대폰 번호 하이픈 제거
@@ -566,7 +566,7 @@ public class SignUpController {
 	}
 
 	// 카카오 가입 페이지로 이동
-	@RequestMapping("/kakao_join_form.do")
+	@RequestMapping("/kakao_join_form")
 	public String kakaoJoinForm(Sign sign, Model model) {
 		model.addAttribute("sign", sign);
 		// 카카오 회원가입 페이지
@@ -574,7 +574,7 @@ public class SignUpController {
 	}
 
 	// 네이버 가입 페이지로 이동
-	@RequestMapping("/naver_join_form.do")
+	@RequestMapping("/naver_join_form")
 	public String naverJoinForm(Sign sign, Model model) {
 		model.addAttribute("sign", sign);
 		// 네이버 회원가입 페이지
@@ -582,7 +582,7 @@ public class SignUpController {
 	}
 	
 	// ID 중복 체크
-	@RequestMapping("/double_check.do")
+	@RequestMapping("/double_check")
 	@ResponseBody
 	public String doubleCheck(String userId) {
 		// 넘어온 ID값으로 이미 가입한 유저가 있는지 조회
@@ -600,7 +600,7 @@ public class SignUpController {
 	}
 	
 	// 이메일 인증
-	@RequestMapping("/email_send.do")
+	@RequestMapping("/email_send")
 	@ResponseBody
 	public HashMap<String, String> emailSend(String email) {
 		// 이메일 전송하기 전 중복된 이메일인지 조회
@@ -670,7 +670,7 @@ public class SignUpController {
 	}
 
 	// 이메일 인증 체크
-	@RequestMapping("/email_check.do")
+	@RequestMapping("/email_check")
 	@ResponseBody
 	public boolean emailCheck(String emailKey, String hEmailKey) {
 		boolean isMatch = passwordEncoder.matches(emailKey, hEmailKey);
@@ -680,7 +680,7 @@ public class SignUpController {
 	}
 
 	// 휴대폰 인증 - 회원가입 및 휴대폰 번호 변경
-	@RequestMapping("/phone_send.do")
+	@RequestMapping("/phone_send")
 	@ResponseBody
 	public String phoneSend(String phoneNumber) throws JSONException {
 		// 휴대폰 번호 하이픈 제거
@@ -705,7 +705,7 @@ public class SignUpController {
 	}
 
 	// 휴대폰 인증 체크
-	@RequestMapping("/phone_check.do")
+	@RequestMapping("/phone_check")
 	@ResponseBody
 	public boolean phoneCheck(String phoneKey, String hPhoneKey) {
 		boolean isMatch = passwordEncoder.matches(phoneKey, hPhoneKey);
@@ -715,13 +715,13 @@ public class SignUpController {
 	}
 	
 	// ID 찾기 페이지 이동
-	@RequestMapping("/findID.do")
+	@RequestMapping("/findID")
 	public String findID() {
 		return "Sign/find_id";
 	}
 
 	// 핸드폰 인증 - Id 찾기
-	@RequestMapping("/findID_phone_send.do")
+	@RequestMapping("/findID_phone_send")
 	@ResponseBody
 	public String findIDPhoneSend(String phoneNumber) throws JSONException {
 		// 휴대폰 번호 하이픈 제거
@@ -735,7 +735,7 @@ public class SignUpController {
 	}
 
 	// ID 찾기
-	@RequestMapping("/findIdCheck.do")
+	@RequestMapping("/findIdCheck")
 	@ResponseBody
 	public String findIdCheck(Sign sign) {
 		// 휴대폰 번호 하이픈 제거
@@ -751,12 +751,12 @@ public class SignUpController {
 	}
 	
 	// PW 찾기 페이지 이동
-	@RequestMapping("/findPW.do")
+	@RequestMapping("/findPW")
 	public String findPW() {
 		return "Sign/find_pw";
 	}
 	// PW 찾기
-	@RequestMapping("/findPwSendEmail.do")
+	@RequestMapping("/findPwSendEmail")
 	@ResponseBody
 	public String findPwCheck(Sign sign) {
 		// 넘어온 ID + 이름 + email에 해당하는 비밀번호 조회
@@ -836,7 +836,7 @@ public class SignUpController {
 	}
 	
 	// 로그인 체크
-	@RequestMapping("/login_check.do")
+	@RequestMapping("/login_check")
 	@ResponseBody
 	public String loginCheck(Sign sign) {
 		// 가져온 VO에서 ID와 비밀번호를 변수를 생성해 분리
@@ -865,7 +865,7 @@ public class SignUpController {
 	}
 	
 	// 회원가입 시 추가적으로 더 필요한 정보를 넣기 위한 장소
-	@RequestMapping("/welcome.do")
+	@RequestMapping("/welcome")
 	@ResponseBody
 	public String welcome(Sign sign, Model model) {
 		// 가입 전 가입자인지 체크

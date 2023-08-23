@@ -13,7 +13,7 @@
 
 		if ( errMsg != null ) {
 			alert(errMsg);
-			location.href = "/logout.do";
+			location.href = "/logout";
 		}
 	};
 </script>
@@ -52,7 +52,7 @@
 								<tr>
 									<td colspan="2" class="lastTd">
 										<input id="btn-cover"type="button" class="write" value="수정" onclick="send(this.form)">
-										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{guestbook.do(idx=${ updateGuestbook.guestbookIdx })}'|">
+										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{guestbook(idx=${ updateGuestbook.guestbookIdx })}'|">
 										<select class="textChoice" name="guestbookSecretCheck" onchange="selectbox">
 											<!-- 수정할 방명록이 공개글일 경우 -->
 											<th:block th:if="${ updateGuestbook.guestbookSecretCheck eq 0 }">
@@ -80,7 +80,7 @@
 	<script>
 		// 방명록 수정
 		function send(f) {
-			var url = "guestbook_modify.do";
+			var url = "guestbook_modify";
 			var param = "guestbookIdx=" + f.guestbookIdx.value +
 						"&idx=" + f.idx.value +
 						"&guestbookContent=" + encodeURIComponent(f.guestbookContent.value) +
@@ -98,26 +98,26 @@
 
 				// 로그인 에러
 				if ( data == "-4" ) {
-					location.href = "/main.do?idx=" + guestbookIdx;
+					location.href = "/main?idx=" + guestbookIdx;
 					return;
 				}
 				if ( data == "0" ) {
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				if ( data == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					location.href = "/logout.do";
+					location.href = "/logout";
 					return;
 				}
 				
@@ -127,7 +127,7 @@
 				}
 				
 				alert("수정성공");
-				location.href = "/guestbook.do?idx=" + guestbookIdx;
+				location.href = "/guestbook?idx=" + guestbookIdx;
 			}
 		}
 	</script>
