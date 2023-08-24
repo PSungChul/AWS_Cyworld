@@ -25,9 +25,9 @@
 		<div class="myMinimiBox">
 			<p class="subTitle">-나의 미니미-</p>
 			<div class="myMinimi">
-				<!-- 현제 사용중인 미니미 -->
+				<!-- 현재 사용중인 미니미 -->
 				<img th:src="@{/filePath/minimi/} + ${minimi}" alt="">
-				<!-- 현제 가지고있는 도토리 수  -->
+				<!-- 현재 가지고있는 도토리 수  -->
 				<span id="dotory" th:text="${dotory}"></span>
 			</div>
 		</div>
@@ -42,7 +42,7 @@
 						<input id="btn-cover" class="close "type="button" value="완료" onclick="buyclose();">
 						
 						<input name="idx" type="hidden" th:value="${loginIdx}">
-						<!-- 현제 보유중인 미니미 -->
+						<!-- 현재 보유중인 미니미 -->
 						<input id="tab1" class="btn" name="minimi" type="checkbox"  value="Spongebob.gif" onclick="NoMultiChk1(this)">
 						<input id="tab2" class="btn" name="minimi" type="checkbox"  value="stitch.gif" onclick="NoMultiChk1(this)">
 						<input id="tab3" class="btn" name="minimi" type="checkbox"  value="Crayon3.gif" onclick="NoMultiChk1(this)">
@@ -60,7 +60,7 @@
 						</th:block>
 
 						<div class="tab-btns">
-							<!-- 현제 보유중인 미니미 -->
+							<!-- 현재 보유중인 미니미 -->
 							<label for="tab1" id="btn1" ><div class="list"><img name="Spongebob.gif" src="/images/Spongebob.gif" alt=""></div></label>
 							<label for="tab2" id="btn2" ><div class="list"><img name="stitch.gif" src="/images/stitch.gif" alt=""></div></label>
 							<label for="tab3" id="btn3" ><div class="list"><img name="Crayon3.gif" src="/images/Crayon3.gif" alt=""></div></label>

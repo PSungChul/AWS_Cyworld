@@ -618,7 +618,7 @@ public class ApiController {
 			ApiConsent apiConsent = apiDTO.toApiConsent();
 			// 변환된 ApiConsent 객체로 체크한 동의 항목들을 저장한다.
 			apiService.insertIntoApiConsent(apiConsent);
-			// 로그인 유저 idx에 해당하는 유저 정보 중 동의 항목 체크 값을 체크 완료 값인 1로 수정한다.
+			// 로그인 유저 idx에 해당하는 유저 정보 중 동의 항목 체크 값을 체크 완료 값인 1로 갱신한다.
 			apiService.updateSetConsentByIdx(apiConsent.getIdx());
 		}
 
