@@ -46,10 +46,15 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
  	Token 및 Redis를 추가하여 로그인 보안 강화
   	로그인 토큰 관리에 헤더 대신 쿠키로 변경
 	유저 정보에 생년월일 컬럼 추가
-	Cyworld Login API 구현 - ApiKey 테이블 추가, 유저 정보에 API 동의 항목 체크 컬럼 추가
-	API 동의 항목을 필수 동의 항목과 선택 동의 항목으로 분리 - ApiConsent 테이블 추가
+	Cyworld Login API 구현
+	ApiKey 테이블 추가, 유저 정보에 API 동의 항목 체크 컬럼 추가
+	API 동의 항목을 필수 동의 항목과 선택 동의 항목으로 분리
+	ApiConsent 테이블 추가
 	URI 형식 변경 (.do 제거)
 	팝업 및 각 컨트롤러의 메인 페이지들의 URI 형식을 쿼리 파라미터 형식에서 경로 매개변수 형식으로 변경
+	NICEPAY 결제 API 연동
+	상품 추가 로직 및 페이지 추가
+	상품 정보 테이블 추가
 
 #
 
@@ -71,7 +76,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	CREATE DATABASE Cyworld DEFAULT CHARACTER SET UTF8MB4;
 	# 생성한 데이터베이스 사용
 	USE Cyworld;
-### ✔ TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey, ApiConsent
+### ✔ TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey, ApiConsent, Product
 	# 테이블 생성
 	
 	# 유저 테이블
@@ -211,7 +216,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	);
 
 	# API 정보 테이블
-	CREATE TABLE ApiKey(
+	CREATE TABLE ApiKey (
 		idx INT PRIMARY KEY, # 로그인 유저 IDX
 		CONSTRAINT fk_ApiKeyIdx FOREIGN KEY(idx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
 		clientId VARCHAR(255) NOT NULL UNIQUE, # API Client ID Key
@@ -225,7 +230,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	);
 
 	# API 동의 항목 체크 테이블
-	CREATE TABLE ApiConsent(
+	CREATE TABLE ApiConsent (
 		idx INT PRIMARY KEY, # 로그인 유저 IDX
 		CONSTRAINT fk_ApiConsentIdx FOREIGN KEY(idx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
 		gender INT, # 성별 동의 항목
@@ -233,7 +238,16 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		birthday INT, # 생년월일 동의 항목
 		phoneNumber INT, # 휴대폰 번호 동의 항목
 		email INT # 이메일 동의 항목
-	); 
+	);
+
+	# 상품 정보 테이블
+	CREATE TABLE Product (
+		idx INT PRIMARY KEY AUTO_INCREMENT, # IDX - 기본키, 시퀀스
+		productType INT NOT NULL, # 상품 타입
+		productIdx VARCHAR(255) NOT NULL, # 상품 번호
+		name VARCHAR(50) NOT NULL, # 상품 이름
+		price INT NOT NULL # 상품 가격
+	);
 
 #
 
