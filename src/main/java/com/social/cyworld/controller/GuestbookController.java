@@ -65,12 +65,16 @@ public class GuestbookController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -317,12 +321,16 @@ public class GuestbookController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 방명록 페이지로 이동
+				return "Page/Guestbook/guestbook_list";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 방명록 페이지로 이동
+				return "Page/Guestbook/guestbook_list";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -452,12 +460,16 @@ public class GuestbookController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + guestbook.getGuestbookIdx();
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 방명록 작성 페이지로 이동
+				return "Page/Guestbook/guestbook_insert_form";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 방명록 작성 페이지로 이동
+				return "Page/Guestbook/guestbook_insert_form";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -521,10 +533,12 @@ public class GuestbookController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx와 좋아요에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
+		// 토큰에서 추출한 로그인 유저 idx와 방문글에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
 		if ( loginIdx != guestbook.getGuestbookSessionIdx() ) {
-			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/guestbook/" + guestbook.getGuestbookIdx();
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 방명록 작성 페이지로 이동
+			return "Page/Guestbook/guestbook_insert_form";
 		}
 
 		// 작성 시간을 기록하기 위해 Date객체 사용
@@ -574,11 +588,11 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -634,7 +648,7 @@ public class GuestbookController {
 			}
 		}
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 방문글은 미니홈피 유저 혹은 작성자만 삭제할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx가 미니홈피 유저 idx와도 다르고 방문글에서 가져온 로그인 유저 idx와도 다른 경우 - 방문글은 미니홈피 주인 혹은 작성자만 삭제할 수 있다.
 		if ( loginIdx != guestbook.getGuestbookIdx() && loginIdx != guestbook.getGuestbookSessionIdx() ) {
 			// 에러 코드를 반환한다.
 			return "-4";
@@ -680,12 +694,16 @@ public class GuestbookController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + guestbook.getGuestbookIdx();
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 방명록 페이지로 이동
+				return "Page/Guestbook/guestbook_list";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 방명록 페이지로 이동
+				return "Page/Guestbook/guestbook_list";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -749,10 +767,12 @@ public class GuestbookController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 방문글은 오로지 작성자만 수정할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx와 방문글에서 가져온 로그인 유저 idx가 다른 경우 - 방문글은 오로지 작성자만 수정할 수 있다.
 		if ( loginIdx != guestbook.getGuestbookSessionIdx() ) {
-			// 해당 미니홈피 유저의 방명록 페이지로 이동
-			return "redirect:/guestbook/" + guestbook.getGuestbookIdx();
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 방명록 페이지로 이동
+			return "Page/Guestbook/guestbook_list";
 		}
 		
 		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
@@ -799,11 +819,11 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -859,7 +879,7 @@ public class GuestbookController {
 			}
 		}
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 방문글은 오로지 작성자만 수정할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx와 방문글에서 가져온 로그인 유저 idx가 다른 경우 - 방문글은 오로지 작성자만 수정할 수 있다.
 		if ( loginIdx != guestbook.getGuestbookSessionIdx() ) {
 			// 에러 코드를 반환한다.
 			return "-4";
@@ -916,13 +936,13 @@ public class GuestbookController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 방문글 내용에 에러 코드 지정
-				guestbook.setGuestbookContent("-4");
+				guestbook.setGuestbookContent("0");
 				// 갱신된 방문글 전달
 				return guestbook;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 방문글 내용에 에러 코드 지정
-				guestbook.setGuestbookContent("0");
+				guestbook.setGuestbookContent("-4");
 				// 갱신된 방문글 전달
 				return guestbook;
 			}

@@ -111,8 +111,10 @@ public class MainController {
 				return "Page/main";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -432,11 +434,11 @@ public class MainController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -636,7 +638,7 @@ public class MainController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx가 관리자 idx와 다른거나 관리자 idx가 아닌 경우 - 상품 추가 팝업은 오로지 관리자만 들어갈 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx가 관리자 idx와 다르거나 관리자 idx가 아닌 경우 - 상품 추가 팝업은 오로지 관리자만 들어갈 수 있다.
 		if ( loginIdx != adminIdx || loginIdx != 1 || adminIdx != 1 ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
@@ -747,7 +749,7 @@ public class MainController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 토큰에서 추출한 로그인 유저 idx가 관리자 idx와 다른거나 관리자 idx가 아닌 경우 - 상품 추가 팝업은 오로지 관리자만 들어갈 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx가 관리자 idx와 다르거나 관리자 idx가 아닌 경우 - 상품 추가 팝업은 오로지 관리자만 들어갈 수 있다.
 		if ( loginIdx != adminIdx || loginIdx != 1 || adminIdx != 1 ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
@@ -866,7 +868,7 @@ public class MainController {
 			}
 		}
 
-		// 토큰에서 추출한 로그인 유저 idx와 일촌평에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
+		// 토큰에서 추출한 로그인 유저 idx와 도토리에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
 		if ( loginIdx != idx ) {
 			// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
 			productMap.put("price", "-4");
@@ -1190,11 +1192,11 @@ public class MainController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저

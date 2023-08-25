@@ -196,12 +196,14 @@
 				let idx = document.getElementById("idx").value;
 
 				// 로그인 에러
-				if ( data == "-4" ) {
-					opener.location.href = "/main/" + idx;
+				if ( data == "0" ) {
+					alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+					opener.location.href = "/logout";
 					window.close();
 					return;
 				}
-				if ( data == "0" ) {
+				if ( data == "-4" ) {
+					alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 					opener.location.href = "/logout";
 					window.close();
 					return;

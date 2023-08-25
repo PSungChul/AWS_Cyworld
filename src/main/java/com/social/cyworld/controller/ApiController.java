@@ -126,12 +126,16 @@ public class ApiController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// API 팝업으로 이동
+				return "Page/api_popup";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// API 팝업으로 이동
+				return "Page/api_popup";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -197,8 +201,10 @@ public class ApiController {
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - API 팝업은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main/" + idx;
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// API 팝업으로 이동
+			return "Page/api_popup";
 		}
 
 		// API Key를 조회한다.
@@ -239,12 +245,16 @@ public class ApiController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// API 팝업으로 이동
+				return "Page/api_popup";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// API 팝업으로 이동
+				return "Page/api_popup";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -310,8 +320,10 @@ public class ApiController {
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - API Key 발급은 오로지 미니홈피 주인만 할 수 있다.
 		if ( loginIdx != idx ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main/" + idx;
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// API 팝업으로 이동
+			return "Page/api_popup";
 		}
 
 		// API Key 객체를 생성한다.
@@ -368,11 +380,11 @@ public class ApiController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -432,8 +444,8 @@ public class ApiController {
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - API RedirectURI 및 동의 항목 설정은 오로지 미니홈피 주인만 할 수 있다.
 		if ( loginIdx != apiKey.getIdx() ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main/" + apiKey.getIdx();
+			// 에러 코드를 반환한다.
+			return "-4";
 		}
 
 		// 저장 or 수정 실패하는 경우

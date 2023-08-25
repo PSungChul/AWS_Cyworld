@@ -86,12 +86,16 @@ public class ProfileController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -157,8 +161,10 @@ public class ProfileController {
 		
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main/" + idx;
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 메인 페이지로 이동
+			return "Page/main";
 		}
 
 		// 미니홈피 유저 정보 조회
@@ -215,12 +221,16 @@ public class ProfileController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 미니미 팝업으로 이동
+				return "Page/minimiPopUp";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 미니미 팝업으로 이동
+				return "Page/minimiPopUp";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -286,8 +296,10 @@ public class ProfileController {
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != idx ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main/" + idx;
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 미니미 팝업으로 이동
+			return "Page/minimiPopUp";
 		}
 		
 		// idx에 해당하는 프로필 조회
@@ -335,12 +347,16 @@ public class ProfileController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + sign.getIdx();
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 미니미 팝업으로 이동
+				return "Page/minimiPopUp";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 미니미 팝업으로 이동
+				return "Page/minimiPopUp";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -406,8 +422,10 @@ public class ProfileController {
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != sign.getIdx() ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main/" + sign.getIdx();
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 미니미 팝업으로 이동
+			return "Page/minimiPopUp";
 		}
 		
 		// 변경할 미니미 정보로 갱신
@@ -445,11 +463,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -560,12 +578,16 @@ public class ProfileController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + leftProfileDTO.getIdx();
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 프로필 페이지로 이동
+				return "Page/profile";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 프로필 페이지로 이동
+				return "Page/profile";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -631,8 +653,10 @@ public class ProfileController {
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
 		if ( loginIdx != leftProfileDTO.getIdx() ) {
-			// 해당 미니홈피 유저의 메인 페이지로 이동
-			return "redirect:/main/" + leftProfileDTO.getIdx();
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 프로필 페이지로 이동
+			return "Page/profile";
 		}
 		
 		// 메인 사진 업로드를 위해 절대 경로를 생성
@@ -712,11 +736,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -839,11 +863,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -956,11 +980,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -1059,11 +1083,11 @@ public class ProfileController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저

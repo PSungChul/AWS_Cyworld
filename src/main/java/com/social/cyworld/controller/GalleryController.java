@@ -68,12 +68,16 @@ public class GalleryController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 메인 페이지로 이동
+				return "Page/main";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -83,7 +87,7 @@ public class GalleryController {
 		if ( loginIdx == -99 ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-			// 메이 페이지로 이동
+			// 메인 페이지로 이동
 			return "Page/main";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
@@ -212,12 +216,16 @@ public class GalleryController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 사진첩 페이지로 이동
+				return "Page/Gallery/gallery_list";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 사진첩 페이지로 이동
+				return "Page/Gallery/gallery_list";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -281,10 +289,12 @@ public class GalleryController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 게시글은 오로지 미니홈피 주인만 작성할 수 있다.
 		if ( loginIdx != idx ) {
-			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery/" + idx;
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 사진첩 페이지로 이동
+			return "Page/Gallery/gallery_list";
 		}
 
 		// 게시글 DTO 생성
@@ -325,12 +335,16 @@ public class GalleryController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + galleryDTO.getGalleryIdx();
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 사진첩 작성 페이지로 이동
+				return "Page/Gallery/gallery_insert_form";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 사진첩 작성 페이지로 이동
+				return "Page/Gallery/gallery_insert_form";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -394,10 +408,12 @@ public class GalleryController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 작성할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 게시글은 오로지 미니홈피 주인만 작성할 수 있다.
 		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
-			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery/" + galleryDTO.getGalleryIdx();
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 사진첩 작성 페이지로 이동
+			return "Page/Gallery/gallery_insert_form";
 		}
 		
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
@@ -496,11 +512,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -556,7 +572,7 @@ public class GalleryController {
 			}
 		}
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 삭제할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 게시글은 오로지 미니홈피 주인만 삭제할 수 있다.
 		if ( loginIdx != gallery.getGalleryIdx() ) {
 			// 에러 코드를 반환한다.
 			return "-4";
@@ -602,12 +618,16 @@ public class GalleryController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + gallery.getGalleryIdx();
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 사진첩 페이지로 이동
+				return "Page/Gallery/gallery_list";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 사진첩 페이지로 이동
+				return "Page/Gallery/gallery_list";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -671,10 +691,12 @@ public class GalleryController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 게시글은 오로지 미니홈피 주인만 수정할 수 있다.
 		if ( loginIdx != gallery.getGalleryIdx() ) {
-			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery/" + gallery.getGalleryIdx();
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 사진첩 페이지로 이동
+			return "Page/Gallery/gallery_list";
 		}
 		
 		// 해당 idx의 사진첩에 수정할 게시글을 조회
@@ -716,12 +738,16 @@ public class GalleryController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + galleryDTO.getGalleryIdx();
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 사진첩 수정 페이지로 이동
+				return "Page/Gallery/gallery_modify_form";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 사진첩 수정 페이지로 이동
+				return "Page/Gallery/gallery_modify_form";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -785,10 +811,12 @@ public class GalleryController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 게시글은 오로지 미니홈피 유저만 수정할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 게시글은 오로지 미니홈피 주인만 수정할 수 있다.
 		if ( loginIdx != galleryDTO.getGalleryIdx() ) {
-			// 해당 미니홈피 유저의 사진첩 페이지로 이동
-			return "redirect:/gallery/" + galleryDTO.getGalleryIdx();
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 사진첩 수정 페이지로 이동
+			return "Page/Gallery/gallery_modify_form";
 		}
 
 		// 클라이언트의 파일 업로드를 위해 절대 경로를 생성
@@ -888,11 +916,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -1008,11 +1036,11 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 에러 코드를 반환한다.
-				return "-4";
+				return "0";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 코드를 반환한다.
-				return "0";
+				return "-4";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -1068,7 +1096,7 @@ public class GalleryController {
 			}
 		}
 
-		// 로그인한 유저의 idx와 해당 미니홈피 유저의 idx가 다른 경우 - 댓글은 미니홈피 유저 혹은 작성자만 삭제할 수 있다.
+		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 댓글은 미니홈피 주인 혹은 작성자만 삭제할 수 있다.
 		if ( loginIdx != galleryComment.getGalleryCommentIdx() && loginIdx != galleryComment.getGalleryCommentSessionIdx() ) {
 			// 에러 코드를 반환한다.
 			return "-4";
@@ -1120,13 +1148,13 @@ public class GalleryController {
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
 				// 게시글 내용에 에러 코드 지정
-				gallery.setGalleryContent("-4");
+				gallery.setGalleryContent("0");
 				// 갱신된 게시글 전달
 				return gallery;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 게시글 내용에 에러 코드 지정
-				gallery.setGalleryContent("0");
+				gallery.setGalleryContent("-4");
 				// 갱신된 게시글 전달
 				return gallery;
 			}

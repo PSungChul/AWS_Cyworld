@@ -270,11 +270,13 @@
 				let idx = document.getElementById("idx").value;
 
 				// 로그인 에러
-				if ( data == "-4" ) {
-					location.href = "/main/" + idx;
+				if ( data == "0" ) {
+					alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+					location.href = "/logout";
 					return;
 				}
-				if ( data == "0" ) {
+				if ( data == "-4" ) {
+					alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 					location.href = "/logout";
 					return;
 				}
@@ -337,25 +339,27 @@
 				let idx = document.getElementById("idx").value;
 
 				// 로그인 에러
-				if ( json.GalleryContent == "-4" ) {
-					location.href = "/main/" + idx;
+				if ( json.galleryContent == "0" ) {
+					alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+					location.href = "/logout";
 					return;
 				}
-				if ( json.GalleryContent == "0" ) {
-					location.href = "/login";
+				if ( json.galleryContent == "-4" ) {
+					alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+					location.href = "/logout";
 					return;
 				}
-				if ( json.GalleryContent == "-99" ) {
+				if ( json.galleryContent == "-99" ) {
 					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					location.href = "/login";
 					return;
 				}
-				if ( json.GalleryContent == "-100" ) {
+				if ( json.galleryContent == "-100" ) {
 					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					location.href = "/login";
 					return;
 				}
-				if ( json.GalleryContent == "-1" ) {
+				if ( json.galleryContent == "-1" ) {
 					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					location.href = "/login";
 					return;
@@ -410,11 +414,13 @@
 				let idx = document.getElementById("idx").value;
 
 				// 로그인 에러
-				if ( data == "-4" ) {
-					location.href = "/main/" + idx;
+				if ( data == "0" ) {
+					alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+					location.href = "/logout";
 					return;
 				}
-				if ( data == "0" ) {
+				if ( data == "-4" ) {
+					alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 					location.href = "/logout";
 					return;
 				}
@@ -469,11 +475,13 @@
 				let idx = document.getElementById("idx").value;
 
 				// 로그인 에러
-				if ( data == "-4" ) {
-					location.href = "/main/" + idx;
+				if ( data == "0" ) {
+					alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+					location.href = "/logout";
 					return;
 				}
-				if ( data == "0" ) {
+				if ( data == "-4" ) {
+					alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 					location.href = "/logout";
 					return;
 				}
