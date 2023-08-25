@@ -114,7 +114,7 @@ left:50px;
   /* gallery */
   .galleryContainer { position: absolute; top:120px; left: 130px; }
   .fake {width:907px; height: 120px; background-color: white; position: fixed; left:760px; z-index: 5; }
-  #writing { width:907px; height: 120px; background-color: #79aaee; position: fixed;  background-color: #79aaee; left:760px; z-index: 10; border-radius: 40px 40px 0 0;
+  #writing { width:906px; height: 120px; background-color: #79aaee; position: fixed;  background-color: #79aaee; left:828px; z-index: 10; border-radius: 40px 40px 0 0;
   margin-top:-120px;}
   #writing >input { position: absolute; left:780px; top: 50px; width: 100px; border: 3px solid black; font-size: 20px; color:black;}
    #writing > h1 { font-size: 48px;  margin:25px 40px 40px 40px; }

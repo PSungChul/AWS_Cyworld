@@ -1,28 +1,31 @@
 package com.social.cyworld.controller;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.social.cyworld.entity.Ilchon;
-import com.social.cyworld.entity.Ilchonpyeong;
-import com.social.cyworld.entity.Sign;
-import com.social.cyworld.entity.Views;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.social.cyworld.entity.*;
+import com.social.cyworld.httpclient.NicePay;
 import com.social.cyworld.service.MainService;
+import com.social.cyworld.service.ProductService;
 import com.social.cyworld.service.SignService;
 import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
@@ -35,9 +38,19 @@ public class MainController {
 	@Autowired
 	JwtUtil jwtUtil;
 	@Autowired
+	PasswordEncoder passwordEncoder;
+	@Autowired
 	SignService signService;
 	@Autowired
 	MainService mainService;
+	@Autowired
+	ProductService productService;
+
+	// properties - NiCEPAY
+	@Value("${payClientId:payClientId}")
+	private String payClientId;
+	@Value("${payClientSecret:payClientSecret}")
+	private String payClientSecret;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 메인 페이지로 이동
 	@RequestMapping("/main/{idx}") // 경로 매개변수
@@ -526,11 +539,10 @@ public class MainController {
 		return result;
 	}
 
-	/////////////// 도토리 구매 구역 ///////////////
-
-	// 도토리 구매 팝업
-	@RequestMapping("/dotory/{idx}") // 경로 매개변수
-	public String dotory(@PathVariable int idx, Model model) {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////관리자
+	// 상품 추가 팝업
+	@RequestMapping("/product")
+	public String product(int adminIdx, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -554,12 +566,376 @@ public class MainController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + idx;
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 상품 추가 팝업으로 이동
+				return "Admin/add_product";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 상품 추가 팝업으로 이동
+				return "Admin/add_product";
+			}
+		}
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 상품 추가 팝업으로 이동
+			return "Admin/add_product";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 상품 추가 팝업으로 이동
+				return "Admin/add_product";
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
+			} else {
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 상품 추가 팝업으로 이동
+					return "Admin/add_product";
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+				} else {
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
+
+		// 토큰에서 추출한 로그인 유저 idx가 관리자 idx와 다른거나 관리자 idx가 아닌 경우 - 상품 추가 팝업은 오로지 관리자만 들어갈 수 있다.
+		if ( loginIdx != adminIdx || loginIdx != 1 || adminIdx != 1 ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 상품 추가 팝업으로 이동
+			return "Admin/add_product";
+		}
+
+		// 관리자 idx를 바인딩
+		model.addAttribute("adminIdx", loginIdx);
+
+		// 상품 추가 팝업으로 이동
+		return "Admin/add_product";
+	}
+
+	// 상품 추가
+	@RequestMapping("/product/add")
+	public String addProduct(int adminIdx, Product product, Model model) {
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for ( Cookie cookie : cookies ) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if ( cookie.getName().equals("Authorization") ) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
+		if ( authorization == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 상품 추가 팝업으로 이동
+				return "Admin/add_product";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 상품 추가 팝업으로 이동
+				return "Admin/add_product";
+			}
+		}
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+			// 상품 추가 팝업으로 이동
+			return "Admin/add_product";
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+				// 상품 추가 팝업으로 이동
+				return "Admin/add_product";
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
+			} else {
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
+					// 에러 메시지를 바인딩한다.
+					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+					// 상품 추가 팝업으로 이동
+					return "Admin/add_product";
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+				} else {
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+				}
+			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
+
+		// 토큰에서 추출한 로그인 유저 idx가 관리자 idx와 다른거나 관리자 idx가 아닌 경우 - 상품 추가 팝업은 오로지 관리자만 들어갈 수 있다.
+		if ( loginIdx != adminIdx || loginIdx != 1 || adminIdx != 1 ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 상품 추가 팝업으로 이동
+			return "Admin/add_product";
+		}
+
+		// 상품 Idx에 AUTO_INCREMENT로 null 지정
+		product.setIdx(null);
+		// 상품 번호를 암호화
+		product.setProductIdx(passwordEncoder.encode(product.getProductIdx()));
+		// 상품 정보를 저장
+		productService.insertIntoProduct(product);
+
+		// 상품 추가 팝업으로 이동
+		return "redirect:/product/" + loginIdx;
+	}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////상품
+	// 구매하려는 상품 정보 조회
+	@RequestMapping("/product_check")
+	@ResponseBody
+	public HashMap<String, Object> productCheck(int idx, String productIdx) {
+		// 반환용 Map
+		HashMap<String, Object> productMap = new HashMap<>();
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for (Cookie cookie : cookies) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if (cookie.getName().equals("Authorization")) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
+		if ( authorization == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
+				productMap.put("price", "0");
+				// 에러 코드가 추가된 Map을 반환한다.
+				return productMap;
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
+				productMap.put("price", "-4");
+				// 에러 코드가 추가된 Map을 반환한다.
+				return productMap;
+			}
+		}
+		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+		// JWT에서 토큰에 해당하는 로그인 유저 idx를 추출한다.
+		int loginIdx = jwtUtil.validationToken(authorization);
+		// idx가 에러 코드 -99인 경우
+		if ( loginIdx == -99 ) {
+			// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
+			productMap.put("price", "-99");
+			// 에러 코드가 추가된 Map을 반환한다.
+			return productMap;
+		}
+		// idx가 에러 코드 -1인 경우 - 토큰 만료
+		if ( loginIdx == -1 ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 세션이 존재하지 않는 경우 - 대기 시간 1시간 이후
+			if ( session.getAttribute("login") == null ) {
+				// 토큰과 리프레쉬 토큰을 삭제한다.
+				jwtUtil.logoutToken(authorization);
+				// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
+				productMap.put("price", "-1");
+				// 에러 코드가 추가된 Map을 반환한다.
+				return productMap;
+			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
+			} else {
+				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
+				String refreshToken = jwtUtil.validationRefreshToken(authorization);
+				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
+				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
+				if ( refreshToken == null ) {
+					// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
+					productMap.put("price", "-100");
+					// 에러 코드가 추가된 Map을 반환한다.
+					return productMap;
+				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
+				} else {
+					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
+					Cookie deleteCookie = new Cookie("Authorization", "");
+					// Authorization 쿠키의 만료 시간을 0으로 설정한다.
+					deleteCookie.setMaxAge(0);
+					// 삭제할 Authorization 쿠키를 추가한다.
+					response.addCookie(deleteCookie);
+
+					// Authorization 쿠키에 재생성한 토큰을 부여한다.
+					Cookie tokenCookie = new Cookie("Authorization", refreshToken);
+					// 리프레쉬 토큰의 만료까지 남은 시간을 구한다.
+					int refreshExpiryDate = jwtUtil.refreshTokenExpiryDate(refreshToken);
+					// Authorization 쿠키의 만료 시간을 리프레쉬 토큰의 만료까지 남은 시간으로 설정한다.
+					tokenCookie.setMaxAge(refreshExpiryDate);
+					// Authorization 쿠키에 HttpOnly를 설정한다. - JavaScript를 통한 접근을 차단
+					tokenCookie.setHttpOnly(true);
+					// 재생성한 토큰이 부여된 Authorization 쿠키를 추가한다.
+					response.addCookie(tokenCookie);
+
+					// JWT에서 재생성한 토큰에 해당하는 로그인 유저 idx를 추출한다.
+					loginIdx = jwtUtil.validationToken(refreshToken);
+				}
+			}
+		}
+
+		// 토큰에서 추출한 로그인 유저 idx와 일촌평에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
+		if ( loginIdx != idx ) {
+			// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
+			productMap.put("price", "-4");
+			// 에러 코드가 추가된 Map을 반환한다.
+			return productMap;
+		}
+
+		// 상품 번호에 해당하는 상품이 존재하는지 체크한다.
+		Product product = productService.findByProductIdx(productIdx);
+		// 상품이 존재하지 않는 경우
+		if ( product == null ) {
+			// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
+			productMap.put("price", "-9");
+			// 에러 코드가 추가된 Map을 반환한다.
+			return productMap;
+		}
+
+		// 상품이 존재하는 경우
+
+		// name을 키로 사용하고, 상품 이름을 값으로 사용하여, 반환용 Map에 추가한다.
+		productMap.put("name", product.getName());
+		// price를 키로 사용하고, 상품 가격을 값으로 사용하여, 반환용 Map에 추가한다.
+		productMap.put("price", product.getPrice());
+		// idx를 키로 사용하고, 로그인 유저 idx를 값으로 사용하여, 반환용 Map에 추가한다.
+		productMap.put("idx", loginIdx);
+
+		// 상품 정보가 추가된 Map을 반환한다.
+		return productMap;
+	}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////상품 - 도토리
+	// 도토리 구매 팝업
+	@RequestMapping("/dotory/{idx}") // 경로 매개변수
+	public String dotory(@PathVariable int idx,
+						 @RequestParam(required = false) String success,
+						 @RequestParam(required = false) String error,
+						 Model model) {
+		// 토큰 값
+		String authorization = null;
+		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
+		Cookie[] cookies = request.getCookies();
+		// Authorization 쿠키가 존재하는 경우
+		if ( cookies != null ) {
+			// 쿠키는 name-value로 이루어져 있기에 foreach를 돌린다.
+			for ( Cookie cookie : cookies ) {
+				// Authorization 쿠키에 토큰이 존재하는 경우 - 로그인 유저
+				if ( cookie.getName().equals("Authorization") ) {
+					// Authorization 쿠키에 저장한 토큰을 가져온다.
+					authorization = cookie.getValue();
+					// foreach문을 빠져나간다.
+					break;
+				}
+			}
+		}
+		// 쿠키에 토큰이 존재하지 않는 경우 - 비회원 or 에러
+		if ( authorization == null ) {
+			// 세션이 존재하는지 체크한다.
+			HttpSession session = request.getSession();
+			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
+			if ( session.getAttribute("login") != null ) {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 도토리 구매 팝업으로 이동
+				return "Page/dotory";
+			// 토큰도 세션도 존재하지 않는 경우 - 에러
+			} else {
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 도토리 구매 팝업으로 이동
+				return "Page/dotory";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -616,6 +992,41 @@ public class MainController {
 					response.addCookie(tokenCookie);
 				}
 			}
+		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
+
+		// 토큰에서 추출한 로그인 유저 idx와 도토리에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
+		if ( loginIdx != idx ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 도토리 구매 팝업으로 이동
+			return "Page/dotory";
+		}
+
+		// 로그인 유저 idx에 해당하는 유저 정보를 조회하여 가져온다.
+		Sign sign = signService.findByIdx(loginIdx);
+
+		// 상품 타입이 도토리에 해당하는 상품 정보를 모두 조회하여 리스트로 가져온다.
+		List<Product> productList = productService.findByProductType(1);
+
+		// 가져온 유저 정보를 바인딩
+		model.addAttribute("sign", sign);
+		// 가져온 도토리 상품 리스트를 바인딩
+		model.addAttribute("productList", productList);
+		// UUID로 상품 아이디를 만들어 바인딩
+		model.addAttribute("orderId", UUID.randomUUID());
+		// Pay Client ID를 바인딩
+		model.addAttribute("clientId", payClientId);
+
+		// 파라미터로 받아온 결제 메시지가 존재하는지 체크한다.
+		// 파라미터로 받아온 결제 성공 메시지가 존재하는 경우
+		if ( success!= null ) {
+			model.addAttribute("msg", success);
+		}
+		// 파라미터로 받아온 결제 실패 메시지가 존재하는 경우
+		if ( error != null ) {
+			model.addAttribute("msg", error);
 		}
 
 		// 도토리 구매 팝업으로 이동
@@ -623,8 +1034,8 @@ public class MainController {
 	}
 
 	// 도토리 구매
-	@RequestMapping("/dotoryBuy")
-	public String dotoryBuy(Sign sign, int nowDotory, Model model) {
+	@RequestMapping("/dotory/dotory_buy")
+	public String dotoryBuy(int idx, String tid, int amount, Model model) throws JsonProcessingException, UnsupportedEncodingException {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -648,12 +1059,16 @@ public class MainController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 해당 미니홈피 유저의 메인 페이지로 이동
-				return "redirect:/main/" + sign.getIdx();
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+				// 도토리 구매 팝업으로 이동
+				return "Page/dotory";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 로그인 페이지로 이동
-				return "redirect:/login";
+				// 에러 메시지를 바인딩한다.
+				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+				// 도토리 구매 팝업으로 이동
+				return "Page/dotory";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -711,15 +1126,39 @@ public class MainController {
 				}
 			}
 		}
+		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
+		model.addAttribute("errMsg", null);
 
-		// 현제 가지고 있는 도토리 개수를 파라미터로 가져와서 구매한 도토리 개수를 더해서 setter를 통해 넘겨 준다
-		sign.setDotory(sign.getDotory()+nowDotory);
+		// 토큰에서 추출한 로그인 유저 idx와 도토리에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
+		if ( loginIdx != idx ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 도토리 구매 팝업으로 이동
+			return "Page/dotory";
+		}
 
-		// 도토리 개수 갱신
-		signService.updateSetDotoryByIdx(sign);
+		// 요청된 결제 정보를 가지고 결제 서버로 이동해서 최종 결제를 승인 받는다.
+		JsonNode jsonResponse = NicePay.getResponse(payClientId, payClientSecret, tid, amount);
+		// 최종 결제 승인이 끝나고 반환받은 정보 중 승인 코드를 가지고 결제에 성공했는지 실패했는지 체크한다.
+		String resultCode = jsonResponse.get("resultCode").asText();
 
-		// idx와 갱신된 도토리 개수를 들고 도토리 구매 페이지 URL로 이동
-		return "redirect:/dotory/" + sign.getIdx() + "?dotory=" + sign.getDotory();
+		// 결제에 성공한 경우
+		if ( resultCode.equals("0000") ) {
+			// 로그인 유저 idx에 해당하는 유저 정보를 조회하여 가져온다.
+			Sign sign = signService.findByIdx(loginIdx);
+			// 가져온 유저 정보 중 현재 가지고 있는 도토리 개수에 구매한 도토리 개수를 더해서 setter를 통해 전달한다.
+			sign.setDotory(sign.getDotory()+amount);
+			// setter를 통해 전달한 도토리 개수로 갱신한다.
+			signService.updateSetDotoryByIdx(sign);
+
+			// 로그인 유저 idx와 결제 완료 메시지를 들고 도토리 구매 페이지 URL로 이동
+			return "redirect:/dotory/" + loginIdx + "?success=" + URLEncoder.encode("결제가 완료되었습니다.", "UTF-8");
+		}
+
+		// 결제에 실패한 경우
+
+		// 로그인 유저 idx와 결제 실패 메시지를 들고 도토리 구매 페이지 URL로 이동
+		return "redirect:/dotory/" + loginIdx + "?error=" + URLEncoder.encode("결제에 실패하였습니다.", "UTF-8");
 	}
 
 	/////////////// 일촌 구역 ///////////////

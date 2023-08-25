@@ -1,3 +1,6 @@
+* {
+    margin: 0 auto;
+}
 
 /* https://projects.verou.me/css3patterns/#blueprint-grid
            배경 격자무늬 생성  */
@@ -17,8 +20,8 @@ body {
 }
 /* position */
 .container {
-   width: 560px;
-   height: 760px;
+   width: 757px;
+   height: 794px;
    background-color: rgb(101 175 245/ 35%);
    border-radius: 20px;
    border: 2px solid black;
@@ -38,17 +41,17 @@ body {
 }
 
 .myDotory {
-   font-size: 20px;
-   padding-top: 30px;
-   padding-left: 80px;
+    display: flex;
+    font-size: 20px;
+    padding-top: 30px;
 }
 
 .dotory {
    width: 30px;
    height: 30px;
    position: absolute;
-   left: 40px;
-   top: 166px;
+   left: 260px;
+   top: 160px;
 }
 
 .list>img {
@@ -60,19 +63,19 @@ body {
 
 
 .buy {
-   position: absolute;
-   left: 170px;
-   width: 100px;
-   height: 30px;
-   top:690px;
+    width: 100px;
+    height: 30px;
 }
 
 .close {
-   position: absolute;
-   left: 290px;
-   width: 100px;
-   height: 30px;
-   top:690px;
+    width: 100px;
+    height: 30px;
+}
+
+#buyButton {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
 }
 /* content */
 .price {
@@ -93,15 +96,21 @@ margin-left: 10px;
    display: none;
 }
 
+.tab-btns {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2개씩 수평 배치 */
+    justify-items: center; /* 가운데 정렬 */
+}
+
 .tab-btns>label {
    position: relative;
    background-color: white;
-   left: 20px;
    top: 30px;
    width: 160px;
    height: 160px;
    box-shadow: 10px 10px 20px rgba(0, 0, 0, 25%);
-   margin-left: 50px;
+   margin-left: 25px;
+   margin-right: 25px;
    margin-bottom: 50px;
    display: inline-block;
    border-radius:20px;

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>도토리 충전소</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/dotoryPopUp.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			opener.location.href = "/logout";
+			window.close();
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
+	<form action="/product/add" method="post">
+		<input name="adminIdx" type="hidden" th:value="${adminIdx}">
+		<label>상품 타입: </label><input name="productType" placeholder="productType">
+		<br>
+		<label>상품 번호: </label><input name="productIdx" placeholder="productIdx">
+		<br>
+		<label>상품 이름: </label><input name="name" placeholder="name">
+		<br>
+		<label>상품 가격: </label><input name="price" placeholder="price">
+		<br>
+		<input type="submit" value="상품 추가">
+	</form>
+</body>
+</html>

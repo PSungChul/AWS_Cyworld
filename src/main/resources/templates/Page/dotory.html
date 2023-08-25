@@ -10,11 +10,17 @@
 <script th:inline="javascript">
 	window.onload = function () {
 		let errMsg = [[${errMsg}]];
+		let msg = [[${msg}]];
 
 		if ( errMsg != null ) {
 			alert(errMsg);
 			opener.location.href = "/logout";
 			window.close();
+		}
+
+		if ( msg != null ) {
+			alert(msg);
+			return;
 		}
 	};
 </script>
@@ -26,115 +32,141 @@
 			<div class="selectDotory">
 				<form>
 					<div class="tabs">
-						<input type="hidden" th:value="${ param.idx }" name="idx">
-						<p class="myDotory"><img class="dotory" src="/images/dotory.png" alt=""><span th:text="'도토리 보유량 : ' + ${ param.dotory } + ' 개'"></span></p>
-						<input type="hidden" name="nowDotory" th:value="${ param.dotory }">
+						<input type="hidden" th:value="${ sign.idx }" name="idx">
+						<p class="myDotory"><img class="dotory" src="/images/dotory.png" alt=""><span th:text="'도토리 보유량 : ' + ${ sign.dotory } + ' 개'"></span></p>
+						<input type="hidden" name="nowDotory" th:value="${ sign.dotory }">
 						<!-- 도토리 개수 선택 -->
-						<input class="btn" type="checkbox" id="tab1" name="dotory" value=10  onclick="NoMultiChk(this)">
-						<input class="btn" type="checkbox" id="tab2" name="dotory" value=30  onclick="NoMultiChk(this)">
-						<input class="btn" type="checkbox" id="tab3" name="dotory" value=50  onclick="NoMultiChk(this)">
-						<input class="btn" type="checkbox" id="tab4" name="dotory" value=100  onclick="NoMultiChk(this)">
+						<th:block th:each="product, status : ${productList}">
+							<input class="btn" type="radio" th:id="'tab' + ${ status.count }" name="dotoryIdx" th:value="${ product.productIdx }">
+						</th:block>
 					
 						<div class="tab-btns">
 							<label for="tab1" id="btn1" class="active"><div class="list"><img src="/images/dotory10.png" alt=""><p class="price price1">10개 : 1000원</p></div></label>
-							<label for="tab2" id="btn2" ><div class="list" ><img src="/images/dotory30.png" alt=""><p class="price price2">30개 : 3000원</p></div></label>
-							<label for="tab3" id="btn3" ><div class="list"><img src="/images/dotory50.png" alt=""><p class="price price3">50개 : 5000원</p></div></label>
-							<label for="tab4" id="btn4" ><div class="list"><img src="/images/dotory100.png" alt=""><p class="price price4">100개 : 10000원</p></div></label>
+							<label for="tab2" id="btn2"><div class="list"><img src="/images/dotory30.png" alt=""><p class="price price2">30개 : 3000원</p></div></label>
+							<label for="tab3" id="btn3"><div class="list"><img src="/images/dotory50.png" alt=""><p class="price price3">50개 : 5000원</p></div></label>
+							<label for="tab4" id="btn4"><div class="list"><img src="/images/dotory100.png" alt=""><p class="price price4">100개 : 10000원</p></div></label>
 						</div>
 						
 						<div id="buyButton">
-							<input id="btn-cover" class="buy" type="submit" value="충전하기" onclick="buy(this.form);">
-							<input id="btn-cover" class="close "type="button" value="구매완료" th:onclick="|opener.location.href='@{/main/{idx}(idx=${ param.idx })}'; buyclose();|">
+							<input id="btn-cover" class="buy" type="button" value="충전하기" onclick="buy(this.form);">
+							<input id="btn-cover" class="close "type="button" value="구매완료" th:onclick="|opener.location.href='@{/main/{idx}(idx=${ sign.idx })}'; buyclose();|">
 						</div>
 					</div>
 				</form>
 			</div>
 		</div>
 	</div>
-<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
-	<!-- Ajax 사용을 위한 js를 로드 -->
-	<script src="/js/httpRequest.js"></script>
-	<script>
+<!------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------>
+	<!-- NicePay API -->
+	<script src="https://pay.nicepay.co.kr/v1/js/"></script>
+	<script th:inline="javascript">
 		// 도토리 구매
 		function buy(f) {
-			let dotory = f.dotory;
-			
-			// 선택한 도토리 구매
-			if (dotory[0].checked == true) {
-				f.action = "dotoryBuy";
-				f.method = "GET";
-				f.submit();
-			} else if (dotory[1].checked == true) {
-				f.action = "dotoryBuy";
-				f.method = "GET";
-				f.submit();
-			} else if (dotory[2].checked == true) {
-				f.action = "dotoryBuy";
-				f.method = "GET";
-				f.submit();
-			} else if (dotory[3].checked == true) {
-				f.action = "dotoryBuy";
-				f.method = "GET";
-				f.submit();
-			}
-				alert("구매완료");
+			let idx = f.idx.value;
+			let dotoryIdx = f.dotoryIdx.value;
+			let dotory = [[${ sign.dotory }]];
+
+			fetch('/product_check?idx=' + idx + '&productIdx=' + dotoryIdx)
+				.then(response => response.json())
+				.then(data => {
+					// 로그인 에러
+					if ( data.price == '0' ) {
+						alert('잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.');
+						opener.location.href = '/logout';
+						window.close();
+						return;
+					}
+					if ( data.price == '-4' ) {
+						alert('잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.');
+						opener.location.href = '/logout';
+						window.close();
+						return;
+					}
+					if ( data.price == '-99' ) {
+						alert('다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+						opener.location.href = '/logout';
+						window.close();
+						return;
+					}
+					if ( data.price == '-100' ) {
+						alert('로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+						opener.location.href = '/logout';
+						window.close();
+						return;
+					}
+					if ( data.price == '-1' ) {
+						alert('세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+						opener.location.href = '/logout';
+						window.close();
+						return;
+					}
+
+					if ( data.price == '-9' ) {
+						alert('상품 정보를 가져오는데 실패하였습니다.');
+						return;
+					} else {
+						AUTHNICE.requestPay({
+							clientId: [[${clientId}]],
+							method: 'card',
+							orderId: [[${orderId}]],
+							amount: data.price,
+							goodsName: data.name,
+							returnUrl: 'http://localhost:9999/dotory/dotory_buy?idx=' + data.idx,
+							fnError: function (result) {
+								alert(result.errorMsg);
+								return;
+							}
+						});
+					}
+				})
+				.catch(error => console.error(error)); // fetch
 		}
-		
+	</script>
+
+	<script>
 		// 팝업창 닫기
 		function buyclose() {
 			return window.close();
 		}
 	</script>
-	
-	<!-- checkbox 중복 체크 방지 -->
-	<script>
-		function NoMultiChk(chk) {
-			let obj = document.getElementsByName("dotory");
-			for (let i=0; i < obj.length; i++) {
-				if (obj[i] != chk) {
-					obj[i].checked = false;
-				}
-			}
-		}
-	</script>
-	
+
 	<!-- setInterval -->
 	<script>
 		const list = document.querySelectorAll('.tab-btns>label');
-		
+
 		list.forEach (function(label, index) {
 			label.addEventListener('onclick',labelHandler);
 		});
-		
+
 		let currentList;
-		
+
 		function labelHandler(event) {
 			if (currentList) {
 				currentList.classList.remove('active');
 			}
-			
+
 			let target = event.target;
 			target.classList.add('active');
 			currentList = target;
 		}
-		
-		let count = 0; 
-		
+
+		let count = 0;
+
 		function labelHandler(event) {
 			if (currentList) {
 				currentList.classList.remove('active');
 			}
-			
+
 			let target = list[count];
 			target.classList.add('active');
 			currentList = target;
 			count++;
-			
+
 			if (count >= list.length) {
 				count = 0;
 			}
 		}
-		
+
 		labelHandler();
 		setInterval(labelHandler, 3000);
 	</script>
