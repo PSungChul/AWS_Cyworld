@@ -55,6 +55,12 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	NICEPAY 결제 API 연동
 	상품 추가 로직 및 페이지 추가
 	상품 정보 테이블 추가
+	회원가입 휴대폰 문자 인증 --> 이름 + 생년월일 + 휴대폰 번호에 해당하는 본인인증으로 변경
+	본인인증은 IamPort API 사용
+	아이디 --> 이메일로 변경 - 아이디 컬럼 제거
+	주소 제거 - 주소 컬럼, 상세 주소 컬럼 제거
+	이메일 인증 및 본인인증에 쿠키를 추가하여 Controller에서 2차 유효성 검사 진행
+	네이버 로그인 API에서 이메일을 가져오는 방식이 변경됨에 따라 네이버 회원가입 로직 변경
 
 #
 
@@ -82,15 +88,12 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	# 유저 테이블
 	CREATE TABLE Sign (
 		idx  INT PRIMARY KEY AUTO_INCREMENT, # IDX - 기본키, 시퀀스
-		userId VARCHAR(15) NOT NULL UNIQUE, # ID
+		email VARCHAR(50) NOT NULL UNIQUE, # Email
 		info VARCHAR(255) NOT NULL, # PW
 		gender VARCHAR(5) NOT NULL, # 성별
 		name VARCHAR(15) NOT NULL, # 이름
 		birthday VARCHAR(10) NOT NULL, # 생년월일
 		phoneNumber VARCHAR(30) NOT NULL UNIQUE, # 휴대전화
-		email VARCHAR(50) NOT NULL UNIQUE, # Email
-		address VARCHAR(255) NOT NULL, # 주소
-		addressDetail VARCHAR(255) NOT NULL, # 상세주소
 		platform VARCHAR(10) NOT NULL, # 플랫폼
 		minimi VARCHAR(30) NOT NULL, # 미니미
 		dotory INT NOT NULL, # 도토리 개수
