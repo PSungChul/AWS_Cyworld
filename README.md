@@ -61,6 +61,8 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	주소 제거 - 주소 컬럼, 상세 주소 컬럼 제거
 	이메일 인증 및 본인인증에 쿠키를 추가하여 Controller에서 2차 유효성 검사 진행
 	네이버 로그인 API에서 이메일을 가져오는 방식이 변경됨에 따라 네이버 회원가입 로직 변경
+	Role 권한 추가 - 권한 컬럼 추가
+	관리자 검증 로직 추가
 
 #
 
@@ -95,6 +97,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		birthday VARCHAR(10) NOT NULL, # 생년월일
 		phoneNumber VARCHAR(30) NOT NULL UNIQUE, # 휴대전화
 		platform VARCHAR(10) NOT NULL, # 플랫폼
+		roles VARCHAR(255) NOT NULL, # 권한
 		minimi VARCHAR(30) NOT NULL, # 미니미
 		dotory INT NOT NULL, # 도토리 개수
 		ilchon INT NOT NULL, # 일촌 수
