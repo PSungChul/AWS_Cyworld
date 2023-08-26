@@ -20,7 +20,7 @@
 </script>
 <body th:if="${ errMsg eq null }">
 	<!-- 관리자용 상품 추가 버튼 -->
-	<input th:if="${ sign.idx eq 1 && loginUser.idx eq 1 }" id="btn_cover" type="button" value="상품 추가" onclick="AddDotoryPopUp()">
+	<input th:if="${ miniRole eq 'ADMIN' && loginRole eq 'ADMIN' }" id="btn_cover" type="button" value="상품 추가" onclick="AddDotoryPopUp()">
 	<!-- 비회원용 로그인 버튼 -->
 	<th:block th:if="${ loginUser.idx <= 0 }">
 		<input id="btn_cover" class="returnMyHome" type="button" value="로그인하러 가기" onclick="location.href='/logout'">
@@ -272,7 +272,7 @@
 	<script th:inline="javascript">
 		// 상품 추가 팝업창
 		function AddDotoryPopUp() {
-			let popUrl = "/product?adminIdx=" + [[${ sign.idx }]];
+			let popUrl = "/product/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			let pop = window.open(popUrl, "_blank", popOption);
 		}

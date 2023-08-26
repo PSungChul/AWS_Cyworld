@@ -1149,10 +1149,10 @@ public class SignUpController {
 			// 삭제할 Certification 쿠키를 추가한다.
 			response.addCookie(deleteCertificationCookie);
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////가입 진행
-			// 비밀번호 암호화
-			sign.setInfo(passwordEncoder.encode(sign.getInfo()));
 			// 추가 정보들을 임의로 지정
 			sign.setIdx(null); // AUTO_INCREMENT로 null값 지정시 자동 인덱스 증가
+			sign.setInfo(passwordEncoder.encode(sign.getInfo())); // 비밀번호를 암호화한다.
+			sign.setRoles(passwordEncoder.encode("USER")); // 권한을 "USER"로 설정하여 암호화한다.
 			sign.setMinimi("mainMinimi.png"); // 기본 미니미 지정
 			sign.setDotory(0); // 기본 도토리 개수 지정
 			sign.setMainTitle("안녕하세요~ " + sign.getName() + "님의 미니홈피입니다!"); // 메인 화면 제목
@@ -1407,6 +1407,7 @@ public class SignUpController {
 			// 추가 정보들을 임의로 지정
 			sign.setIdx(null); // AUTO_INCREMENT로 null값 지정시 자동 인덱스 증가
 			sign.setInfo(passwordEncoder.encode(UUID.randomUUID().toString())); // 소셜 가입자는 비밀번호가 따로 없으므로 비밀번호에 중복 가능성이 매우 적은 UUID로 랜덤 지정하여 암호화한다.
+			sign.setRoles(passwordEncoder.encode("USER")); // 권한을 "USER"로 설정하여 암호화한다.
 			sign.setMinimi("mainMinimi.png"); // 기본 미니미 지정
 			sign.setDotory(0); // 기본 도토리 개수 지정
 			sign.setMainTitle("안녕하세요~ " + sign.getName() + " 님의 미니홈피입니다!"); // 메인 화면 제목

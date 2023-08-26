@@ -37,6 +37,9 @@ public class Sign {
 	@Column(length = 10, nullable = false)
 	private String platform;
 
+	@Column(length = 255, nullable = false)
+	private String roles;
+
 	@Column(length = 30, nullable = false)
 	private String minimi;
 

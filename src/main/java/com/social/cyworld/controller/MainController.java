@@ -312,15 +312,33 @@ public class MainController {
 		// 조회한 미니홈피 유저정보를 바인딩
 		model.addAttribute("sign", sign);
 
+		// 조회한 미니홈피 유저정보 중 암호화한 권한이 유저 권한인지 관리자 권한인지 체크한다.
+		// 관리자 권한인 경우
+		if (passwordEncoder.matches("ADMIN", sign.getRoles())) {
+			model.addAttribute("miniRole", "ADMIN");
+			// 유저 권한인 경우
+		} else {
+			model.addAttribute("miniRole", "USER");
+		}
+
 		// 미니홈피 유저 일촌평 조회
 		List<Ilchonpyeong> ilchonpyeongList = mainService.findByIlchonpyeongIdx(idx);
 		// 조회된 미니홈피 유저 일촌평 리스트를 바인딩
 		model.addAttribute("ilchonpyeongList", ilchonpyeongList);
 
-		// 로그인한 유저의 유저정보 조회
+		// 로그인 유저정보 조회
 		Sign loginUser = signService.findByIdx(loginIdx);
 		// 조회한 유저정보를 바인딩
 		model.addAttribute("loginUser", loginUser);
+
+		// 조회한 로그인 유저정보 중 암호화한 권한이 유저 권한인지 관리자 권한인지 체크한다.
+		// 관리자 권한인 경우
+		if (passwordEncoder.matches("ADMIN", loginUser.getRoles())) {
+			model.addAttribute("loginRole", "ADMIN");
+		// 유저 권한인 경우
+		} else {
+			model.addAttribute("loginRole", "USER");
+		}
 
 		// 일촌관계를 알아보기 위해 Ilchon 생성
 		Ilchon ilchon = new Ilchon();
@@ -530,8 +548,8 @@ public class MainController {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////관리자
 	// 상품 추가 팝업
-	@RequestMapping("/product")
-	public String product(int adminIdx, Model model) {
+	@RequestMapping("/product/{adminIdx}")
+	public String product(@PathVariable int adminIdx, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -633,8 +651,18 @@ public class MainController {
 			return "Admin/add_product";
 		}
 
+		// 로그인 유저 idx에 해당하는 유저정보를 조회하여 암호화한 권한과 관리자 권한인 "ADMIN"이 일치하는지 체크한다. - 관리자 권한 검증
+		Sign sign = signService.findByIdx(loginIdx);
+		// 관리자 권한이 일치하지 않는 경우
+		if (!passwordEncoder.matches("ADMIN", sign.getRoles())) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 상품 추가 팝업으로 이동
+			return "Admin/add_product";
+		}
+
 		// 관리자 idx를 바인딩
-		model.addAttribute("adminIdx", loginIdx);
+		model.addAttribute("idx", loginIdx);
 
 		// 상품 추가 팝업으로 이동
 		return "Admin/add_product";
@@ -738,6 +766,16 @@ public class MainController {
 
 		// 토큰에서 추출한 로그인 유저 idx가 관리자 idx와 다르거나 관리자 idx가 아닌 경우 - 상품 추가 팝업은 오로지 관리자만 들어갈 수 있다.
 		if ( loginIdx != adminIdx || loginIdx != 1 || adminIdx != 1 ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+			// 상품 추가 팝업으로 이동
+			return "Admin/add_product";
+		}
+
+		// 로그인 유저 idx에 해당하는 유저정보를 조회하여 암호화한 권한과 관리자 권한인 "ADMIN"이 일치하는지 체크한다. - 관리자 권한 검증
+		Sign sign = signService.findByIdx(loginIdx);
+		// 관리자 권한이 일치하지 않는 경우
+		if (!passwordEncoder.matches("ADMIN", sign.getRoles())) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 			// 상품 추가 팝업으로 이동
