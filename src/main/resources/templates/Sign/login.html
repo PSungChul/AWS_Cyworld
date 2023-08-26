@@ -24,7 +24,7 @@
 							<form id="ff">
 								<!-- 로그인을 구별할 플랫폼 -->
 								<input name="platform" type="hidden" value="cyworld">
-								<p class="userID">ID :&nbsp;<input name="userId" type="text"></p>
+								<p class="userID">ID :&nbsp;<input name="email" type="text"></p>
 								<p class="userPW">PW :&nbsp;<input name="info" type="password"> </p>
 								<p class="login"><input class="btn-cover" type="button" value="로그인" onclick="loginCheck(this.form)"></p>
 							</form>
@@ -76,32 +76,44 @@
 	<script>
 		// ID 찾기
 		function find_id() {
-			location.href = "/findID";
+			location.href = "/find_id";
 		}
 		
 		// PW 찾기
 		function find_pw() {
-			location.href = "/findPW";
+			location.href = "/find_pw";
 		}
 		
 		// 로그인 ID & PW 체크
 		function loginCheck(f) {
-			let userId = f.userId.value;
+			let email = f.email.value;
 			let info = f.info.value;
 			
 			// 유효성 체크
-			if ( userId == '' ) {
-				alert("아이디를 입력하세요");
+
+			if ( email == '' ) {
+				alert("아아디를 입력하세요");
 				return;
 			}
+
+			// 이메일 형식 체크 패턴
+			let pattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+/;
+
+			// 아이디가 이메일 형식에 맞는지 체크한다.
+			// 이메일 형식이 아닐 경우
+			if (!pattern.test(email)) {
+				alert('아이디 형식을 다시 확인해주세요\n ex) abc@naver.com');
+				return;
+			}
+
 			if ( info == '' ) {
 				alert("비밀번호를 입력하세요");
 				return;
 			}
 			
 			// Ajax로 ID와 PWD를 전달
-			let url = "login_check";
-			let param = "userId=" + userId +
+			let url = "/login_check";
+			let param = "email=" + encodeURIComponent(email) +
 						"&info=" + info;
 			sendRequest(url, param, resultLogin, "POST");
 		}
@@ -123,6 +135,7 @@
 				}
 				
 				alert("로그인 성공");
+
 				// 입력한 ID와 비밀번호를 들고 메인 페이지로 이동
 				const ff = document.getElementById("ff");
 				ff.action = "login_authentication";
@@ -174,31 +187,31 @@
 							const email = kakao_account.email; // 이메일
 							const gender = kakao_account.gender; // 성별
 
-							fetch('kakao_authentication', {
+							fetch('/kakao_authentication', {
 								method: 'POST',
 								headers: {
 									'Content-Type': 'application/x-www-form-urlencoded'
 								},
 								body: 'email=' + email
 							})
-								.then(response => response.text()) // JSON 형식으로 파싱
+								.then(response => response.text()) // Text 형식으로 파싱
 								.then(data => {
 									if ( data == '0' ) {
-										const kf = document.getElementById("kf"); // form태그
-										const h_email = document.getElementById("email"); // hidden 이메일
-										const h_gender = document.getElementById("gender"); // hidden 성별
+										const kf = document.getElementById('kf'); // form태그
+										const h_email = document.getElementById('email'); // hidden 이메일
+										const h_gender = document.getElementById('gender'); // hidden 성별
 
 										// hidden value에 account정보 넣기
 										h_email.value = email;
 										h_gender.value = gender;
 
-										kf.submit(); // action="url" 이동
+										kf.submit();
 										return;
-									} else if ( data == '1' ) {
+									} else if ( data == '-1' ) {
 										alert('싸이월드로 가입한 이력이 있습니다.\n싸이월드로 로그인을 이용해주세요.');
 										location.href = '/login';
 										return;
-									} else if ( data == '2' ) {
+									} else if ( data == '-2' ) {
 										alert('네이버로 가입한 이력이 있습니다.\n네이버로 로그인을 이용해주세요.');
 										location.href = '/login';
 										return;

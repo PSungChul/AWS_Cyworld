@@ -160,7 +160,7 @@ public class GuestbookController {
 				// 그 다음 로그인한 유저가 해당 미니홈피로 방문 기록이 있는지 조회
 				Views loginUser = mainService.findByViewsIdxAndViewsSessionIdx(todayMap);
 
-				// 그 다음 idx에 해당하는 미니홈피 유저 정보를 조회
+				// 그 다음 idx에 해당하는 미니홈피 유저정보를 조회
 				Sign miniUser = signService.findByIdx(idx);
 
 				// 로그인한 유저의 방문 기록이 있을 경우
@@ -181,7 +181,7 @@ public class GuestbookController {
 							miniUser.setToday(1);
 							// 해당 미니홈피 유저의 접속 날짜를 현재 날짜로 갱신
 							miniUser.setToDate(today.format(date));
-							// 수정된 값들로 해당 미니홈피 유저의 유저 정보 갱신
+							// 수정된 값들로 해당 미니홈피 유저의 유저정보 갱신
 							signService.updateSetTodayAndTotalAndToDateByIdx(miniUser);
 
 						// 해당 미니홈피 유저의 조회된 기록 중 접속 날짜가 현재 날짜와 같을 경우
@@ -189,7 +189,7 @@ public class GuestbookController {
 
 							// 해당 미니홈피 유저의 일일 조회수 1 증가
 							miniUser.setToday(miniUser.getToday() + 1);
-							// 증가된 일일 조회수로 해당 미니홈피 유저 정보 갱신
+							// 증가된 일일 조회수로 해당 미니홈피 유저정보 갱신
 							signService.updateSetTodayByIdx(miniUser);
 
 						}
@@ -221,7 +221,7 @@ public class GuestbookController {
 						miniUser.setToday(1);
 						// 해당 미니홈피 유저의 접속 날짜를 현재 날짜로 갱신
 						miniUser.setToDate(today.format(date));
-						// 수정된 값들로 해당 미니홈피 유저의 유저 정보 갱신
+						// 수정된 값들로 해당 미니홈피 유저의 유저정보 갱신
 						signService.updateSetTodayAndTotalAndToDateByIdx(miniUser);
 
 					// 해당 미니홈피 유저의 조회된 기록 중 접속 날짜가 현재 날짜와 같을 경우
@@ -229,7 +229,7 @@ public class GuestbookController {
 
 						// 해당 미니홈피 유저의 일일 조회수 1 증가
 						miniUser.setToday(miniUser.getToday() + 1);
-						// 증가된 일일 조회수로 해당 미니홈피 유저 정보 갱신
+						// 증가된 일일 조회수로 해당 미니홈피 유저정보 갱신
 						signService.updateSetTodayByIdx(miniUser);
 
 					}
@@ -272,9 +272,9 @@ public class GuestbookController {
 		// 조회된 모든 방문글을 리스트 형태로 바인딩
 		model.addAttribute("list", list);
 		
-		// 그 다음 idx에 해당하는 유저 정보를 조회
+		// 그 다음 idx에 해당하는 유저정보를 조회
 		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저 정보를 바인딩
+		// 조회된 유저정보를 바인딩
 		model.addAttribute("sign", sign);
 		// 로그인 유저 idx를 바인딩
 		model.addAttribute("loginIdx", loginIdx);
@@ -394,7 +394,7 @@ public class GuestbookController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 		
-		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
+		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저정보를 조회
 		Sign loginUser = signService.findByIdx(loginIdx);
 		
 		// 방문글 작성자 정보 생성
@@ -406,26 +406,18 @@ public class GuestbookController {
 		guestbook.setGuestbookSessionIdx(loginIdx);
 		// 작성자 미니미 지정
 		guestbook.setGuestbookMinimi(loginUser.getMinimi());
-		
-		if ( loginUser.getPlatform().equals("cyworld") ) {
-			// 플랫폼이 cyworld일 경우 - ID + @ + cyworld = qwer@cyworld - 폐기
-			// guestbook.setGuestbookContentName(loginUser.getUserID() + "@" + loginUser.getPlatform());
-			
-			// 플랫폼이 cyworld일 경우 - ( + 이름 + / + ID + ) = ( 관리자 / qwer ) - 변경
-			guestbook.setGuestbookName("( " + loginUser.getName() + " / " + loginUser.getUserId() + " )");
-		} else {
-			/* 플랫폼이 소셜일 경우 - 이메일 @부분까지 잘라낸 뒤 플랫폼명 추가 - 폐기
-			 * 네이버 - qwer@ + naver = qwer@naver
-			 * 카카오 - qwer@ + kakao = qwer@kakao
-			 */
-			// guestbook.setGuestbookContentName(loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") + 1 ) + loginUser.getPlatform());
-			
-			/* 플랫폼이 소셜일 경우 ID가 없으므로 이메일로 대체 - 이름 + 이메일 @부분부터 뒤쪽을 다 잘라낸다 - 변경
-			 * 네이버 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
-			 * 카카오 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
-			 */
-			guestbook.setGuestbookName("( " + loginUser.getName() + " / " + loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") ) + " )");
-		}
+
+		/* 이메일 @부분까지 잘라낸 뒤 플랫폼명 추가 - 폐기
+		 * 네이버 - qwer@ + naver = qwer@naver
+		 * 카카오 - qwer@ + kakao = qwer@kakao
+		 */
+		// guestbook.setGuestbookContentName(loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") + 1 ) + loginUser.getPlatform());
+
+		/* 이름 + 이메일 @부분부터 뒤쪽을 다 잘라낸다 - 변경
+		 * 네이버 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
+		 * 카카오 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
+		 */
+		guestbook.setGuestbookName("( " + loginUser.getName() + " / " + loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") ) + " )");
 
 		// 방문글 작성자 정보 바인딩
 		model.addAttribute("guestbook", guestbook);
@@ -775,7 +767,7 @@ public class GuestbookController {
 			return "Page/Guestbook/guestbook_list";
 		}
 		
-		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
+		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저정보를 조회
 		Sign loginUser = signService.findByIdx(loginIdx);
 
 		// 해당 idx의 방명록에 수정할 방문글을 조회

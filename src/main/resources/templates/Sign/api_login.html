@@ -25,7 +25,7 @@
 								<input th:field="*{idx}" type="hidden">
 								<input th:field="*{clientId}" type="hidden">
 								<input th:field="*{redirectUri}" type="hidden">
-								<p class="userID">ID :&nbsp;<input id="userId" type="text"></p>
+								<p class="userID">ID :&nbsp;<input id="email" type="text"></p>
 								<p class="userPW">PW :&nbsp;<input id="info" type="password"> </p>
 								<p class="login"><input class="btn-cover" type="button" value="로그인" onclick="loginCheck(this.form)"></p>
 							</form>
@@ -42,14 +42,26 @@
 	<script>
 		// 로그인 ID & PW 체크
 		function loginCheck(f) {
-			let userId = document.getElementById('userId').value;
+			let email = document.getElementById('email').value;
 			let info = document.getElementById('info').value;
 			
 			// 유효성 체크
-			if ( userId == '' ) {
+
+			if ( email == '' ) {
 				alert("아이디를 입력하세요");
 				return;
 			}
+
+			// 이메일 형식 체크 패턴
+			let pattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+/;
+
+			// 아이디가 이메일 형식에 맞는지 체크한다.
+			// 이메일 형식이 아닐 경우
+			if (!pattern.test(email)) {
+				alert('아이디 형식을 다시 확인해주세요\n ex) abc@naver.com');
+				return;
+			}
+
 			if ( info == '' ) {
 				alert("비밀번호를 입력하세요");
 				return;
@@ -60,10 +72,10 @@
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				},
-				body: 'userId=' + userId +
+				body: 'email=' + encodeURIComponent(email) +
 					  '&info=' + info
 			})
-				.then(response => response.text())
+				.then(response => response.text()) // Text 형식으로 파싱
 				.then(data => {
 					// 로그인에 실패하는 경우 - 아이디 X
 					if ( data == '-1' ) {

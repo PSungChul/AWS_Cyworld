@@ -124,7 +124,7 @@
 								<input name="platform" th:value="${ sign.platform }" type="hidden">
 								<!-- 싸이월드 가입자한테만 보이는 추가 항목들 -->
 								<th:block th:if="${ sign.platform eq 'cyworld' }">
-									<p>ID : <input id="userId" type="text" th:value="${ sign.userId }" readonly></p>
+									<p>ID : <input id="userId" type="text" th:value="${ sign.email }" readonly></p>
 									<p>PW : <input class="btnPw" id="btn-cover" type="button" value="비밀번호 수정" onclick="pwUpdateForm();" style="position: relative; top: -4px;"></p>
 									<th:block>
 										<p class="pwUpdateForm" style="display: none">새로운 PW : <input id="pw" name="info" type="password" oninput="pwCheck();"></p>

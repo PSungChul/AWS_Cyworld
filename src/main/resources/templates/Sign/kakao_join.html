@@ -18,22 +18,13 @@
 						<img class="logo-main box animate__animated animate__rubberBand animate__" src="/images/logo_cyworld.png" alt="">
 						
 						<form>
-							<!-- 휴대폰 중복 체크 값 -->
-							<input id="h_phone_check" type="hidden">
-							<!-- 휴대폰 인증 번호 체크 값 -->
-							<input id="h_phone_key" type="hidden">
 							<input name="platform" type="hidden" th:value="${ sign.platform }">
-							<input name="gender" type="hidden" th:value="${ sign.gender }">
 							<input name="email" type="hidden" th:value="${ sign.email }">
-							<p class="name">이름 <br> <input name="name" type="text"></p>
-							<p class="birthday">생년월일 <br> <input name="birthday" type="date"></p>
-							<p class="phone">휴대폰 <br> <input id="phoneNumber" name="phoneNumber" type="text" placeholder="휴대폰 번호를 입력해주세요" maxlength="13"></p>
-														<input class="sendPNum1" id="btn-cover" type="button" value="인증번호 전송" onclick="phoneSend();">
-							<p class="PNum">인증번호 <br> <input id="i_phoneNumber" type="text"></p>
-														<input class="sendPNum2" id="btn-cover" type="button" value="인증번호 확인" onclick="phoneCheck();">
-							<p class="address">주소 <br> <input id="addressText" class="address_kakao" name="address" type="text">
-														<input id="btn-cover" class="address_kakao" type="button" value="주소찾기"></p> 
-							<p class="rAddress">상세 주소 <br> <input class="address_kakao" name="addressDetail" type="text"></p>
+							<input name="gender" type="hidden" th:value="${ sign.gender }">
+							<p class="name">이름 <br> <input class="btnPhone" id="name" name="name" type="text"></p>
+							<p class="birthday">생년월일 <br> <input class="btnPhone" id="birthday" name="birthday" type="date" max="9999-12-31"></p>
+							<p class="phone">휴대폰 <br> <input class="btnPhone" id="phoneNumber" name="phoneNumber" type="text" placeholder="휴대폰 번호를 입력해주세요" maxlength="13"></p>
+														<input class="sendPNum1 btnPhone" id="btn-cover" type="button" value="본인인증">
 							<input class="join" id="btn-cover" type="button" value="가입" onclick="join(this.form)">
 							<input id="btn-cover" class="cancel" type="button" value="취소" onclick="kakaoLogout();">
 						</form>
@@ -46,208 +37,131 @@
 <!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
 	<!-- Ajax사용을 위한 js를 추가 -->
 	<script src="/js/httpRequest.js"></script>
-	<!-- 휴대폰 인증 번호 전송 및 체크 -->
-	<script>
-		// 휴대폰 인증 번호 전송
-		function phoneSend() {
-			let phoneNumber = document.getElementById('phoneNumber');
 
-			if ( phoneNumber.value == '' ) {
-				alert("휴대폰 번호를 입력하세요");
-				return;
-			}
+	<!-- iamport.payment.js 인증 -->
+	<script type="text/javascript" src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<!-- 아임포트 본인인증 및 값 삽입 => '인증하기' 버튼 클릭시 -->
+	<script th:inline="javascript">
+		// textbox & 버튼(2개이상)을 누르면 함수가 실행되도록 하는 방법
+		// querySelectorAll로 id값(#id)을 불러와서 배열로 생성, 이후 forEach문을 활용해 각각의 것을 눌렀을 때 실행되게 하도록 한다.
+		let openPort = document.querySelectorAll(".btnPhone");
+		openPort.forEach(function(element) {
+			element.addEventListener("click", function() {
+				alert("인증은 반드시 카카오톡 인증으로만 진행해주시기 바랍니다.");
+				var IMP = window.IMP; // init으로 객체초기화 (가맹점식별코드)
+				IMP.init([[${impNumber}]]); // 가맹점 번호
+				IMP.certification({
+					popup: true // 팝업 사용
+				}, function (rsp) { // 파라미터로 rsp를 받아온다.
+					if ( rsp.success ){ // 인증에 성공하는 경우
+						// 파라미터로 받아온 rsp에서 imp_uid를 가져온다.
+						let impUid = rsp.imp_uid;
+						// fetch를 사용하여 가져온 imp_uid를 컨트롤러로 보낸다.
+						fetch("/certification", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							body: "impUid=" + impUid
+						})
+							.then(response => response.json()) // JSON 형식으로 파싱
+							.then(data => {
+								// 반환된 Map에 에러 코드가 존재하는지 체크한다.
+								// 에러 코드가 존재하는 경우
+								if ( data.name == "-1" ) {
+									alert("이미 가입된 유저정보가 있습니다.\n로그인 혹은 아이디/비밀번호 찾기를 이용해 주세요");
+									return;
+								}
 
-			let url = "phone_send";
-			let param = "phoneNumber=" + phoneNumber.value;
-			sendRequest(url, param, resultPhoneSend, "POST");
-		}
-		// 휴대폰 인증 번호 전송 콜백메소드
-		function resultPhoneSend() {
-			if ( xhr.readyState == 4 && xhr.status == 200 ) {
-				let data = xhr.responseText;
-				let h_phone_key = document.getElementById('h_phone_key');
-				let h_phone_check = document.getElementById('h_phone_check'); // 휴대폰 중복 체크 값
+								// 에러 코드가 존재하지 않는 경우
 
-				if ( data == 'no' ) {
-					alert('이미 가입된 휴대폰 번호입니다.\n로그인 혹은 아이디/비밀번호 찾기를 이용해주세요');
-					h_phone_check.value = 'false';
-					return;
-				} else {
-					alert('인증번호가 발송되었습니다.');
-					h_phone_key.value = data;
-					return;
-				}
-			}
-		}
+								// 값들을 작성할 작성란들을 가져온다.
+								let name = document.getElementById("name"); // 이름
+								let birthday = document.getElementById("birthday"); // 생년월일
+								let phoneNumber = document.getElementById("phoneNumber"); // 휴대폰 번호
 
-		// 휴대폰 인증 번호 체크
-		function phoneCheck() {
-			let i_phoneNumber = document.getElementById("i_phoneNumber");
-			let h_phone_key = document.getElementById("h_phone_key");
-
-			if ( phoneNumber.value == '' ) {
-				alert('인증 번호를 입력하세요');
-				return;
-			}
-
-			let url = "phone_check";
-			let param = "phoneKey=" + i_phoneNumber.value +
-						"&hPhoneKey=" + h_phone_key.value;
-			sendRequest(url, param, resultPhoneCheck, "POST");
-		}
-		// 휴대폰 인증 번호 체크 콜백메소드
-		function resultPhoneCheck() {
-			if ( xhr.readyState == 4 && xhr.status == 200 ) {
-				let data = xhr.responseText;
-				let phoneNumber = document.getElementById('phoneNumber');
-				let i_phoneNumber = document.getElementById('i_phoneNumber');
-				let h_phone_check = document.getElementById('h_phone_check');
-
-				if ( data == 'true' ) {
-					alert('인증 되었습니다.');
-					h_phone_check.value = 'true'; // 휴대폰 중복 체크 값에 true를 전달한다.
-					phoneNumber.readOnly = true; // 인증된 휴대폰을 변경하지 못하도록 막는다.
-					i_phoneNumber.readOnly = true; // 작성한 휴대폰 인증 번호를 변경하지 못하도록 막는다.
-					return;
-				} else {
-					alert('인증 번호를 다시 확인해주세요.');
-					h_phone_check.value = 'false'; // 휴대폰 중복 체크 값에 false를 전달한다.
-					i_phoneNumber.value = ''; // 작성한 휴대폰 인증 번호를 초기화한다.
-					return;
-				}
-			}
-		}
+								// 컨트롤러에서 반환된 Map에 들어있는 값들을 꺼내서 각 작성란에 맞게 전달하고 변경하지 못하도록 막는다.
+								name.value = data.name; // 반환된 Map 값 중 이름을 가져와 이름 작성란에 전달한다.
+								name.readOnly = true; // 전달된 이름을 변경하지 못하도록 막는다.
+								birthday.value = data.birthday; // 반환된 Map 값 중 생년월일을 가져와 생년월일 작성란에 전달한다.
+								birthday.readOnly = true; // 전달된 생년월일을 변경하지 못하도록 막는다.
+								phoneNumber.value = data.phoneNumber; // 반환된 Map 값 중 휴대폰 번호를 가져와 휴대폰 번호 작성란에 전달한다.
+								phoneNumber.readOnly = true; // 전달된 휴대폰 번호를 변경하지 못하도록 막는다.
+							})
+							.catch(error => console.error(error)); // fetch
+					} else { // 인증에 실패하는 경우
+						alert("인증 실패하였습니다.");
+						return;
+					}
+				});
+			});
+		});
 	</script>
 
-	<!-- 다음 주소 api -->
-	<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 	<script>
-		window.onload = function(){
-			document.getElementsByClassName("address_kakao")[0].addEventListener("click", function(){ //주소 입력칸을 클릭하면
-				new daum.Postcode({
-					oncomplete: function(data) { //선택시 입력값 세팅
-						document.getElementsByClassName("address_kakao")[0].value = data.address; // 주소 넣기
-						document.getElementsByClassName("address_kakao")[2].focus(); //상세입력 포커싱
-					}
-				}).open();
-			});
-			document.getElementsByClassName("address_kakao")[1].addEventListener("click", function(){ //주소 버튼을 클릭
-				new daum.Postcode({
-					oncomplete: function(data) { //선택시 입력값 세팅
-						document.getElementsByClassName("address_kakao")[0].value = data.address; // 주소 넣기
-						document.getElementsByClassName("address_kakao")[2].focus(); //상세입력 포커싱
-					}
-				}).open();
-			});
-		}
-		
-		// 휴대폰용 자동 하이픈
-		function phoneAutoHyphen(str){
-			str = str.replace(/[^0-9]/g, ''); // 입력값에 숫자만 적용
-			let tmp = '';
-			if ( str.length < 4 ) { // 입력값이 4자리보다 작을시
-				return str;
-			} else if ( str.length < 7 ) { // 입력값이 7자리보다 작을시
-				tmp += str.substr(0, 3);
-				tmp += '-';
-				tmp += str.substr(3);
-				return tmp;
-			} else if ( str.length < 11 ) { // 입력값이 11자리보다 작을시
-				tmp += str.substr(0, 3); // 000
-				tmp += '-'; // 000-
-				tmp += str.substr(3, 3); // 000-000
-				tmp += '-'; // 000-000-
-				tmp += str.substr(6); // 000-000-0000
-				return tmp;
-			} else { // 입력값이 11자리일시
-				tmp += str.substr(0, 3); // 000
-				tmp += '-'; // 000-
-				tmp += str.substr(3, 4); // 000-0000
-				tmp += '-'; // 000-0000-
-				tmp += str.substr(7); // 000-0000-0000
-				return tmp;
-			}
-			return str;
-		}
-		// 휴대폰 입력값 가져오기
-		const phoneNumber = document.getElementById("phoneNumber");
-		phoneNumber.onkeyup = function(event) { // 값을 입력시 발동
-			event = event || window.event;
-			let val = this.value.trim(); // 입력값 가져오기
-			this.value = phoneAutoHyphen(val); // 입력값에 자동 하이픈 메소드 적용
-		}
-		
-		// DB저장하러 이동
+		// kakao 회원가입
 		function join(f) {
 			// 회원가입 정보
-			let gender = f.gender.value;
-			let name = f.name.value;
-			let birthday = f.birthday.value;
-
-			// 휴대폰 인증 체크
-			let phoneNumber = f.phoneNumber.value;
-			let i_phoneNumber = document.getElementById("i_phoneNumber").value; // 인증번호 입력값
-			let h_phone_check = document.getElementById("h_phone_check").value; // 인증번호 체크용
 
 			let email = f.email.value;
+			let gender = f.gender.value;
 
-			let address = f.address.value;
-			let addressDetail = f.addressDetail.value;
+			// 본인인증 체크
+			let name = f.name.value;
+			let birthday = f.birthday.value;
+			let phoneNumber = f.phoneNumber.value;
+
 			let platform = f.platform.value;
-			
+
 			// 유효성 검사
 
-			if ( birthday == '' ) {
-				alert("생년월일을 입력하세요");
+			if ( birthday == "" ) {
+				alert("이름을 입력하세요.");
 				return;
 			}
-			if ( phoneNumber == '' ) {
-				alert("휴대폰 번호를 입력하세요");
+			if ( birthday == "" ) {
+				alert("생년월일을 입력하세요.");
 				return;
 			}
-			if ( i_phoneNumber == '' ) {
-				alert("인증번호를 입력하세요")
+			if ( phoneNumber == "" ) {
+				alert("휴대폰 번호를 입력하세요.");
 				return;
 			}
-			if ( h_phone_check != 'true' ) {
-				alert("인증번호를 다시 확인하세요");
-				return;
-			}
-			if ( address == '' ) {
-				alert("주소를 입력하세요");
-				return;
-			}
-			if ( addressDetail == '' ) {
-				alert("상세 주소를 입력하세요");
-				return;
-			}
-			
-			url = "welcome";
-			param = "gender=" + gender +
-					"&name=" + name +
-					"&birthday=" + birthday +
-					"&phoneNumber=" + phoneNumber +
-					"&email=" + email +
-					"&address=" + address +
-					"&addressDetail=" + addressDetail +
-					"&platform=" + platform;
+
+			let url = "/welcome";
+			let param = "email=" + encodeURIComponent(email) +
+						"&gender=" + gender +
+						"&name=" + name +
+						"&birthday=" + birthday +
+						"&phoneNumber=" + phoneNumber +
+						"&platform=" + platform;
 			sendRequest(url, param, resultJoin, "POST");
 		}
 		// 회원가입 콜백메소드
 		function resultJoin() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
-				
+
 				let data = xhr.responseText;
-				
+
 				if ( data == "no" ) {
-					alert("가입된 회원정보가 있습니다");
-					alert("로그인 혹은 아이디/비밀번호 찾기를 이용해주세요");
+					alert("가입 도중 에러가 발생하였습니다.\n새로 가입을 진행해주시기 바랍니다.");
 					location.href = "/login";
-				} else {
-					alert("가입이 완료되었습니다");
-					alert("로그인 페이지로 이동합니다");
-					location.href = "/login";
+					return;
 				}
+				if ( data == "0" ) {
+					alert("가입 세션이 만료되었습니다.\n새로 가입을 진행해주시기 바랍니다.");
+					location.href = "/login";
+					return;
+				}
+				if ( data == "-2" ) {
+					alert("본인인증정보가 손상되었습니다.\n새로 가입을 진행해주시기 바랍니다.");
+					location.href = "/login";
+					return;
+				}
+
+				alert("가입이 완료되었습니다.\n로그인 페이지로 이동합니다.");
+				location.href = "/login";
 			}
 		}
 	</script>

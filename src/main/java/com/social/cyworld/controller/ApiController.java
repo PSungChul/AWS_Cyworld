@@ -52,8 +52,8 @@ import java.util.UUID;
  에러
  {"accessToken": Error Code,
   "message": Error Message}
- -----------------------------------------------------------------------------------------------------------------------API 유저 정보 조회
- POST http://localhost:9999/api/user - API Login Access Token 검증 --> API 유저 정보 조회
+ -----------------------------------------------------------------------------------------------------------------------API 유저정보 조회
+ POST http://localhost:9999/api/user - API Login Access Token 검증 --> API 유저정보 조회
  Header "Authorization": "Bearer " + API Access Token
  정상 - 동의 항목 동의
  {"birthday": yyyy-MM-dd,
@@ -533,19 +533,19 @@ public class ApiController {
 	// API Login 검증
 	@PostMapping("/loginform/login")
 	@ResponseBody
-	public int apiLogin(String userId, String info) {
-		// 아이디에 해당하는 유저 정보가 존재하는지 체크한다.
-		Sign sign = signService.findByUserId(userId);
+	public int apiLogin(String email, String info) {
+		// 이메일에 해당하는 유저정보가 존재하는지 체크한다.
+		Sign sign = signService.findByEmail(email);
 
-		// 유저 정보가 존재하지 않는 경우 - 아이디 X
+		// 유저정보가 존재하지 않는 경우 - 이메일 X
 		if ( sign == null ) {
 			// 에러 값을 반환한다.
 			return -1;
 		}
 
-		// 유저 정보가 존재하는 경우
+		// 유저정보가 존재하는 경우
 
-		// 조회한 유저 정보에서 비빌번호를 가져와 입력한 비밀번호와 일치하는지 체크한다.
+		// 조회한 유저정보에서 비빌번호를 가져와 입력한 비밀번호와 일치하는지 체크한다.
 		// 비밀번호가 일치하지 않는 경우 - 비밀번호 X
 		if ( !passwordEncoder.matches(info, sign.getInfo()) ) {
 			// 에러 값을 반환한다.
@@ -554,7 +554,7 @@ public class ApiController {
 
 		// 비밀번호가 일치하는 경우 - 로그인
 
-		// 조죄한 유저 정보에서 동의 항목 체크 값을 가져와 동의 항목 페이지를 거쳤는지 체크한다.
+		// 조죄한 유저정보에서 동의 항목 체크 값을 가져와 동의 항목 페이지를 거쳤는지 체크한다.
 		// 동의 항목에 체크하지 않은 경우
 		if ( sign.getConsent() == 0 ) {
 			// 로그인 유저 idx를 반환한다.
@@ -630,7 +630,7 @@ public class ApiController {
 			ApiConsent apiConsent = apiDTO.toApiConsent();
 			// 변환된 ApiConsent 객체로 체크한 동의 항목들을 저장한다.
 			apiService.insertIntoApiConsent(apiConsent);
-			// 로그인 유저 idx에 해당하는 유저 정보 중 동의 항목 체크 값을 체크 완료 값인 1로 갱신한다.
+			// 로그인 유저 idx에 해당하는 유저정보 중 동의 항목 체크 값을 체크 완료 값인 1로 갱신한다.
 			apiService.updateSetConsentByIdx(apiConsent.getIdx());
 		}
 
@@ -762,7 +762,7 @@ public class ApiController {
 				.body(jsonResponse); // JSON 형식의 데이터를 Location 헤더 대신 Body에 넣어 반환한다.
 	}
 
-	// 토큰 검증 및 유저 정보 전달
+	// 토큰 검증 및 유저정보 전달
 	@PostMapping("/user")
 	public ResponseEntity<String> user(@RequestHeader("Authorization") String accessToken) throws JsonProcessingException {
 		// 파라미터로 받아온 AccessToken에서 필요없어진 앞부분을 잘라낸다.
@@ -789,10 +789,10 @@ public class ApiController {
 
 		// 로그인 유저 idx가 정상인 경우
 
-		// 로그인 유저 idx에 해당하는 유저 정보가 존재하는지 체크한다.
+		// 로그인 유저 idx에 해당하는 유저정보가 존재하는지 체크한다.
 		Sign loginUser = signService.findByIdx(loginIdx);
 
-		// 유저 정보가 존재하지 않는 경우
+		// 유저정보가 존재하지 않는 경우
 		if ( loginUser == null ) {
 			// Java 객체를 JSON 형식의 데이터로 직렬화(Serialize) 하기 위해 ObjectMapper를 생성한다.
 			ObjectMapper objectMapper = new ObjectMapper();
@@ -809,16 +809,16 @@ public class ApiController {
 					.body(jsonResponse); // JSON 형식의 데이터를 Location 헤더 대신 Body에 넣어 반환한다.
 		}
 
-		// 유저 정보가 존재하는 경우
+		// 유저정보가 존재하는 경우
 
 		// 로그인 유저 idx에 해당하는 API 동의 항목 정보를 조회한다.
 		ApiConsent apiConsent = apiService.findByApiConsentIdx(loginIdx);
 
 		// Java 객체를 JSON 형식의 데이터로 직렬화(Serialize) 하기 위해 ObjectMapper를 생성한다.
 		ObjectMapper objectMapper = new ObjectMapper();
-		// 로그인 유저 정보를 전달할 Map을 생성한다.
+		// 로그인 유저정보를 전달할 Map을 생성한다.
 		Map<String, String> responseMap = new HashMap<>();
-		// 생성한 Map에 로그인 유저 정보 중 동의 항목 페이지에서 체크한 정보들만 추가한다.
+		// 생성한 Map에 로그인 유저정보 중 동의 항목 페이지에서 체크한 정보들만 추가한다.
 		// 성별 동의 항목에 체크한 경우
 		if ( apiConsent.getGender() == 5 || apiConsent.getGender() == 3 ) {
 			responseMap.put("gender", loginUser.getGender()); // gender를 키로 사용하고, 로그인 유저 성별을 값으로 사용하여 추가한다.
@@ -854,7 +854,7 @@ public class ApiController {
 		} else if ( apiConsent.getEmail() == 2 ) {
 			responseMap.put("email", null); // email을 키로 사용하고, null을 값으로 사용하여 추가한다.
 		}
-		// 로그인 유저 정보가 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+		// 로그인 유저정보가 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 		String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 		// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.

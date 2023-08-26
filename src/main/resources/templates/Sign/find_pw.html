@@ -18,11 +18,18 @@
 						<img class="logo-main box animate__animated animate__rubberBand animate__" src="/images/logo_cyworld.png" alt="">
 						
 						<form>
-							<p class="myId">ID <br> <input id="userId" name="userId" type="text"></p>
-							<p class="myName">이름 <br> <input name="name" type="text"></p>
+							<!-- 휴대폰 중복 체크 값 -->
+							<input id="h_phone_check" type="hidden">
+							<!-- 휴대폰 인증 번호 체크 값 -->
+							<input id="h_phone_key" type="hidden">
 							<p class="myEmail">이메일 <br> <input name="email" type="text"></p>
+							<p class="myName">이름 <br> <input name="name" type="text"></p>
+							<p class="myPhone">휴대폰 <br> <input class="phoneText" id="phoneNumber" name="phoneNumber" type="text" placeholder="휴대폰 번호를 입력해주세요" maxlength="13"></p>
+														<input class="sendPNum1" type="button" value="인증번호 전송" onclick="phoneSend();">
+							<p class="PNum">인증번호 <br> <input id="i_phoneNumber" type="text"></p>
+														<input class="sendPNum2" type="button" value="인증번호 확인" onclick="phoneCheck();">
 							<input id="btn-cover" type="button" value="비밀번호 찾기" onclick="findPW(this.form)">
-							<input  id="btn_cover" class="cancel" type="button" value="취소" onclick="location.href='/logout'">
+							<input id="btn_cover" class="cancel" type="button" value="취소" onclick="location.href='/logout'">
 						</form>
 						
 					</div>
@@ -33,26 +40,87 @@
 <!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
 	<!-- Ajax 사용을 위한 js를 로드 -->
 	<script src="/js/httpRequest.js"></script>
+	<!-- 휴대폰 인증 번호 전송 및 체크 -->
+	<script>
+		// 휴대폰 인증 번호 전송
+		function phoneSend() {
+			let phoneNumber = document.getElementById('phoneNumber');
+
+			if ( phoneNumber.value == '' ) {
+				alert("휴대폰 번호를 입력하세요");
+				return;
+			}
+
+			let url = "/phone_send";
+			let param = "phoneNumber=" + phoneNumber.value;
+			sendRequest(url, param, resultPhoneSend, "POST");
+		}
+		// 휴대폰 인증 번호 전송 콜백메소드
+		function resultPhoneSend() {
+			if ( xhr.readyState == 4 && xhr.status == 200 ) {
+				let data = xhr.responseText;
+				let h_phone_key = document.getElementById('h_phone_key');
+				let h_phone_check = document.getElementById('h_phone_check'); // 휴대폰 중복 체크 값
+
+				alert('인증번호가 발송되었습니다.');
+				h_phone_key.value = data;
+			}
+		}
+
+		// 휴대폰 인증 번호 체크
+		function phoneCheck() {
+			let i_phoneNumber = document.getElementById("i_phoneNumber");
+			let h_phone_key = document.getElementById("h_phone_key");
+
+			if ( phoneNumber.value == '' ) {
+				alert('인증 번호를 입력하세요');
+				return;
+			}
+
+			let url = "/phone_check";
+			let param = "phoneKey=" + i_phoneNumber.value +
+						"&hPhoneKey=" + h_phone_key.value;
+			sendRequest(url, param, resultPhoneCheck, "POST");
+		}
+		// 휴대폰 인증 번호 체크 콜백메소드
+		function resultPhoneCheck() {
+			if ( xhr.readyState == 4 && xhr.status == 200 ) {
+				let data = xhr.responseText;
+				let phoneNumber = document.getElementById('phoneNumber');
+				let i_phoneNumber = document.getElementById('i_phoneNumber');
+				let h_phone_check = document.getElementById('h_phone_check');
+
+				if ( data == 'false' ) {
+					alert('인증 번호를 다시 확인해주세요.');
+					h_phone_check.value = 'false'; // 휴대폰 중복 체크 값에 false를 전달한다.
+					i_phoneNumber.value = ''; // 작성한 휴대폰 인증 번호를 초기화한다.
+					return;
+				}
+
+				alert('인증 되었습니다.');
+				h_phone_check.value = 'true'; // 휴대폰 중복 체크 값에 true를 전달한다.
+				phoneNumber.readOnly = true; // 인증된 휴대폰을 변경하지 못하도록 막는다.
+				i_phoneNumber.readOnly = true; // 작성한 휴대폰 인증 번호를 변경하지 못하도록 막는다.
+				return;
+			}
+		}
+	</script>
 
 	<script>
 		// PW 찾기
 		function findPW(f) {
-			let userId = f.userId.value;
 			let name = f.name.value;
 			let email = f.email.value;
+
+			// 휴대폰 인증 체크
+			let phoneNumber = f.phoneNumber.value;
+			let i_phoneNumber = document.getElementById("i_phoneNumber").value; // 인증번호 입력값
+			let h_phone_check = document.getElementById("h_phone_check").value; // 인증번호 체크용
 			
 			// 유효성 검사
 
-			if ( userId == '' ) {
-				alert("아이디를 입력하세요");
-				return;
-			}
-			if ( name == '' ) {
-				alert("이름을 입력하세요");
-				return;
-			}
 			if ( email == '' ) {
-				alert("이메일을 입력하세요");
+				alert("이메일을 입력하세요.");
 				return;
 			}
 
@@ -61,29 +129,49 @@
 
 			// 이메일이 이메일 형식에 맞는지 체크한다.
 			// 이메일 형식이 아닐 경우
-			if( !pattern.test(email) ) {
-				alert('이메일 형식을 다시 확인해주세요\n ex) abc@naver.com');
+			if (!pattern.test(email)) {
+				alert('이메일 형식을 다시 확인해주세요.\n ex) abc@naver.com');
 				return;
 			}
 
-			// 이메일 형식이 맞는 경우
-			let url = "findPwSendEmail";
-			let param = "userId=" + userId +
+			if ( name == '' ) {
+				alert("이름을 입력하세요.");
+				return;
+			}
+			if ( phoneNumber == '' ) {
+				alert("휴대폰 번호를 입력하세요.");
+				return;
+			}
+			if ( i_phoneNumber == '' ) {
+				alert("인증번호를 입력하세요.")
+				return;
+			}
+			if ( h_phone_check != 'true' ) {
+				alert("인증번호를 다시 확인하세요.");
+				return;
+			}
+
+			let url = "/find_pw_send_email";
+			let param = "email=" + encodeURIComponent(email) +
 						"&name=" + name +
-						"&email=" + encodeURIComponent(email);
+						"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultPw, "POST");
 		}
 		// PW 찾기 콜백메소드
 		function resultPw() {
 			if ( xhr.readyState == 4 && xhr.status == 200 ) {
 				let data = xhr.responseText;
-				
+
+				if ( data == "false" ) {
+					alert("메일 발송에 실패하였습니다.\n다시 시도해주시기 바랍니다.");
+					return;
+				}
 				if ( data == "no" ) {
-					alert("해당 ID로 가입된 정보가 없습니다");
+					alert("해당 이메일로 가입된 정보가 없습니다.");
 					return;
 				}
 				
-				alert("메일로 임시비밀번호 발급이 완료되었습니다");
+				alert("메일로 임시 비밀번호 발급이 완료되었습니다.");
 				location.href = "/login";
 			}
 		}

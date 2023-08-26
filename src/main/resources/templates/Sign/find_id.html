@@ -23,7 +23,7 @@
 							<!-- 휴대폰 인증 번호 체크 값 -->
 							<input id="h_phone_key" type="hidden">
 							<div class="myname">이름 <br> <input class="nameText" name="name" type="text"></div>
-							<div id="phone">휴대전화 <br> <input class="phoneText" id="phoneNumber" name="phoneNumber" type="text" placeholder="휴대폰 번호를 입력해주세요" maxlength="13"></div>
+							<div id="phone">휴대폰 <br> <input class="phoneText" id="phoneNumber" name="phoneNumber" type="text" placeholder="휴대폰 번호를 입력해주세요" maxlength="13"></div>
 							<input class="sendPNum1" type="button" value="인증번호 전송" onclick="phoneSend();">
 							<div class="PNum">인증번호 <br> <input id="i_phoneNumber" type="text"></div>
 							<input class="sendPNum2" type="button" value="인증번호 확인" onclick="phoneCheck();">
@@ -50,7 +50,7 @@
 				return;
 			}
 
-			let url = "findID_phone_send";
+			let url = "/phone_send";
 			let param = "phoneNumber=" + phoneNumber.value;
 			sendRequest(url, param, resultPhoneSend, "POST");
 		}
@@ -76,7 +76,7 @@
 				return;
 			}
 
-			let url = "phone_check";
+			let url = "/phone_check";
 			let param = "phoneKey=" + i_phoneNumber.value +
 						"&hPhoneKey=" + h_phone_key.value;
 			sendRequest(url, param, resultPhoneCheck, "POST");
@@ -89,18 +89,18 @@
 				let i_phoneNumber = document.getElementById('i_phoneNumber');
 				let h_phone_check = document.getElementById('h_phone_check');
 
-				if ( data == 'true' ) {
-					alert('인증 되었습니다.');
-					h_phone_check.value = 'true'; // 휴대폰 중복 체크 값에 true를 전달한다.
-					phoneNumber.readOnly = true; // 인증된 휴대폰을 변경하지 못하도록 막는다.
-					i_phoneNumber.readOnly = true; // 작성한 휴대폰 인증 번호를 변경하지 못하도록 막는다.
-					return;
-				} else {
+				if ( data == 'false' ) {
 					alert('인증 번호를 다시 확인해주세요.');
 					h_phone_check.value = 'false'; // 휴대폰 중복 체크 값에 false를 전달한다.
 					i_phoneNumber.value = ''; // 작성한 휴대폰 인증 번호를 초기화한다.
 					return;
 				}
+
+				alert('인증 되었습니다.');
+				h_phone_check.value = 'true'; // 휴대폰 중복 체크 값에 true를 전달한다.
+				phoneNumber.readOnly = true; // 인증된 휴대폰을 변경하지 못하도록 막는다.
+				i_phoneNumber.readOnly = true; // 작성한 휴대폰 인증 번호를 변경하지 못하도록 막는다.
+				return;
 			}
 		}
 	</script>
@@ -118,23 +118,23 @@
 			// 유효성 검사
 			
 			if ( name == '' ) {
-				alert("이름을 입력하세요");
+				alert("이름을 입력하세요.");
 				return;
 			}
 			if ( phoneNumber == '' ) {
-				alert("휴대폰 번호를 입력하세요");
+				alert("휴대폰 번호를 입력하세요.");
 				return;
 			}
 			if ( i_phoneNumber == '' ) {
-				alert("인증번호를 입력하세요")
+				alert("인증번호를 입력하세요.")
 				return;
 			}
 			if ( h_phone_check != 'true' ) {
-				alert("인증번호를 다시 확인하세요");
+				alert("인증번호를 다시 확인하세요.");
 				return;
 			}
 			
-			let url = "findIdCheck";
+			let url = "/find_id_check";
 			let param = "name=" + name +
 						"&phoneNumber=" + phoneNumber;
 			sendRequest(url, param, resultId, "POST");

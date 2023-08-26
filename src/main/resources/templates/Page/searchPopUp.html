@@ -45,24 +45,12 @@
 					<th:block th:each="id : ${list}">
 						<div class="wantSearch">
 							<figure>
-								<!-- 검색된 유저의 플랫폼이 싸이월드일 경우 -->
-								<th:block th:if="${ id.platform eq 'cyworld' }">
-									<!-- 검색된 유저의 미니미 -->
-									<input class="memberMinimi" type="image" th:src="@{/filePath/minimi/} + ${ id.minimi }" th:value="${ id.userId }"  th:onclick="|opener.location.href='@{/main/{idx}(idx=${ id.idx })}'; searchClick();|">
-									<!-- 검색된 유저의 아이디 - 싸이월드 가입자는 아이디가 존재하기에 아이디로 작성 -->
-									<a class="myname" th:onclick="|opener.location.href='@{/main/{idx}(idx=${ id.idx })}'; searchClick();|"><span th:text="${ id.name }"></span></a><span class="info1" th:text="'ID: ' + ${ id.userId }"></span>
-									<!-- 검색된 유저의 플랫폼 -->
-									<span class="platform" th:text="'Platform: ' + ${ id.platform }"></span>
-								</th:block>
-								<!-- 검색된 유저의 플랫폼이 소셜일 경우 -->
-								<th:block th:if="${ id.platform ne 'cyworld' }">
-									<!-- 검색된 유저의 미니미 -->
-									<input class="memberMinimi" type="image" th:src="@{/filePath/minimi/} + ${ id.minimi }" value="socialUser"  th:onclick="|opener.location.href='@{/main/{idx}(idx=${ id.idx })}'; searchClick();|">
-									<!-- 검색된 유저의 이메일 - 소셜 가입자는 아이디가 존재하지 않기에 이메일로 대체하여 작성 -->
-									<a class="myname" th:onclick="|opener.location.href='@{/main/{idx}(idx=${ id.idx })}'; searchClick();|"><span th:text="${ id.name }"></span></a><span class="info1" th:text="'Email: ' + ${ id.email }"></span>
-									<!-- 검색된 유저의 플랫폼 -->
-									<span class="platform" th:text="'Platform: ' + ${ id.platform }"></span>
-								</th:block>
+								<!-- 검색된 유저의 미니미 -->
+								<input class="memberMinimi" type="image" th:src="@{/filePath/minimi/} + ${ id.minimi }" value="socialUser"  th:onclick="|opener.location.href='@{/main/{idx}(idx=${ id.idx })}'; searchClick();|">
+								<!-- 검색된 유저의 이메일 -->
+								<a class="myname" th:onclick="|opener.location.href='@{/main/{idx}(idx=${ id.idx })}'; searchClick();|"><span th:text="${ id.name }"></span></a><span class="info1" th:text="'Email: ' + ${ id.email }"></span>
+								<!-- 검색된 유저의 플랫폼 -->
+								<span class="platform" th:text="'Platform: ' + ${ id.platform }"></span>
 							</figure>
 						</div>
 					</th:block>

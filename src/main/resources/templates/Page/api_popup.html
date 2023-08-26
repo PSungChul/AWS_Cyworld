@@ -102,7 +102,7 @@
 											 '&birthday=' + birthday +
 											 '&phoneNumber=' + phoneNumber +
 											 '&email=' + email)
-				.then(response => response.text())
+				.then(response => response.text()) // Text 형식으로 파싱
 				.then(data => {
 					// 로그인 에러
 					if ( data == '0' ) {

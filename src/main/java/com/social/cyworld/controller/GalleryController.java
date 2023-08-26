@@ -151,38 +151,31 @@ public class GalleryController {
 		// 조회된 모든 댓글을 리스트 형태로 바인딩
 		model.addAttribute("commentList", commentList);
 		
-		// 그 다음 idx에 해당하는 유저 정보를 조회
+		// 그 다음 idx에 해당하는 유저정보를 조회
 		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저 정보를 바인딩
+		// 조회된 유저정보를 바인딩
 		model.addAttribute("sign", sign);
 		// 로그인 유저 idx를 바인딩
 		model.addAttribute("loginIdx", loginIdx);
 		
-		// 그 다음 사진첩에 댓글 작성자를 만들기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
+		// 그 다음 사진첩에 댓글 작성자를 만들기 위해 로그인 유저 idx에 해당하는 유저정보를 조회
 		Sign loginUser = signService.findByIdx(loginIdx);
 		
-		// 조회한 유저 정보에서 댓글 작성자를 만들어 담을 String변수
+		// 조회한 유저정보에서 댓글 작성자를 만들어 담을 String변수
 		String galleryCommentName = "";
-		
-		if ( loginUser.getPlatform().equals("cyworld") ) {
-			// 플랫폼이 cyworld일 경우 - ID + @ + cyworld = qwer@cyworld
-			// galleryCommentName = (loginUser.getUserID() + "@" + loginUser.getPlatform());
-			
-			// 플랫폼이 cyworld일 경우 - ( + 이름 + / + ID + ) = ( 관리자 / qwer ) - 변경
-			galleryCommentName = ( "( " + loginUser.getName() + " / " + loginUser.getUserId() + " )" );
-		} else {
-			/* 플랫폼이 소셜일 경우 - 이메일 @부분까지 잘라낸 뒤 플랫폼명 추가 - 폐기
-			 * 네이버 - qwer@ + naver = qwer@naver
-			 * 카카오 - qwer@ + kakao = qwer@kakao
-			 */
-			// galleryCommentName = (loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") + 1 ) + loginUser.getPlatform());
-			
-			/* 플랫폼이 소셜일 경우 ID가 없으므로 이메일로 대체 - 이름 + 이메일 @부분부터 뒤쪽을 다 잘라낸다 - 변경
-			 * 네이버 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
-			 * 카카오 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
-			 */
-			galleryCommentName = ( "( " + loginUser.getName() + " / " + loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") ) + " )" );
-		}
+
+		/* 이메일 @부분까지 잘라낸 뒤 플랫폼명 추가 - 폐기
+		 * 네이버 - qwer@ + naver = qwer@naver
+		 * 카카오 - qwer@ + kakao = qwer@kakao
+		 */
+		// galleryCommentName = (loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") + 1 ) + loginUser.getPlatform());
+
+		/* 이름 + 이메일 @부분부터 뒤쪽을 다 잘라낸다 - 변경
+		 * 네이버 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
+		 * 카카오 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
+		 */
+		galleryCommentName = ( "( " + loginUser.getName() + " / " + loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") ) + " )" );
+
 		// 만들어진 댓글 작성자를 바인딩
 		model.addAttribute("loginName", galleryCommentName);
 		

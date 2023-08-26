@@ -15,22 +15,10 @@ public class SignService {
     SignRepository signRepository;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////SignUp
-    // ID 중복 확인
-    public Sign findByUserId(String userId) {
-        Sign sign = signRepository.findByUserId(userId);
+    // 이름 + 생년월일 + 휴대폰 번호 체크 (가입자와 비가입자 구분용)
+    public Sign findByNameAndBirthdayAndPhoneNumber(String name, String birthday, String phoneNumber) {
+        Sign sign = signRepository.findByNameAndBirthdayAndPhoneNumber(name, birthday, phoneNumber);
         return sign;
-    }
-
-    // 플랫폼 + 이메일 확인 절차 (가입자와 비가입자 구분용) - kakao
-    public Sign findByPlatformAndEmail(Sign sign) {
-        Sign join = signRepository.findByPlatformAndEmail(sign.getPlatform(), sign.getEmail());
-        return join;
-    }
-
-    // 플랫폼 + 휴대폰 확인 절차 (가입자와 비가입자 구분용) - naver
-    public Sign findByPlatformAndPhoneNumber(Sign sign) {
-        Sign join = signRepository.findByPlatformAndPhoneNumber(sign.getPlatform(), sign.getPhoneNumber());
-        return join;
     }
 
     // 이메일 중복 확인
@@ -45,9 +33,10 @@ public class SignService {
         return sign;
     }
 
-    // 가입 성공시 고객 정보 저장
-    public void signUp(Sign sign) {
-        signRepository.save(sign);
+    // 가입 유저정보 저장
+    public Sign insertIntoSign(Sign sign) {
+        Sign join = signRepository.save(sign);
+        return join;
     }
 
     // ID 찾기
@@ -58,14 +47,14 @@ public class SignService {
     }
 
     // PW 찾기
-    public Sign findByUserIdAndNameAndEmail(Sign sign) {
-        Sign join = signRepository.findByUserIdAndNameAndEmail(sign.getUserId(), sign.getName(), sign.getEmail());
+    public Sign findByEmailAndNameAndPhoneNumber(Sign sign) {
+        Sign join = signRepository.findByEmailAndNameAndPhoneNumber(sign.getEmail(), sign.getName(), sign.getPhoneNumber());
         return join;
     }
 
     // 임시 PW 갱신
-    public void updateSetInfoByUserId(HashMap<String, String> map) {
-        signRepository.updateSetInfoByUserId(map.get("2"), map.get("1"));
+    public void updateSetInfoByEmail(HashMap<String, String> map) {
+        signRepository.updateSetInfoByEmail(map.get("2"), map.get("1"));
     }
 
     // 로그인시 접속 날짜 기록
@@ -73,7 +62,7 @@ public class SignService {
         signRepository.updateSetToDateByIdx(sign.getToDate(), sign.getIdx());
     }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Main - Views
-    // Idx 기준 회원정보 조회
+    // Idx 기준 유저정보 조회
     public Sign findByIdx(int idx) {
         Sign sign = signRepository.findByIdx(idx);
         return sign;
@@ -101,9 +90,8 @@ public class SignService {
 
     // ID로 친구 검색 - cyworld 가입자
     // email로 친구 검색 - 소셜 가입자
-    public List<Sign> findByPlatformAndUserIdContainingOrPlatformInAndEmailContaining(String searchValue) {
-        List<String> platforms = Arrays.asList("naver", "kakao");
-        List<Sign> signList = signRepository.findByPlatformAndUserIdContainingOrPlatformInAndEmailContaining("cyworld", searchValue, platforms, searchValue);
+    public List<Sign> findByEmailContaining(String searchValue) {
+        List<Sign> signList = signRepository.findByEmailContaining(searchValue);
         return signList;
     }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Buy

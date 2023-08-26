@@ -67,7 +67,7 @@
 			let dotory = [[${ sign.dotory }]];
 
 			fetch('/product_check?idx=' + idx + '&productIdx=' + dotoryIdx)
-				.then(response => response.json())
+				.then(response => response.json()) // JSON 형식으로 파싱
 				.then(data => {
 					// 로그인 에러
 					if ( data.price == '0' ) {

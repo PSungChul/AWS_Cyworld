@@ -13,14 +13,8 @@ import java.util.List;
 @ResponseBody
 public interface SignRepository extends JpaRepository<Sign, Object> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////SignUp
-    // ID 중복 확인
-    Sign findByUserId(String userId);
-
-    // 플랫폼별 가입자 조회 - kakao
-    Sign findByPlatformAndEmail(String platform, String email);
-
-    // 플랫폼별 가입자 조회 - naver
-    Sign findByPlatformAndPhoneNumber(String platform, String phoneNumber);
+    // 가입자 조회
+    Sign findByNameAndBirthdayAndPhoneNumber(String name, String birthday, String phoneNumber);
 
     // 이메일 중복 확인
     Sign findByEmail(String email);
@@ -33,13 +27,13 @@ public interface SignRepository extends JpaRepository<Sign, Object> {
     Sign findByNameAndPhoneNumber(String name, String phoneNumber);
 
     // PW 찾기
-    Sign findByUserIdAndNameAndEmail(String userId, String name, String email);
+    Sign findByEmailAndNameAndPhoneNumber(String email, String name, String phoneNumber);
 
     // 임시 PW 갱신
-    @Query("UPDATE Sign s SET s.info = :info WHERE s.userId = :userId")
+    @Query("UPDATE Sign s SET s.info = :info WHERE s.email = :email")
     @Modifying(clearAutomatically = true)
     @Transactional
-    void updateSetInfoByUserId(@Param("info") String info, @Param("userId") String userId);
+    void updateSetInfoByEmail(@Param("info") String info, @Param("email") String email);
 
     // 로그인시 접속 날짜 기록
     @Query("UPDATE Sign s SET s.toDate = :toDate WHERE s.idx= :idx")
@@ -48,7 +42,7 @@ public interface SignRepository extends JpaRepository<Sign, Object> {
     void updateSetToDateByIdx(@Param("toDate") String toDate, @Param("idx") int idx);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Main - Views
-    // Idx 기준 회원정보 조회
+    // Idx 기준 유저정보 조회
     Sign findByIdx(int idx);
 
     // 일일 조회수 증가
@@ -72,9 +66,8 @@ public interface SignRepository extends JpaRepository<Sign, Object> {
     // 이름으로 친구 검색
     List<Sign> findByNameContaining(String searchValue);
 
-    // ID로 친구 검색 - cyworld 가입자
-	// email로 친구 검색 - 소셜 가입자
-    List<Sign> findByPlatformAndUserIdContainingOrPlatformInAndEmailContaining(String platform, String userId, List<String> platforms, String email);
+	// email로 친구 검색
+    List<Sign> findByEmailContaining(String searchValue);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Main - Buy
     // 도토리 구매
     @Query("UPDATE Sign s SET s.dotory = :dotory WHERE s.idx = :idx")

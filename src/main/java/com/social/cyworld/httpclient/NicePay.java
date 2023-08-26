@@ -47,7 +47,7 @@ public class NicePay {
     }
 
     public static JsonNode getCyworldUser(String accessToken) { // 19. 파라미터로 컨트롤러에서 넘어온 accessToken을 받아온다.
-        // 20. 19에서 받아온 access_token을 가지고 구글 로그인 유저 정보를 받아오는 구글 서버 URL을 작성한다.
+        // 20. 19에서 받아온 access_token을 가지고 구글 로그인 유저정보를 받아오는 구글 서버 URL을 작성한다.
         final String requestUrl = "http://54.199.77.149:9999/api/user";
 
         // 21. 외부 서버와 통신을 맡아줄 HttpClient를 생성한다.

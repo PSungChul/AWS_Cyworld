@@ -167,9 +167,9 @@ public class ProfileController {
 			return "Page/main";
 		}
 
-		// 미니홈피 유저 정보 조회
+		// 미니홈피 유저정보 조회
 		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저 정보를 바인딩
+		// 조회된 유저정보를 바인딩
 		model.addAttribute("sign", sign);
 		// 로그인 유저 idx를 바인딩
 		model.addAttribute("loginIdx", loginIdx);

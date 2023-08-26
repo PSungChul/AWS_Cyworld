@@ -17,7 +17,7 @@ public class Sign {
 	private Integer idx;
 
 	@Column(length = 50, nullable = false, unique = true)
-	private String userId;
+	private String email;
 
 	@Column(length = 255, nullable = false)
 	private String info;
@@ -33,15 +33,6 @@ public class Sign {
 
 	@Column(length = 30, nullable = false, unique = true)
 	private String phoneNumber;
-
-	@Column(length = 50, nullable = false, unique = true)
-	private String email;
-
-	@Column(length = 255, nullable = false)
-	private String address;
-
-	@Column(length = 255, nullable = false)
-	private String addressDetail;
 
 	@Column(length = 10, nullable = false)
 	private String platform;
