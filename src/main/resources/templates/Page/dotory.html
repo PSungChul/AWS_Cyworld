@@ -37,19 +37,18 @@
 						<input type="hidden" name="nowDotory" th:value="${ sign.dotory }">
 						<!-- 도토리 개수 선택 -->
 						<th:block th:each="product, status : ${productList}">
-							<input class="btn" type="radio" th:id="'tab' + ${ status.count }" name="dotoryIdx" th:value="${ product.productIdx }">
+							<input class="btn dotoryIdx" type="checkbox" th:id="'tab' + ${ status.count }" name="dotoryIdx" th:value="${ product.productIdx }" onclick="NoMultiChk(this)">
 						</th:block>
 					
 						<div class="tab-btns">
-							<label for="tab1" id="btn1" class="active"><div class="list"><img src="/images/dotory10.png" alt=""><p class="price price1">100개 : 100원</p></div></label>
-							<label for="tab2" id="btn2"><div class="list"><img src="/images/dotory30.png" alt=""><p class="price price2">300개 : 300원</p></div></label>
-							<label for="tab3" id="btn3"><div class="list"><img src="/images/dotory50.png" alt=""><p class="price price3">500개 : 500원</p></div></label>
-							<label for="tab4" id="btn4"><div class="list"><img src="/images/dotory100.png" alt=""><p class="price price4">1000개 : 1000원</p></div></label>
+							<th:block th:each="product, status : ${productList}">
+								<label th:for="'tab' + ${ status.count }" th:id="'btn' + ${ status.count }" th:classappend="${ status.count } == '1' ? active"><div class="list"><img th:src="@{/images/} + 'dotory' + ${ product.price } + '.png'" alt=""><p class="price" th:text="${ product.name } + ' : ' + ${ product.price } + '원'">100개 : 100원</p></div></label>
+							</th:block>
 						</div>
 						
 						<div id="buyButton">
 							<input id="btn-cover" class="buy" type="button" value="충전하기" onclick="buy(this.form);">
-							<input id="btn-cover" class="close "type="button" value="구매완료" th:onclick="|opener.location.href='@{/main/{idx}(idx=${ sign.idx })}'; buyclose();|">
+							<input id="btn-cover" class="close "type="button" value="나가기" th:onclick="|opener.location.href='@{/main/{idx}(idx=${ sign.idx })}'; buyclose();|">
 						</div>
 					</div>
 				</form>
@@ -60,66 +59,84 @@
 	<!-- NicePay API -->
 	<script src="https://pay.nicepay.co.kr/v1/js/"></script>
 	<script th:inline="javascript">
-		// 도토리 구매
+		// 도토리 결제
 		function buy(f) {
 			let idx = f.idx.value;
-			let dotoryIdx = f.dotoryIdx.value;
 			let dotory = [[${ sign.dotory }]];
+			let dotoryIdxNodeList = document.querySelectorAll('.dotoryIdx');
+			let dotoryIdxList = Array.from(dotoryIdxNodeList);
 
-			fetch('/product_check?idx=' + idx + '&productIdx=' + dotoryIdx)
-				.then(response => response.json()) // JSON 형식으로 파싱
-				.then(data => {
-					// 로그인 에러
-					if ( data.price == '0' ) {
-						alert('잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.');
-						opener.location.href = '/logout';
-						window.close();
-						return;
-					}
-					if ( data.price == '-4' ) {
-						alert('잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.');
-						opener.location.href = '/logout';
-						window.close();
-						return;
-					}
-					if ( data.price == '-99' ) {
-						alert('다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
-						opener.location.href = '/logout';
-						window.close();
-						return;
-					}
-					if ( data.price == '-100' ) {
-						alert('로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
-						opener.location.href = '/logout';
-						window.close();
-						return;
-					}
-					if ( data.price == '-1' ) {
-						alert('세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
-						opener.location.href = '/logout';
-						window.close();
-						return;
-					}
+			if ( dotoryIdxList.some( dotoryIdx => dotoryIdx.checked ) ) {
+				let dotoryIdx = dotoryIdxList
+								.filter(dotoryIdx => dotoryIdx.checked)
+								.map(dotoryIdx => dotoryIdx.value);
 
-					if ( data.price == '-9' ) {
-						alert('상품 정보를 가져오는데 실패하였습니다.');
-						return;
-					} else {
-						AUTHNICE.requestPay({
-							clientId: [[${clientId}]],
-							method: 'card',
-							orderId: [[${orderId}]],
-							amount: data.price,
-							goodsName: data.name,
-							returnUrl: 'http://localhost:9999/dotory/dotory_buy?idx=' + data.idx,
-							fnError: function (result) {
-								alert(result.errorMsg);
-								return;
-							}
-						});
-					}
+				fetch('/product_check' , {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded'
+					},
+					body: 'idx=' + idx +
+						  '&productIdx=' + dotoryIdx
 				})
-				.catch(error => console.error(error)); // fetch
+					.then(response => response.json()) // JSON 형식으로 파싱
+					.then(data => {
+						// 로그인 에러
+						if ( data.price == '0' ) {
+							alert('잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+						if ( data.price == '-4' ) {
+							alert('잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+						if ( data.price == '-99' ) {
+							alert('다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+						if ( data.price == '-100' ) {
+							alert('로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+						if ( data.price == '-1' ) {
+							alert('세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+
+						if ( data.price == '-9' ) {
+							alert('상품 정보를 가져오는데 실패하였습니다.');
+							return;
+						} else {
+							AUTHNICE.requestPay({
+								clientId: [[${clientId}]],
+								method: 'card',
+								orderId: [[${orderId}]],
+								amount: data.price,
+								goodsName: data.name,
+								returnUrl: 'http://localhost:9999/dotory/pay_dotory?idx=' + data.idx,
+								fnError: function (result) {
+									alert(result.errorMsg);
+									return;
+								}
+							});
+						}
+					})
+					.catch(error => console.error(error)); // fetch
+				return;
+			} else {
+				alert("충전할 도토리를 선택해주세요.");
+				return;
+			}
 		}
 	</script>
 
@@ -127,6 +144,18 @@
 		// 팝업창 닫기
 		function buyclose() {
 			return window.close();
+		}
+	</script>
+
+	<!-- checkbox 중복 체크 방지 -->
+	<script>
+		function NoMultiChk(chk) {
+			let obj = document.getElementsByName("dotoryIdx");
+			for (let i=0; i < obj.length; i++) {
+				if (obj[i] != chk) {
+					obj[i].checked = false;
+				}
+			}
 		}
 	</script>
 

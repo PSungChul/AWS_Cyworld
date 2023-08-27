@@ -46,11 +46,6 @@
    .buy {position:relative; top:-235px; left:175px;
     width: 50px; height: 30px;
    }
-   .price { background-color:transparent; border:none; width:60px; font-size:20px; font-weight:bold; margin-top:40px; margin-left:50px;}
-   #price1 { width:55px;}
-   #price2 { margin-left:70px;}
-   #price3 { margin-left:90px;}
-    #font { font-size:20px; font-weight:bold;}
    .close { position:relative; top:-35px; left:230px;  width: 50px; height: 30px;}
     .list > img { width: 130px; height: 130px; }
     .buyMinimi {position: absolute; top:700px; left: 30px;
@@ -69,10 +64,17 @@
         position: relative; background-color: white;
         left:-20px; top:30px;
         width: 130px; height: 130px;
-        box-shadow: 10px 10px  20px rgba(0, 0, 0, 25%); 
-        margin-left: 30px; 
-    display: inline-block;
+        box-shadow: 10px 10px  20px rgba(0, 0, 0, 25%);
+        margin-left: 30px;
+        display: inline-block;
     }
+
+    .price {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #font { font-size:20px; font-weight:bold;}
 
 .tabs> #tab1:checked ~.tab-btns > #btn1 { border: 10px solid rgba(193, 114, 250, 0.636); }
 .tabs> #tab2:checked ~.tab-btns > #btn2 { border: 10px solid rgba(193, 114, 250, 0.636); }

@@ -10,10 +10,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.social.cyworld.dto.LeftProfileDTO;
-import com.social.cyworld.entity.BuyMinimi;
+import com.social.cyworld.entity.BuyProduct;
 import com.social.cyworld.entity.Ilchon;
+import com.social.cyworld.entity.Product;
 import com.social.cyworld.entity.Sign;
 import com.social.cyworld.service.MainService;
+import com.social.cyworld.service.ProductService;
 import com.social.cyworld.service.ProfileService;
 import com.social.cyworld.service.SignService;
 import com.social.cyworld.util.JwtUtil;
@@ -49,6 +51,8 @@ public class ProfileController {
 	MainService mainService;
 	@Autowired
 	ProfileService profileService;
+	@Autowired
+	ProductService productService;
 
 	// properties - sens
 	@Value("${naverAccessKey:naverAccessKey}")
@@ -194,7 +198,7 @@ public class ProfileController {
 		// 프로필 페이지로 이동
 		return "Page/profile";
 	}
-	
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////상품 - 미니미
 	// 미니미 팝업
 	@RequestMapping("/profile_minimi_popup/{idx}") // 경로 매개변수
 	public String popup(@PathVariable int idx, Model model) {
@@ -308,11 +312,36 @@ public class ProfileController {
 		model.addAttribute("minimi", sign.getMinimi());
 		// 조회된 프로필 정보중 도토리 개수를 바인딩
 		model.addAttribute("dotory", sign.getDotory());
+
+		// 상품 타입이 미니미에 해당하는 상품 정보를 모두 조회하여 리스트로 가져온다.
+		List<Product> productList = productService.findByProductType(2);
+		// 가져온 미니미 상품 리스트를 바인딩
+		model.addAttribute("productList", productList);
 		
-		// idx에 해당하는 구매한 미니미 조회
-		List<BuyMinimi> buyMinimiList = profileService.findByBuyIdx(idx);
-		// 조회된 구매한 미니미를 리스트 형태로 바인딩
-		model.addAttribute("buyMinimi", buyMinimiList);
+		// idx에 해당하는 구매한 미니미를 모두 조회하여 리스트로 가져온다.
+		List<BuyProduct> buyProductList = profileService.findByBuyIdx(idx);
+
+		// 가져온 구매한 미니미 리스트가 비어있는지 체크한다.
+		// 구매한 미니미 리스트가 비어있는 경우
+		if ( buyProductList.size() == 0 ) {
+			// 구매한 미니미가 하나도 없다는 의미로 null을 바인딩
+			model.addAttribute("buyProductList", null);
+		} else {
+			// 조회된 구매한 미니미를 리스트 형태로 바인딩
+			model.addAttribute("boughtProductList", buyProductList);
+
+			// 미니미 상품 리스트에서 구매한 미니미를 제거한다.
+			for ( int i = 0; i < buyProductList.size(); i++ ) {
+				for ( int j = 0; j < productList.size(); j++ ) {
+					if ( buyProductList.get(i).getBuyName().equals(productList.get(j).getName()) ) {
+						productList.remove(j);
+						break;
+					}
+				}
+			}
+			// 구매한 미니미가 제거된 미니미 상품 리스트를 바인딩
+			model.addAttribute("buyProductList", productList);
+		}
 
 		// 로그인 유저 idx 바인딩
 		model.addAttribute("loginIdx", loginIdx);
@@ -436,9 +465,9 @@ public class ProfileController {
 	}
 	
 	// 미니미 구매
-	@RequestMapping("/profile_minimi_buy")
+	@RequestMapping("/buy_minimi")
 	@ResponseBody
-	public String minimiBuy(Sign sign, BuyMinimi buyMinimi) {
+	public String minimiBuy(int idx, int price, BuyProduct buyProduct) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -524,34 +553,49 @@ public class ProfileController {
 		}
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
-		if ( loginIdx != sign.getIdx() ) {
+		if ( loginIdx != idx ) {
 			// 에러 코드를 반환한다.
 			return "-4";
 		}
 
 		// 미니미 idx에 AUTO_INCREMENT로 null 지정
-		buyMinimi.setIdx(null);
+		buyProduct.setIdx(null);
 		// 미니미를 구매한 idx를 지정
-		buyMinimi.setBuyIdx(sign.getIdx());
+		buyProduct.setBuyIdx(idx);
 		
 		// 이미 구매한 미니미인지 조회 - 중복 구매 방지
-		BuyMinimi boughtMinimi = profileService.findByBuyIdxAndBuyMinimiName(buyMinimi);
+		BuyProduct boughtMinimi = profileService.findByBuyIdxAndBuyName(buyProduct);
 		
 		// 이미 구매한 미니미일 경우
 		if ( boughtMinimi != null ) {
 			return "no";
 		// 아직 구매하지 않은 미니미일 경우
 		} else {
-			// 미니미를 구매하고 줄어든 도토리 보유 개수 갱신
+			// 로그인 유저 idx에 해당하는 유저정보를 조회한다.
+			Sign sign = signService.findByIdx(idx);
+
+			// 조회한 유저정보 중 보유 중인 도토리 개수를 가져와 미니미 가격보다 적은지 체크한다.
+			// 보유 중인 도토리 개수가 미니미 가격보다 적은 경우
+			if ( sign.getDotory() < price ) {
+				// 에러 코드를 반환한다.
+				return "-9";
+			}
+
+			// 보유 중인 도토리 개수가 미니미 가격보다 많거나 같은 경우
+
+			// 보유 중인 도토리 개수에서 미니미 가격만큼을 차감한다.
+			sign.setDotory(sign.getDotory() - price);
+
+			// 차감한 도토리 개수로 보유 중인 도토리 개수 갱신
 			signService.updateSetDotoryByIdx(sign);
 			
 			// 구매한 미니미를 저장
-			profileService.insertIntoBuyMinimi(buyMinimi);
+			profileService.insertIntoBuyProduct(buyProduct);
 			
 			return "yes";
 		}
 	}
-	
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////프로필 수정
 	// 프로필 좌측 - 메인 사진 및 메인 소개글 수정
 	@RequestMapping("/profile_modify_main")
 	public String profileModifyMain(LeftProfileDTO leftProfileDTO, Model model) {

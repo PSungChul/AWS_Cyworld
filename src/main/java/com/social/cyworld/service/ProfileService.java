@@ -1,8 +1,8 @@
 package com.social.cyworld.service;
 
-import com.social.cyworld.entity.BuyMinimi;
+import com.social.cyworld.entity.BuyProduct;
 import com.social.cyworld.entity.Sign;
-import com.social.cyworld.repository.BuyMinimiRepository;
+import com.social.cyworld.repository.BuyProductRepository;
 import com.social.cyworld.repository.SignRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ public class ProfileService {
     SignRepository signRepository;
 
     @Autowired
-    BuyMinimiRepository buyMinimiRepository;
+    BuyProductRepository buyProductRepository;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Profile
     // 프로필 미니미 변경
@@ -47,19 +47,19 @@ public class ProfileService {
     }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Profile - BuyMinimi
     // 구매한 미니미 전체 조회
-    public List<BuyMinimi> findByBuyIdx(int idx) {
-        List<BuyMinimi> buyMinimi = buyMinimiRepository.findByBuyIdx(idx);
-        return buyMinimi;
+    public List<BuyProduct> findByBuyIdx(int idx) {
+        List<BuyProduct> buyProduct = buyProductRepository.findByBuyIdx(idx);
+        return buyProduct;
     }
 
     // 구매한 미니미 추가
-    public void insertIntoBuyMinimi(BuyMinimi buyMinimi) {
-        buyMinimiRepository.save(buyMinimi);
+    public void insertIntoBuyProduct(BuyProduct buyProduct) {
+        buyProductRepository.save(buyProduct);
     }
 
     // 이미 구매한 미니미인지 조회
-    public BuyMinimi findByBuyIdxAndBuyMinimiName(BuyMinimi buyMinimi) {
-        BuyMinimi boughtMinimi = buyMinimiRepository.findByBuyIdxAndBuyMinimiName(buyMinimi.getBuyIdx(), buyMinimi.getBuyMinimiName());
+    public BuyProduct findByBuyIdxAndBuyName(BuyProduct buyProduct) {
+        BuyProduct boughtMinimi = buyProductRepository.findByBuyIdxAndBuyName(buyProduct.getBuyIdx(), buyProduct.getBuyName());
         return boughtMinimi;
     }
 }

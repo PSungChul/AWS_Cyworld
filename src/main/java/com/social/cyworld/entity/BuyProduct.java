@@ -10,8 +10,8 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Builder
 @ToString
-@Entity(name = "BuyMinimi")
-public class BuyMinimi {
+@Entity(name = "BuyProduct")
+public class BuyProduct {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer idx;
@@ -20,5 +20,5 @@ public class BuyMinimi {
 	private int buyIdx;
 
 	@Column(length = 50, nullable = false, unique = true)
-	private String buyMinimiName;
+	private String buyName;
 }

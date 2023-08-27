@@ -784,8 +784,8 @@ public class MainController {
 
 		// 상품 Idx에 AUTO_INCREMENT로 null 지정
 		product.setIdx(null);
-		// 상품 번호를 암호화
-		product.setProductIdx(passwordEncoder.encode(product.getProductIdx()));
+		// 상품 번호에 상품 타입 + 상품 이름 + 상품 가격을 합쳐서 암호화하여 지정
+		product.setProductIdx(passwordEncoder.encode(product.getProductType() + ":" + product.getName() + ":" + product.getPrice()));
 		// 상품 정보를 저장
 		productService.insertIntoProduct(product);
 
@@ -793,7 +793,7 @@ public class MainController {
 		return "redirect:/product/" + loginIdx;
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////상품
-	// 구매하려는 상품 정보 조회
+	// 결제 및 구매하려는 상품 정보 조회
 	@RequestMapping("/product_check")
 	@ResponseBody
 	public HashMap<String, Object> productCheck(int idx, String productIdx) {
@@ -924,7 +924,7 @@ public class MainController {
 		return productMap;
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////상품 - 도토리
-	// 도토리 구매 팝업
+	// 도토리 결제 팝업
 	@RequestMapping("/dotory/{idx}") // 경로 매개변수
 	public String dotory(@PathVariable int idx,
 						 @RequestParam(required = false) String success,
@@ -955,13 +955,13 @@ public class MainController {
 			if ( session.getAttribute("login") != null ) {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
-				// 도토리 구매 팝업으로 이동
+				// 도토리 결제 팝업으로 이동
 				return "Page/dotory";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
-				// 도토리 구매 팝업으로 이동
+				// 도토리 결제 팝업으로 이동
 				return "Page/dotory";
 			}
 		}
@@ -972,7 +972,7 @@ public class MainController {
 		if ( loginIdx == -99 ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-			// 도토리 구매 팝업으로 이동
+			// 도토리 결제 팝업으로 이동
 			return "Page/dotory";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
@@ -985,7 +985,7 @@ public class MainController {
 				jwtUtil.logoutToken(authorization);
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-				// 도토리 구매 팝업으로 이동
+				// 도토리 결제 팝업으로 이동
 				return "Page/dotory";
 			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
@@ -996,7 +996,7 @@ public class MainController {
 				if ( refreshToken == null ) {
 					// 에러 메시지를 바인딩한다.
 					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					// 도토리 구매 팝업으로 이동
+					// 도토리 결제 팝업으로 이동
 					return "Page/dotory";
 				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
@@ -1027,7 +1027,7 @@ public class MainController {
 		if ( loginIdx != idx ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
-			// 도토리 구매 팝업으로 이동
+			// 도토리 결제 팝업으로 이동
 			return "Page/dotory";
 		}
 
@@ -1041,8 +1041,8 @@ public class MainController {
 		model.addAttribute("sign", sign);
 		// 가져온 도토리 상품 리스트를 바인딩
 		model.addAttribute("productList", productList);
-		// UUID로 상품 아이디를 만들어 바인딩
-		model.addAttribute("orderId", UUID.randomUUID());
+		// UUID와 결제 시간을 합쳐서 상품 주문 번호로 만들어 바인딩
+		model.addAttribute("orderId", UUID.randomUUID() + ":" + System.currentTimeMillis());
 		// Pay Client ID를 바인딩
 		model.addAttribute("clientId", payClientId);
 
@@ -1056,12 +1056,12 @@ public class MainController {
 			model.addAttribute("msg", error);
 		}
 
-		// 도토리 구매 팝업으로 이동
+		// 도토리 결제 팝업으로 이동
 		return "Page/dotory";
 	}
 
-	// 도토리 구매
-	@RequestMapping("/dotory/dotory_buy")
+	// 도토리 결제
+	@RequestMapping("/dotory/pay_dotory")
 	public String dotoryBuy(int idx, String tid, int amount, Model model) throws JsonProcessingException, UnsupportedEncodingException {
 		// 토큰 값
 		String authorization = null;
@@ -1088,13 +1088,13 @@ public class MainController {
 			if ( session.getAttribute("login") != null ) {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
-				// 도토리 구매 팝업으로 이동
+				// 도토리 결제 팝업으로 이동
 				return "Page/dotory";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
-				// 도토리 구매 팝업으로 이동
+				// 도토리 결제 팝업으로 이동
 				return "Page/dotory";
 			}
 		}
@@ -1105,7 +1105,7 @@ public class MainController {
 		if ( loginIdx == -99 ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-			// 도토리 구매 팝업으로 이동
+			// 도토리 결제 팝업으로 이동
 			return "Page/dotory";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
@@ -1118,7 +1118,7 @@ public class MainController {
 				jwtUtil.logoutToken(authorization);
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-				// 도토리 구매 팝업으로 이동
+				// 도토리 결제 팝업으로 이동
 				return "Page/dotory";
 			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
@@ -1129,7 +1129,7 @@ public class MainController {
 				if ( refreshToken == null ) {
 					// 에러 메시지를 바인딩한다.
 					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					// 도토리 구매 팝업으로 이동
+					// 도토리 결제 팝업으로 이동
 					return "Page/dotory";
 				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
@@ -1160,7 +1160,7 @@ public class MainController {
 		if ( loginIdx != idx ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
-			// 도토리 구매 팝업으로 이동
+			// 도토리 결제 팝업으로 이동
 			return "Page/dotory";
 		}
 
@@ -1173,18 +1173,29 @@ public class MainController {
 		if ( resultCode.equals("0000") ) {
 			// 로그인 유저 idx에 해당하는 유저정보를 조회하여 가져온다.
 			Sign sign = signService.findByIdx(loginIdx);
-			// 가져온 유저정보 중 현재 가지고 있는 도토리 개수에 구매한 도토리 개수를 더해서 setter를 통해 전달한다.
+			// 가져온 유저정보 중 현재 가지고 있는 도토리 개수에 결제한 도토리 개수를 더해서 setter를 통해 전달한다.
 			sign.setDotory(sign.getDotory()+amount);
-			// setter를 통해 전달한 도토리 개수로 갱신한다.
+			// setter를 통해 전달받은 도토리 개수로 갱신한다.
 			signService.updateSetDotoryByIdx(sign);
 
-			// 로그인 유저 idx와 결제 완료 메시지를 들고 도토리 구매 페이지 URL로 이동
+			// 도토리 결제 내역을 저장하기위해 결제 내역 Entity를 생성한다.
+			PayProduct payProduct = new PayProduct();
+			// 반환받은 정보 중 상품 주문 번호를 가져와 setter를 통해 전달한다.
+			payProduct.setOrderId(jsonResponse.get("orderId").asText());
+			// 로그인 유저 idx를 setter를 통해 전달한다.
+			payProduct.setIdx(loginIdx);
+			// 반환받은 정보 중 상품 이름을 가져와 setter를 통해 전달한다.
+			payProduct.setName(jsonResponse.get("goodsName").asText());
+			// 전달받은 결제 내역을 저장한다.
+			productService.insertIntoPayProduct(payProduct);
+
+			// 로그인 유저 idx와 결제 완료 메시지를 들고 도토리 걸제 페이지 URL로 이동
 			return "redirect:/dotory/" + loginIdx + "?success=" + URLEncoder.encode("결제가 완료되었습니다.", "UTF-8");
 		}
 
 		// 결제에 실패한 경우
 
-		// 로그인 유저 idx와 결제 실패 메시지를 들고 도토리 구매 페이지 URL로 이동
+		// 로그인 유저 idx와 결제 실패 메시지를 들고 도토리 결제 페이지 URL로 이동
 		return "redirect:/dotory/" + loginIdx + "?error=" + URLEncoder.encode("결제에 실패하였습니다.", "UTF-8");
 	}
 

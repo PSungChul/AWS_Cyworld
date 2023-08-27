@@ -141,7 +141,7 @@
 					<aside class="right-aside" id="scrollBar">
 						<!-- 도토리 - 타 유저한테는 안보이게 숨김 -->
 						<th:block th:if="${ sign.idx eq loginUser.idx }">
-							<div class="dotory"><span th:text="'도토리 보유량 : ' + ${ sign.dotory } + '개'"></span> <input id="btn_cover" class="dotoryBtn" type="button" value="도토리구매" onclick="DotoryPopUp()"></div>
+							<div class="dotory"><span th:text="'도토리 보유량 : ' + ${ sign.dotory } + '개'"></span> <input id="btn_cover" class="dotoryBtn" type="button" value="도토리 충전" onclick="DotoryPopUp()"></div>
 						</th:block>
 						<!-- 미니룸 -->
 						<div class="miniRoomBox"><p>Mini Room</p>
@@ -277,7 +277,7 @@
 			let pop = window.open(popUrl, "_blank", popOption);
 		}
 
-		// 도토리 구매 팝업창
+		// 도토리 결제 팝업창
 		function DotoryPopUp() {
 			let popUrl = "/dotory/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=800, height=800, status=no, menubar=no, toolbar=no, resizable=no";

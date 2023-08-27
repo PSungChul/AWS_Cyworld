@@ -95,7 +95,7 @@ public class SignService {
         return signList;
     }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Buy
-    // 도토리 구매
+    // 도토리 결제
     public void updateSetDotoryByIdx(Sign sign) {
         signRepository.updateSetDotoryByIdx(sign.getDotory(), sign.getIdx());
     }

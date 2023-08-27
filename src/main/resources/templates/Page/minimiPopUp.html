@@ -43,20 +43,12 @@
 						
 						<input name="idx" type="hidden" th:value="${loginIdx}">
 						<!-- 현재 보유중인 미니미 -->
-						<input id="tab1" class="btn" name="minimi" type="checkbox"  value="Spongebob.gif" onclick="NoMultiChk1(this)">
-						<input id="tab2" class="btn" name="minimi" type="checkbox"  value="stitch.gif" onclick="NoMultiChk1(this)">
-						<input id="tab3" class="btn" name="minimi" type="checkbox"  value="Crayon3.gif" onclick="NoMultiChk1(this)">
+						<input id="tab1" class="btn" name="minimi" type="checkbox" value="Spongebob.gif" onclick="NoMultiChk1(this)">
+						<input id="tab2" class="btn" name="minimi" type="checkbox" value="stitch.gif" onclick="NoMultiChk1(this)">
+						<input id="tab3" class="btn" name="minimi" type="checkbox" value="Crayon3.gif" onclick="NoMultiChk1(this)">
 						<!-- 구매하면 등장할 미니미 -->
-						<th:block th:each="buyMinimi : ${buyMinimi}">
-							<th:block th:if="${ buyMinimi.buyMinimiName eq 'cat.gif' }">
-								<input id="tab4" class="btn" name="minimi" type="checkbox" value="cat.gif" onclick="NoMultiChk1(this)">
-							</th:block>
-							<th:block  th:if="${ buyMinimi.buyMinimiName eq 'thePooh.gif' }">
-								<input id="tab5" class="btn" name="minimi" type="checkbox" value="thePooh.gif" onclick="NoMultiChk1(this)">
-							</th:block>
-							<th:block th:if="${ buyMinimi.buyMinimiName eq 'fat.gif' }">
-								<input id="tab6" class="btn" name="minimi" type="checkbox" value="fat.gif" onclick="NoMultiChk1(this)">
-							</th:block>
+						<th:block th:if="${ buyProductList ne null }" th:each="buyProduct, status : ${boughtProductList}">
+							<input th:id="'tab' + ${ status.index + 4 }" class="btn" name="minimi" type="checkbox" th:value="${ buyProduct.buyName }" onclick="NoMultiChk1(this)">
 						</th:block>
 
 						<div class="tab-btns">
@@ -65,16 +57,12 @@
 							<label for="tab2" id="btn2" ><div class="list"><img name="stitch.gif" src="/images/stitch.gif" alt=""></div></label>
 							<label for="tab3" id="btn3" ><div class="list"><img name="Crayon3.gif" src="/images/Crayon3.gif" alt=""></div></label>
 							<!-- 구매하면 등장할 미니미 -->
-							<th:block th:each="buyMinimi : ${buyMinimi}">
-								<th:block th:if="${ buyMinimi.buyMinimiName eq 'cat.gif' }">
-									<label for="tab4" id="btn4" ><div class="list"><img name="cat.gif" src="/images/cat.gif" alt=""></div></label>
-								</th:block>
-								<th:block th:if="${ buyMinimi.buyMinimiName eq 'thePooh.gif' }">
-									<label for="tab5" id="btn5" ><div class="list"><img name="thePooh.gif" src="/images/thePooh.gif" alt=""></div></label>
-								</th:block>
-								<th:block th:if="${ buyMinimi.buyMinimiName eq 'fat.gif' }">
-									<label for="tab6" id="btn6" ><div class="list"><img name="fat.gif" src="/images/fat.gif" alt=""></div></label>
-								</th:block>
+							<th:block th:if="${ buyProductList ne null }" th:each="buyProduct, status : ${boughtProductList}">
+								<label th:for="'tab' + ${ status.index + 4 }" th:id="'btn' + ${ status.index + 4 }" >
+									<div class="list">
+										<img th:name="${ buyProduct.buyName }" th:src="@{/images/} + ${ buyProduct.buyName }" alt="">
+									</div>
+								</label>
 							</th:block>
 						</div>
 						<!-- 미니미 변경 버튼 -->
@@ -83,7 +71,7 @@
 				</form>
 			</div>
 		</div>
-		
+
 		<div class="buyMinimi" id="scrollBar">
 			<p class="subTitle" id="lastTitle">※ 구매 가능</p>
 			<p class="subTitle" >-액션 미니미-</p>
@@ -91,20 +79,35 @@
 			<form>
 				<div class="tabs">
 					<input id="idx" name="idx" type="hidden" th:value="${loginIdx}">
-					<input name="dotory" type="hidden" th:value="${ dotory }">
+					<input name="dotory" type="hidden" th:value="${dotory}">
 					<!-- 유료 미니미 -->
-					<input id="tab7" class="btn" name="buyMinimiName" type="checkbox" value="cat.gif" onclick="NoMultiChk2(this)">
-					<input name="price" type="number" class="price" id="price1" value="500" readonly><span id="font">개</span>
-					<input id="tab8" class="btn" name="buyMinimiName" type="checkbox" value="thePooh.gif" onclick="NoMultiChk2(this)">
-					<input name="price" type="number" class="price" id="price2" value="1000" readonly><span id="font">개</span>
-					<input id="tab9" class="btn" name="buyMinimiName" type="checkbox" value="fat.gif" onclick="NoMultiChk2(this)">
-					<input name="price" type="number" class="price" id="price3" value="2000" readonly><span id="font">개</span>
-					
+					<th:block th:if="${ buyProductList eq null }" th:each="product, status : ${productList}" th:with="productIndex=${-status.index}">
+						<input th:id="'tab' + ${productIndex}" class="btn minimiIdx" name="minimiIdx" type="checkbox" th:value="${ product.productIdx }" onclick="NoMultiChk2(this)">
+					</th:block>
+
+					<th:block th:if="${ buyProductList ne null }" th:each="product, status : ${buyProductList}" th:with="productIndex=${-status.index}">
+						<input th:id="'tab' + ${productIndex}" class="btn minimiIdx" name="minimiIdx" type="checkbox" th:value="${ product.productIdx }" onclick="NoMultiChk2(this)">
+					</th:block>
+
 					<div class="tab-btns">
 						<!-- 유료 미니미 -->
-						<label for="tab7" id="btn7" ><div class="list"><img name="cat.gif" src="/images/cat.gif" alt="" ></div></label>
-						<label for="tab8" id="btn8" ><div class="list"><img name="thePooh.gif" src="/images/thePooh.gif" alt=""></div></label>
-						<label for="tab9" id="btn9" ><div class="list"><img name="fat.gif" src="/images/fat.gif" alt=""></div></label>
+						<th:block th:if="${ buyProductList eq null }" th:each="product, status : ${productList}" th:with="productIndex=${-status.index}">
+							<label th:for="'tab' + ${productIndex}" class="minimiLabel" th:id="'btn' + ${productIndex}" onclick="clickCheck(this)">
+								<div class="list">
+									<img th:name="${ product.name }" th:src="@{/images/} + ${ product.name }" alt="">
+								</div>
+								<div class="price" id="font" th:text="${ product.price } + '개'"></div>
+							</label>
+						</th:block>
+
+						<th:block th:if="${ buyProductList ne null }" th:each="product, status : ${buyProductList}" th:with="productIndex=${-status.index}">
+							<label th:for="'tab' + ${productIndex}" class="minimiLabel" th:id="'btn' + ${productIndex}" onclick="clickCheck(this)">
+								<div class="list">
+									<img th:name="${ product.name }" th:src="@{/images/} + ${ product.name }" alt="">
+								</div>
+								<div class="price" id="font" th:text="${ product.price } + '개'"></div>
+							</label>
+						</th:block>
 					</div>
 					<!-- 미니미 구매 버튼 -->
 					<input id="btn-cover" class="buy" type="button" value="구매" onclick="purchaseMinimi(this.form);">
@@ -113,41 +116,9 @@
 		</div>
 	</div>
 <!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
-	<script>
-		// 팝업 종료
-		function buyclose() {
-			return window.close();
-		}
-	</script>
-	
-	<!-- 보유 미니미 checkbox 중복 체크 방지 -->
-	<script>
-		function NoMultiChk1(chk) {
-			let num = document.getElementsByName("minimi");
-			
-			for ( let i=0; i < num.length; i++ ) {
-				if ( num[i] != chk ) {
-					num[i].checked = false;
-				}
-			}
-		}
-	</script>
-	
-	<!-- 구매 미니미 checkbox 중복 체크 방지 -->
-	<script>
-		function NoMultiChk2(chk) {
-			let obj = document.getElementsByName("buyMinimiName");
-			
-			for ( let i=0; i < obj.length; i++ ) {
-				if ( obj[i] != chk ) {
-					obj[i].checked = false;
-				}
-			}
-		}
-	</script>
-	
 	<!-- Ajax 사용을 위한 js를 로드 -->
 	<script src="/js/httpRequest.js"></script>
+
 	<script>
 		// 미니미 변경
 		function changeMinimi(f) {
@@ -166,75 +137,184 @@
 		// 미니미 구매
 		function purchaseMinimi(f) {
 			let idx = f.idx.value;
-			let buyMinimiName = f.buyMinimiName;
-			let dotory = f.dotory.value;
-			let price = f.price;
-			
-			for ( let i = 0; i < buyMinimiName.length; i++ ) {
-				if ( buyMinimiName[i].checked == true ) {
-					// 보유 도토리 수가 미니미 가격보다 적을 경우
-					if ( parseInt(price[i].value) > parseInt(dotory) ) {
-						alert("도토리가 부족합니다");
-						return;
-					// 보유 도토리 수가 미니미 가격보다 많을 경우
-					} else {
-						dotory -= parseInt(price[i].value);
-						let url = "/profile/profile_minimi_buy";
-						let param = "idx=" + idx +
-									"&dotory=" + dotory +
-									"&buyMinimiName=" + buyMinimiName[i].value;
-						sendRequest(url, param, resultBuy, "GET");
-						return;
-					}
+			let minimiIdxNodeList = document.querySelectorAll('.minimiIdx');
+			let minimiIdxList = Array.from(minimiIdxNodeList);
+
+			if ( minimiIdxList.some( minimiIdx => minimiIdx.checked ) ) {
+				let minimiIdx = minimiIdxList
+								.filter(minimiIdx => minimiIdx.checked)
+								.map(minimiIdx => minimiIdx.value);
+
+				fetch('/product_check' , {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded'
+					},
+					body: 'idx=' + idx +
+						  '&productIdx=' + minimiIdx
+				})
+					.then(response => response.json()) // JSON 형식으로 파싱
+					.then(data => {
+						// 로그인 에러
+						if ( data.price == '0' ) {
+							alert('잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+						if ( data.price == '-4' ) {
+							alert('잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+						if ( data.price == '-99' ) {
+							alert('다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+						if ( data.price == '-100' ) {
+							alert('로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+						if ( data.price == '-1' ) {
+							alert('세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.');
+							opener.location.href = '/logout';
+							window.close();
+							return;
+						}
+
+						if ( data.price == '-9' ) {
+							alert('상품 정보를 가져오는데 실패하였습니다.');
+							return;
+						} else {
+							fetch("/profile/buy_minimi", {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/x-www-form-urlencoded"
+								},
+								body: "idx=" + idx +
+									  "&price=" + data.price +
+									  "&buyName=" + data.name
+							})
+								.then(response => response.text()) // Text 형식으로 파싱
+								.then(data => {
+									// 로그인 에러
+									if ( data == "0" ) {
+										alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+										opener.location.href = "/logout";
+										window.close();
+										return;
+									}
+									if ( data == "-4" ) {
+										alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+										opener.location.href = "/logout";
+										window.close();
+										return;
+									}
+									if ( data == "-99" ) {
+										alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+										opener.location.href = "/logout";
+										window.close();
+										return;
+									}
+									if ( data == "-100" ) {
+										alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+										opener.location.href = "/logout";
+										window.close();
+										return;
+									}
+									if ( data == "-1" ) {
+										alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+										opener.location.href = "/logout";
+										window.close();
+										return;
+									}
+
+									// 이미 구매한 미니미인 경우
+									if ( data == "no" ) {
+										alert("이미 구매한 미니미입니다");
+										return;
+									}
+									// 도토리가 부족한 경우
+									if ( data == "-9" ) {
+										alert("도토리가 부족합니다");
+										return;
+									}
+
+									alert("구매 완료");
+									window.location.reload();
+								})
+								.catch(error => console.error(error)); // fetch
+						}
+					})
+					.catch(error => console.error(error)); // fetch
+				return;
+			} else {
+				alert("구매할 미니미를 선택해주세요.");
+				return;
+			}
+		}
+	</script>
+
+	<script>
+		// 팝업 종료
+		function buyclose() {
+			return window.close();
+		}
+	</script>
+
+	<!-- 보유 미니미 checkbox 중복 체크 방지 -->
+	<script>
+		function NoMultiChk1(chk) {
+			let num = document.getElementsByName("minimi");
+
+			for ( let i=0; i < num.length; i++ ) {
+				if ( num[i] != chk ) {
+					num[i].checked = false;
 				}
 			}
 		}
-		// 미니미 구매 콜백메소드
-		function resultBuy() {
-			if ( xhr.readyState == 4 && xhr.status == 200 ) {
-				let data = xhr.responseText;
-				let idx = document.getElementById("idx").value;
+	</script>
 
-				// 로그인 에러
-				if ( data == "0" ) {
-					alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
-					opener.location.href = "/logout";
-					window.close();
-					return;
+	<!-- 구매 미니미 checkbox 중복 체크 방지 -->
+	<script>
+		function NoMultiChk2(chk) {
+			let obj = document.getElementsByName("minimiIdx");
+
+			for ( let i=0; i < obj.length; i++ ) {
+				if ( obj[i] != chk ) {
+					obj[i].checked = false;
 				}
-				if ( data == "-4" ) {
-					alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
-					opener.location.href = "/logout";
-					window.close();
-					return;
+			}
+		}
+	</script>
+
+	<!-- 구매 미니미 체크 스타일 -->
+	<script>
+		function clickCheck(chk) {
+			let obj = document.getElementsByClassName("minimiLabel");
+
+			let chkFor = chk.getAttribute("for");
+			let checkbox = document.querySelector(`input[id=${chkFor}]`);
+
+			for ( let i=0; i < obj.length; i++ ) {
+				if ( obj[i] != chk ) {
+					obj[i].style.border = "";
 				}
-				if ( data == "-99" ) {
-					alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					opener.location.href = "/logout";
-					window.close();
-					return;
-				}
-				if ( data == "-100" ) {
-					alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					opener.location.href = "/logout";
-					window.close();
-					return;
-				}
-				if ( data == "-1" ) {
-					alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
-					opener.location.href = "/logout";
-					window.close();
-					return;
-				}
-				
-				// 이미 구매한 미니미일 경우
-				if ( data == "no" ) {
-					alert("이미 구매한 미니미입니다");
-					return;
-				}
-				
-				alert("구매 완료");
-				location.href = "/profile/profile_minimi_popup/" + idx;
+			}
+
+			// 체크가 되어있는채로 들어왔다는것은 체크가 해제된다는 의미
+			if (checkbox.checked) {
+				// 체크가 해제된 상품에서 스타일 제거
+				chk.style.border = "";
+			// 체크가 안되어있는채로 들어왔다는것은 체크가 된다는 의미
+			} else {
+				// 체크된 상품에 스타일 추가
+				chk.style.border = "10px solid rgba(193, 114, 250, 0.636)";
 			}
 		}
 	</script>
