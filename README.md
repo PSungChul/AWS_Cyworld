@@ -63,6 +63,16 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	네이버 로그인 API에서 이메일을 가져오는 방식이 변경됨에 따라 네이버 회원가입 로직 변경
 	Role 권한 추가 - 권한 컬럼 추가
 	관리자 검증 로직 추가
+	미니미 구매 로직 변경
+	미니미를 상품으로 등록
+	상품 번호 암호화 방식 변경
+	싱품 주문 번호 생성 방식 변경
+	상품 결제 내역 저장
+	결제와 구매를 분류
+	결제 - 카드 등을 이용한 현실 재화 사용
+	구매 - 도토리 등을 이용한 사이트 내부 재화 사용
+	미니미 구매 테이블 --> 상품 구매 테이블로 변경
+	상품 결제 테이블 추가
 
 #
 
@@ -84,7 +94,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	CREATE DATABASE Cyworld DEFAULT CHARACTER SET UTF8MB4;
 	# 생성한 데이터베이스 사용
 	USE Cyworld;
-### ✔ TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyMinimi, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey, ApiConsent, Product
+### ✔ TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyProduct, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey, ApiConsent, Product, PayProduct
 	# 테이블 생성
 	
 	# 유저 테이블
@@ -139,12 +149,12 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		ilchonpyeongContent VARCHAR(255) NOT NULL # 일촌평 내용
 	);
 	
-	# 미니미 구매 테이블
-	CREATE TABLE BuyMinimi (
+	# 상품 구매 테이블
+	CREATE TABLE BuyProduct (
 		idx INT PRIMARY KEY AUTO_INCREMENT, # IDX - 기본키, 시퀀스
 		buyIdx INT NOT NULL, # 미니홈피 유저 IDX
 		CONSTRAINT fk_BuyIdx FOREIGN KEY(buyIdx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
-		buyMinimiName VARCHAR(50) NOT NULL UNIQUE # 구매한 미니미 이름
+		buyName VARCHAR(50) NOT NULL UNIQUE # 구매한 상품 이름
 	);
 	
 	# 다이어리 테이블
@@ -253,6 +263,13 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		productIdx VARCHAR(255) NOT NULL, # 상품 번호
 		name VARCHAR(50) NOT NULL, # 상품 이름
 		price INT NOT NULL # 상품 가격
+	);
+
+	# 상품 결제 테이블
+	CREATE TABLE PayProduct (
+		orderId VARCHAR(255) PRIMARY KEY, # 상품 주문 번호
+		idx INT NOT NULL, # 로그인 유저 IDX
+		name VARCHAR(50) NOT NULL # 상품 이름
 	);
 
 #
