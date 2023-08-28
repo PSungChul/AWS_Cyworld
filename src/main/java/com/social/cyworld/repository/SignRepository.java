@@ -42,7 +42,7 @@ public interface SignRepository extends JpaRepository<Sign, Object> {
     void updateSetToDateByIdx(@Param("toDate") String toDate, @Param("idx") int idx);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Main - Views
-    // Idx 기준 유저정보 조회
+    // Idx 기준 유저 정보 조회
     Sign findByIdx(int idx);
 
     // 일일 조회수 증가

@@ -78,9 +78,9 @@ public class MainController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 그 다음 idx로 유저정보 조회
+				// 그 다음 idx로 유저 정보 조회
 				Sign sign = signService.findByIdx(idx);
-				// 조회된 유저정보가 있다면 바인딩
+				// 조회된 유저 정보가 있다면 바인딩
 				model.addAttribute("sign", sign);
 
 				// 그 다음 idx에 해당하는 일촌평 조회
@@ -88,11 +88,11 @@ public class MainController {
 				// 조회된 일촌평을 리스트 형태로 바인딩
 				model.addAttribute("ilchonpyeongList", ilchonpyeongList);
 
-				// 비회원용 유저정보 생성
+				// 비회원용 유저 정보 생성
 				Sign loginUser = new Sign();
 				// 비회원용 idx 지정
 				loginUser.setIdx(-1);
-				// 비회원용 유저정보 바인딩
+				// 비회원용 유저 정보 바인딩
 				model.addAttribute("loginUser", loginUser);
 
 				// 비회원용 일촌 정보 생성
@@ -200,7 +200,7 @@ public class MainController {
 				// 그 다음 로그인한 유저가 해당 미니홈피로 방문 기록이 있는지 조회
 				Views loginUser = mainService.findByViewsIdxAndViewsSessionIdx(todayMap);
 				
-				// 그 다음 idx에 해당하는 미니홈피 유저정보를 조회
+				// 그 다음 idx에 해당하는 미니홈피 유저 정보를 조회
 				Sign miniUser = signService.findByIdx(idx);
 				
 				// 로그인한 유저의 방문 기록이 있는 경우
@@ -221,7 +221,7 @@ public class MainController {
 							miniUser.setToday(1);
 							// 해당 미니홈피 유저의 접속 날짜를 현재 날짜로 갱신
 							miniUser.setToDate(today.format(date));
-							// 수정된 값들로 해당 미니홈피 유저의 유저정보 갱신
+							// 수정된 값들로 해당 미니홈피 유저의 유저 정보 갱신
 							signService.updateSetTodayAndTotalAndToDateByIdx(miniUser);
 							
 						// 해당 미니홈피 유저의 조회된 기록 중 접속 날짜가 현재 날짜와 같은 경우
@@ -229,7 +229,7 @@ public class MainController {
 							
 							// 해당 미니홈피 유저의 일일 조회수 1 증가
 							miniUser.setToday(miniUser.getToday() + 1);
-							// 증가된 일일 조회수로 해당 미니홈피 유저정보 갱신
+							// 증가된 일일 조회수로 해당 미니홈피 유저 정보 갱신
 							signService.updateSetTodayByIdx(miniUser);
 							
 						}
@@ -261,7 +261,7 @@ public class MainController {
 						miniUser.setToday(1);
 						// 해당 미니홈피 유저의 접속 날짜를 현재 날짜로 갱신
 						miniUser.setToDate(today.format(date));
-						// 수정된 값들로 해당 미니홈피 유저의 유저정보 갱신
+						// 수정된 값들로 해당 미니홈피 유저의 유저 정보 갱신
 						signService.updateSetTodayAndTotalAndToDateByIdx(miniUser);
 						
 					// 해당 미니홈피 유저의 조회된 기록 중 접속 날짜가 현재 날짜와 같은 경우
@@ -269,7 +269,7 @@ public class MainController {
 						
 						// 해당 미니홈피 유저의 일일 조회수 1 증가
 						miniUser.setToday(miniUser.getToday() + 1);
-						// 증가된 일일 조회수로 해당 미니홈피 유저정보 갱신
+						// 증가된 일일 조회수로 해당 미니홈피 유저 정보 갱신
 						signService.updateSetTodayByIdx(miniUser);
 						
 					}
@@ -307,12 +307,12 @@ public class MainController {
 		
 		// 조회수 구역 끝 //
 
-		// 미니홈피 유저정보 조회
+		// 미니홈피 유저 정보 조회
 		Sign sign = signService.findByIdx(idx);
-		// 조회한 미니홈피 유저정보를 바인딩
+		// 조회한 미니홈피 유저 정보를 바인딩
 		model.addAttribute("sign", sign);
 
-		// 조회한 미니홈피 유저정보 중 암호화한 권한이 유저 권한인지 관리자 권한인지 체크한다.
+		// 조회한 미니홈피 유저 정보 중 암호화한 권한이 유저 권한인지 관리자 권한인지 체크한다.
 		// 관리자 권한인 경우
 		if (passwordEncoder.matches("ADMIN", sign.getRoles())) {
 			model.addAttribute("miniRole", "ADMIN");
@@ -326,12 +326,12 @@ public class MainController {
 		// 조회된 미니홈피 유저 일촌평 리스트를 바인딩
 		model.addAttribute("ilchonpyeongList", ilchonpyeongList);
 
-		// 로그인 유저정보 조회
+		// 로그인 유저 정보 조회
 		Sign loginUser = signService.findByIdx(loginIdx);
-		// 조회한 유저정보를 바인딩
+		// 조회한 유저 정보를 바인딩
 		model.addAttribute("loginUser", loginUser);
 
-		// 조회한 로그인 유저정보 중 암호화한 권한이 유저 권한인지 관리자 권한인지 체크한다.
+		// 조회한 로그인 유저 정보 중 암호화한 권한이 유저 권한인지 관리자 권한인지 체크한다.
 		// 관리자 권한인 경우
 		if (passwordEncoder.matches("ADMIN", loginUser.getRoles())) {
 			model.addAttribute("loginRole", "ADMIN");
@@ -389,14 +389,14 @@ public class MainController {
 
 	// 검색 팝업
 	@RequestMapping("/main_search_popup")
-	public String main_search_popup() {
+	public String mainSearchPopup() {
 		// 검색 팝업으로 이동
-		return "Page/searchPopUp";
+		return "Page/search_popup";
 	}
 
 	// 이름 및 ID 및 Email로 유저 검색
 	@RequestMapping("/main_search")
-	public String main_search(String searchType, String searchValue, Model model) {
+	public String mainSearch(String searchType, String searchValue, Model model) {
 		// 이름으로 검색할 경우
 		if ( searchType.equals("name") ) {
 			// 검색한 이름으로 조회
@@ -406,7 +406,7 @@ public class MainController {
 			// 추가로 검색 구분을 하기 위해 검색 타입도 바인딩
 			model.addAttribute("searchType", searchType);
 			// 검색 팝업으로 이동
-			return "Page/searchPopUp";
+			return "Page/search_popup";
 		// ID로 검색할 경우
 		} else {
 			List<Sign> list = signService.findByEmailContaining(searchValue);
@@ -415,7 +415,7 @@ public class MainController {
 			// 추가로 검색 구분을 하기 위해 검색 타입도 바인딩
 			model.addAttribute("searchType", searchType);
 			// 검색 팝업으로 이동
-			return "Page/searchPopUp";
+			return "Page/search_popup";
 		}
 	}
 
@@ -513,7 +513,7 @@ public class MainController {
 			return "-4";
 		}
 
-		// 일촌평에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저정보를 조회
+		// 일촌평에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
 		Sign loginUser = signService.findByIdx(loginIdx);
 
 		// 일촌평 idx에 AUTO_INCREMENT로 null 지정
@@ -651,7 +651,7 @@ public class MainController {
 			return "Admin/add_product";
 		}
 
-		// 로그인 유저 idx에 해당하는 유저정보를 조회하여 암호화한 권한과 관리자 권한인 "ADMIN"이 일치하는지 체크한다. - 관리자 권한 검증
+		// 로그인 유저 idx에 해당하는 유저 정보를 조회하여 암호화한 권한과 관리자 권한인 "ADMIN"이 일치하는지 체크한다. - 관리자 권한 검증
 		Sign sign = signService.findByIdx(loginIdx);
 		// 관리자 권한이 일치하지 않는 경우
 		if (!passwordEncoder.matches("ADMIN", sign.getRoles())) {
@@ -772,7 +772,7 @@ public class MainController {
 			return "Admin/add_product";
 		}
 
-		// 로그인 유저 idx에 해당하는 유저정보를 조회하여 암호화한 권한과 관리자 권한인 "ADMIN"이 일치하는지 체크한다. - 관리자 권한 검증
+		// 로그인 유저 idx에 해당하는 유저 정보를 조회하여 암호화한 권한과 관리자 권한인 "ADMIN"이 일치하는지 체크한다. - 관리자 권한 검증
 		Sign sign = signService.findByIdx(loginIdx);
 		// 관리자 권한이 일치하지 않는 경우
 		if (!passwordEncoder.matches("ADMIN", sign.getRoles())) {
@@ -1031,13 +1031,13 @@ public class MainController {
 			return "Page/dotory";
 		}
 
-		// 로그인 유저 idx에 해당하는 유저정보를 조회하여 가져온다.
+		// 로그인 유저 idx에 해당하는 유저 정보를 조회하여 가져온다.
 		Sign sign = signService.findByIdx(loginIdx);
 
 		// 상품 타입이 도토리에 해당하는 상품 정보를 모두 조회하여 리스트로 가져온다.
 		List<Product> productList = productService.findByProductType(1);
 
-		// 가져온 유저정보를 바인딩
+		// 가져온 유저 정보를 바인딩
 		model.addAttribute("sign", sign);
 		// 가져온 도토리 상품 리스트를 바인딩
 		model.addAttribute("productList", productList);
@@ -1171,9 +1171,9 @@ public class MainController {
 
 		// 결제에 성공한 경우
 		if ( resultCode.equals("0000") ) {
-			// 로그인 유저 idx에 해당하는 유저정보를 조회하여 가져온다.
+			// 로그인 유저 idx에 해당하는 유저 정보를 조회하여 가져온다.
 			Sign sign = signService.findByIdx(loginIdx);
-			// 가져온 유저정보 중 현재 가지고 있는 도토리 개수에 결제한 도토리 개수를 더해서 setter를 통해 전달한다.
+			// 가져온 유저 정보 중 현재 가지고 있는 도토리 개수에 결제한 도토리 개수를 더해서 setter를 통해 전달한다.
 			sign.setDotory(sign.getDotory()+amount);
 			// setter를 통해 전달받은 도토리 개수로 갱신한다.
 			signService.updateSetDotoryByIdx(sign);
@@ -1321,9 +1321,9 @@ public class MainController {
 			ilchon.setIdx(null);
 			// 로그인한 유저만 일방적으로 일촌 신청을 하였기에 ilchonUp을 1로 만든다
 			ilchon.setIlchonUp(1);
-			// 해당 미니홈피 유저의 idx로 유저정보를 조회
+			// 해당 미니홈피 유저의 idx로 유저 정보를 조회
 			Sign miniUser = signService.findByIdx(ilchon.getIlchonIdx());
-			// 조회된 유저정보로 일촌에 등록될 이름을 만든다
+			// 조회된 유저 정보로 일촌에 등록될 이름을 만든다
 			/* 이메일 @부분까지 잘라낸뒤 플랫폼명 추가 - 폐기
 			 * 네이버 - qwer@ + naver = qwer@naver
 			 * 카카오 - qwer@ + kakao = qwer@kakao
@@ -1352,9 +1352,9 @@ public class MainController {
 				ilchon.setIdx(null);
 				// 로그인한 유저가 마저 일촌 신청을 하면서 이제 맞일촌 상태가 됐으므로 ilchonUp을 2로 만든다
 				ilchon.setIlchonUp(2);
-				// 해당 미니홈피 유저의 idx로 유저정보를 조회
+				// 해당 미니홈피 유저의 idx로 유저 정보를 조회
 				Sign miniUser = signService.findByIdx(ilchon.getIlchonIdx());
-				// 조회된 유저정보로 일촌에 등록될 이름을 만든다
+				// 조회된 유저 정보로 일촌에 등록될 이름을 만든다
 				/* 이메일 @부분까지 잘라낸 뒤 플랫폼명 추가 - 폐기
 				 * 네이버 - qwer@ + naver = qwer@naver
 				 * 카카오 - qwer@ + kakao = qwer@kakao
@@ -1402,25 +1402,25 @@ public class MainController {
 		ilchon.setIlchonUp(2);
 		// count로 해당 미니홈피 유저와 맞일촌 상태인 유저들의 수를 조회
 		int ilchonNum = mainService.countByIlchonIdxAndIlchonUp(ilchon);
-		// 조회된 맞일촌 수를 해당 미니홈피 유저정보 중 맞일촌 수를 나타내는 ilchon에 갱신하기 위해 SignUpVO를 생성한다
+		// 조회된 맞일촌 수를 해당 미니홈피 유저 정보 중 맞일촌 수를 나타내는 ilchon에 갱신하기 위해 SignUpVO를 생성한다
 		Sign sign = new Sign();
 		// 해당 미니홈피 유저의 idx를 지정
 		sign.setIdx(ilchon.getIlchonIdx());
 		// 조회된 맞일촌 수를 ilchon에 지정
 		sign.setIlchon(ilchonNum);
-		// 조회된 맞일촌 수를 해당 미니홈피 유저정보에 갱신
+		// 조회된 맞일촌 수를 해당 미니홈피 유저 정보에 갱신
 		signService.updateSetIlchonByIdx(sign);
 
 		// 그 다음 로그인한 유저의 맞일촌 수도 조회하기 위해 ilchonIdx를 로그인한 유저의 idx로 지정
 		ilchon.setIlchonIdx(loginIdx);
 		// count로 로그인한 유저와 맞일촌 상태인 유저들의 수를 조회
 		int ilchonReverseNum = mainService.countByIlchonIdxAndIlchonUp(ilchon);
-		// 조회된 맞일촌 수를 로그인한 유저정보 중 맞일촌 수를 나타내는 ilchon에 갱신하기 위해 SignUpVO에 로그인한 유저정보를 지정한다
+		// 조회된 맞일촌 수를 로그인한 유저 정보 중 맞일촌 수를 나타내는 ilchon에 갱신하기 위해 SignUpVO에 로그인한 유저 정보를 지정한다
 		// 로그인한 유저의 idx를 지정
 		sign.setIdx(loginIdx);
 		// 조회된 맞일촌 수를 ilchon에 지정
 		sign.setIlchon(ilchonReverseNum);
-		// 조회된 맞일촌 수를 로그인한 유저정보에 갱신
+		// 조회된 맞일촌 수를 로그인한 유저 정보에 갱신
 		signService.updateSetIlchonByIdx(sign);
 
 		// 맞일촌 끝 //

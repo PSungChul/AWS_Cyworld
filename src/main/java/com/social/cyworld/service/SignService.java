@@ -33,7 +33,7 @@ public class SignService {
         return sign;
     }
 
-    // 가입 유저정보 저장
+    // 가입 유저 정보 저장
     public Sign insertIntoSign(Sign sign) {
         Sign join = signRepository.save(sign);
         return join;
@@ -62,7 +62,7 @@ public class SignService {
         signRepository.updateSetToDateByIdx(sign.getToDate(), sign.getIdx());
     }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Main - Views
-    // Idx 기준 유저정보 조회
+    // Idx 기준 유저 정보 조회
     public Sign findByIdx(int idx) {
         Sign sign = signRepository.findByIdx(idx);
         return sign;

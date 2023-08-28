@@ -243,9 +243,9 @@ public class SignUpController {
 	// 싸이월드 가입자와 비가입자 구별
 	@RequestMapping("/login_authentication")
 	public String login_authentication(Sign sign, Model model) {
-		// 파라미터로 받아온 유저정보 중 이메일이 없는 경우 - 회원가입
+		// 파라미터로 받아온 유저 정보 중 이메일이 없는 경우 - 회원가입
 		if ( sign.getEmail() == null ) {
-			// 파라미터로 받아온 유저정보를 바인딩한다.
+			// 파라미터로 받아온 유저 정보를 바인딩한다.
 			model.addAttribute("sign", sign);
 			// IamPort 가맹점 번호를 바인딩한다.
 			model.addAttribute("impNumber", impNumber);
@@ -254,9 +254,9 @@ public class SignUpController {
 			return "Sign/cyworld_join";
 		}
 
-		// 파라미터로 받아온 유저정보 중 이메일이 있는 경우 - 로그인
+		// 파라미터로 받아온 유저 정보 중 이메일이 있는 경우 - 로그인
 
-		// 로그인한 이메일로 유저정보를 조회한다.
+		// 로그인한 이메일로 유저 정보를 조회한다.
 		Sign login = signService.findByEmail(sign.getEmail());
 
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -347,15 +347,15 @@ public class SignUpController {
 		// 가입자가 아닌 경우 - 회원가입 코드
 		int result = 0;
 
-		// 이메일에 해당하는 가입 유저정보가 존재하는지 조회하여 체크한다.
+		// 이메일에 해당하는 가입 유저 정보가 존재하는지 조회하여 체크한다.
 		Sign join = signService.findByEmail(email);
-		// 조회한 유저정보가 존재하지 않는 경우 - 비가입자
+		// 조회한 유저 정보가 존재하지 않는 경우 - 비가입자
 		if ( join == null ) {
 			// 회원가입 코드 전달
 			return result;
-		// 조회한 유저정보가 존재하는 경우 - 가입자
+		// 조회한 유저 정보가 존재하는 경우 - 가입자
 		} else {
-			// 조회한 유저정보 중 플랫폼이 카카오인 경우
+			// 조회한 유저 정보 중 플랫폼이 카카오인 경우
 			if ( join.getPlatform().equals("kakao") ) {
 				// 로그인 유저 idx로 변경
 				result = join.getIdx();
@@ -439,13 +439,13 @@ public class SignUpController {
 
 				// 로그인 유저 idx 전달
 				return result;
-			// 조회한 유저정보 중 플랫폼이 카카오가 아닌 경우
+			// 조회한 유저 정보 중 플랫폼이 카카오가 아닌 경우
 			} else {
-				// 조죄한 유저정보 중 플랫픔이 싸이월드인 경우
+				// 조죄한 유저 정보 중 플랫픔이 싸이월드인 경우
 				if ( join.getPlatform().equals("cyworld") ) {
 					// 에러 코드로 변경
 					result = -1;
-					// 조죄한 유저정보 중 플랫픔이 네이버인 경우
+					// 조죄한 유저 정보 중 플랫픔이 네이버인 경우
 				} else if ( join.getPlatform().equals("naver") ) {
 					// 에러 코드로 변경
 					result = -2;
@@ -466,15 +466,15 @@ public class SignUpController {
 		// 휴대폰 번호 하이픈 제거
 		sign.setPhoneNumber(sign.getPhoneNumber().replaceAll("-", ""));
 
-		// 이름 + 생년월일 + 휴대폰 번호에 해당하는 가입 유저정보가 존재하는지 조회하여 체크한다.
+		// 이름 + 생년월일 + 휴대폰 번호에 해당하는 가입 유저 정보가 존재하는지 조회하여 체크한다.
 		Sign join = signService.findByNameAndBirthdayAndPhoneNumber(sign.getName(), sign.getBirthday(), sign.getPhoneNumber());
-		// 조회한 유저정보가 존재하지 않는 경우 - 비가입자
+		// 조회한 유저 정보가 존재하지 않는 경우 - 비가입자
 		if ( join == null ) {
 			// 회원가입 코드 전달
 			return result;
-		// 조회한 유저정보가 존재하는 경우 - 가입자
+		// 조회한 유저 정보가 존재하는 경우 - 가입자
 		} else {
-			// 조회한 유저정보 중 플랫폼이 네이버인 경우
+			// 조회한 유저 정보 중 플랫폼이 네이버인 경우
 			if ( join.getPlatform().equals("naver") ) {
 				// 로그인 유저 idx로 변경
 				result = join.getIdx();
@@ -558,13 +558,13 @@ public class SignUpController {
 
 				// 로그인 유저 idx 전달
 				return result;
-			// 조회한 유저정보 중 플랫폼이 네이버가 아닌 경우
+			// 조회한 유저 정보 중 플랫폼이 네이버가 아닌 경우
 			} else {
-				// 조회한 유저정보 중 플랫폼이 싸이월드인 경우
+				// 조회한 유저 정보 중 플랫폼이 싸이월드인 경우
 				if ( join.getPlatform().equals("cyworld") ) {
 					// 에러 코드로 변경
 					result = -1;
-					// 조회한 유저정보 중 플랫폼이 카카오인 경우
+					// 조회한 유저 정보 중 플랫폼이 카카오인 경우
 				} else if ( join.getPlatform().equals("kakao") ) {
 					// 에러 코드로 변경
 					result = -2;
@@ -579,7 +579,7 @@ public class SignUpController {
 	// 카카오 가입 페이지로 이동
 	@RequestMapping("/kakao_join_form")
 	public String kakaoJoinForm(Sign sign, Model model) {
-		// 파라미터로 받아온 유저정보를 바인딩한다.
+		// 파라미터로 받아온 유저 정보를 바인딩한다.
 		model.addAttribute("sign", sign);
 		// IamPort 가맹점 번호를 바인딩한다.
 		model.addAttribute("impNumber", impNumber);
@@ -591,7 +591,7 @@ public class SignUpController {
 	// 네이버 가입 페이지로 이동
 	@RequestMapping("/naver_join_form")
 	public String naverJoinForm(Sign sign, Model model) {
-		// 파라미터로 받아온 유저정보를 바인딩한다.
+		// 파라미터로 받아온 유저 정보를 바인딩한다.
 		model.addAttribute("sign", sign);
 
 		// 네이버 회원가입 페이지
@@ -708,9 +708,9 @@ public class SignUpController {
 		// 여기서 두가지의 눈에 띄는 차이는 "" 큰 따옴표의 유무인데, 값을 URL에 담아서 함께 보내는 GET 방식에는 데이터에 따라 붙는 이 "" 큰 따옴표가 걸리적 거리기에 반드시 asText로 변환해야 한다.
 		String accessToken = jsonToken.get("response").get("access_token").asText();
 
-		// 파라미터로 받아온 imp_uid와 IamPort로부터 전달받은 access_token으로 이번엔 IamPort를 통해 인증된 유저정보를 받아와야 하기에 IamPort 서버와 통신하는 메소드에 imp_uid와 access_token을 전달한다.
+		// 파라미터로 받아온 imp_uid와 IamPort로부터 전달받은 access_token으로 이번엔 IamPort를 통해 인증된 유저 정보를 받아와야 하기에 IamPort 서버와 통신하는 메소드에 imp_uid와 access_token을 전달한다.
 		JsonNode userInfo = IamPortPass.getUserInfo(impUid, accessToken);
-		// IamPort로부터 반환받은 값에서 필요한 유저정보인 이름과 생년월일과 휴대폰 번호를 가져온다.
+		// IamPort로부터 반환받은 값에서 필요한 유저 정보인 이름과 생년월일과 휴대폰 번호를 가져온다.
 		// 가져온 이름을 이름 변수에 전달한다.
 		String name = userInfo.get("response").get("name").asText();
 		// 가져온 생년월일을 생년월일 변수에 전달한다.
@@ -718,7 +718,7 @@ public class SignUpController {
 		// 가져온 휴대폰 번호를 하이픈 제거해서 휴대폰 번호 변수에 전달한다.
 		String phoneNumber = userInfo.get("response").get("phone").asText().replaceAll("-", "");
 
-		// 전달받은 유저정보들을 반환하기 위해 Map을 생성한다.
+		// 전달받은 유저 정보들을 반환하기 위해 Map을 생성한다.
 		HashMap<String, String> userMap = new HashMap<>();
 
 		// 전달받은 이름, 생년월일, 휴대폰 번호로 가입자인지 체크한다.
@@ -726,10 +726,10 @@ public class SignUpController {
 
 		// 가입자인 경우
 		if ( sign != null ) {
-			// name을 키로 사용하고, 에러 코드를 값으로 사용하여, 유저정보 Map에 추가한다.
+			// name을 키로 사용하고, 에러 코드를 값으로 사용하여, 유저 정보 Map에 추가한다.
 			userMap.put("name", "-1");
 
-			// 에러 코드가 들어간 유저정보 Map을 반환한다.
+			// 에러 코드가 들어간 유저 정보 Map을 반환한다.
 			return userMap;
 		}
 
@@ -751,14 +751,14 @@ public class SignUpController {
 		// 암호화된 이름과 암호화된 생년월일과 암호화된 휴대폰 번호가 합쳐서 부여된 Certification 쿠키를 추가한다.
 		response.addCookie(certificationCookie);
 
-		// name을 키로 사용하고, 전달받은 이름을 값으로 사용하여, 유저정보 Map에 추가한다.
+		// name을 키로 사용하고, 전달받은 이름을 값으로 사용하여, 유저 정보 Map에 추가한다.
 		userMap.put("name", name);
-		// name을 키로 사용하고, 전달받은 생년월일을 값으로 사용하여, 유저정보 Map에 추가한다.
+		// name을 키로 사용하고, 전달받은 생년월일을 값으로 사용하여, 유저 정보 Map에 추가한다.
 		userMap.put("birthday", birthday);
-		// name을 키로 사용하고, 전달받은 휴대폰 번호를 값으로 사용하여, 유저정보 Map에 추가한다.
+		// name을 키로 사용하고, 전달받은 휴대폰 번호를 값으로 사용하여, 유저 정보 Map에 추가한다.
 		userMap.put("phoneNumber", phoneNumber);
 
-		// 32. 유저정보가 들어간 유저정보 Map을 반환한다.
+		// 32. 유저 정보가 들어간 유저 정보 Map을 반환한다.
 		return userMap;
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////아이디 및 비밀번호 찾기
@@ -798,14 +798,14 @@ public class SignUpController {
 		// 휴대폰 번호 하이픈 제거
 		sign.setPhoneNumber(sign.getPhoneNumber().replaceAll("-", ""));
 
-		// 이름 + 휴대폰 번호에 해당하는 유저정보가 존재하는지 조회하여 체크한다.
+		// 이름 + 휴대폰 번호에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
 		Sign join = signService.findByNameAndPhoneNumber(sign);
 		if ( join == null ) {
-			// 조회한 유저정보가 존재하지 않는 경우 "no"를 전달
+			// 조회한 유저 정보가 존재하지 않는 경우 "no"를 전달
 			return "no";
 		}
 
-		// 조회한 유저정보가 존재하는 경우 조회한 유저정보 중 이메일을 전달
+		// 조회한 유저 정보가 존재하는 경우 조회한 유저 정보 중 이메일을 전달
 		return join.getEmail();
 	}
 	
@@ -818,16 +818,16 @@ public class SignUpController {
 	@RequestMapping("/find_pw_send_email")
 	@ResponseBody
 	public String findPwCheck(Sign sign) {
-		// 이메일 + 이름 + 휴대폰 번호에 해당하는 유저정보가 존재하는지 조회하여 체크한다.
+		// 이메일 + 이름 + 휴대폰 번호에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
 		Sign join = signService.findByEmailAndNameAndPhoneNumber(sign);
 		if ( join == null ) {
-			// 조회한 유저정보가 존재히자 않는 경우 "no"를 전달
+			// 조회한 유저 정보가 존재히자 않는 경우 "no"를 전달
 			return "no";
 		}
 
-		// 유저정보가 존재하는 경우
+		// 유저 정보가 존재하는 경우
 
-		// 조회한 유저정보 중 비밀번호를 가져가는게 아닌 임시 비밀번호를 생성해 발급한다.
+		// 조회한 유저 정보 중 비밀번호를 가져가는게 아닌 임시 비밀번호를 생성해 발급한다.
 		// 미리 만들어둔 랜덤키 생성 메소드를 mail패키지의 MailKey.java에서 가져와 사용한다
 		String emailKey = new MailKey().getKey(10, false); // 랜덤키 길이 설정
 		// Mail Server 설정
@@ -900,18 +900,18 @@ public class SignUpController {
 	@RequestMapping("/login_check")
 	@ResponseBody
 	public String loginCheck(Sign sign) {
-		// 이메일에 해당하는 유저정보가 존재하는지 조회하여 체크한다.
+		// 이메일에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
 		Sign login = signService.findByEmail(sign.getEmail());
 
-		// 조회한 유저정보가 존재하지 않는 경우
+		// 조회한 유저 정보가 존재하지 않는 경우
 		if ( login == null ) {
 			// json 형식의 에러 메시지 전달
 			return "{'result':'no_id'}";
 		}
 
-		// 조회한 유저정보가 존재하는 경우
+		// 조회한 유저 정보가 존재하는 경우
 
-		// 조회한 유저정보 중 암호회된 비밀번호와 입력한 비밀번호가 일치하는지 체크한다.
+		// 조회한 유저 정보 중 암호회된 비밀번호와 입력한 비밀번호가 일치하는지 체크한다.
 		// 비밀번호가 일치하지 않는 경우
 		if (!passwordEncoder.matches(sign.getInfo(), login.getInfo())) {
 			// json 형식의 에러 메시지 전달
@@ -928,7 +928,7 @@ public class SignUpController {
 	@RequestMapping("/welcome")
 	@ResponseBody
 	public String welcome(JoinDTO joinDTO, Model model) {
-		// 회원가입 DTO로 가져온 가입정보를 Entity로 변환한다.
+		// 회원가입 DTO로 가져온 가입 정보를 Entity로 변환한다.
 		Sign sign = joinDTO.toEntity();
 
 		// 접속 날짜에 가입 날짜를 기록하기 위해 Date객체 사용
@@ -942,7 +942,7 @@ public class SignUpController {
 		// cyworld 회원가입자가 들어오는 경우
 		if ( joinDTO.getPlatform().equals("cyworld") ) {
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////이메일 인증정보 체크
-			// 쿠키에 들어있는 이메일 인증정보가 가입정보와 일치하는지 체크한다.
+			// 쿠키에 들어있는 이메일 인증정보가 가입 정보와 일치하는지 체크한다.
 			// 쿠키에 들어있는 이메일 인증정보 값
 			String[] emailCredential = null;
 			// 이메일 인증정보 중 암호화된 이메일 값
@@ -999,8 +999,8 @@ public class SignUpController {
 
 			// 이메일 인증정보가 정상적인 경우
 
-			// 가입정보와 이메일 인증정보가 일치하는지 체크한다.
-			// 가입정보 중 이메일과 이메일 인증정보 중 암호화된 이메일이 일치하지 않는 경우
+			// 가입 정보와 이메일 인증정보가 일치하는지 체크한다.
+			// 가입 정보 중 이메일과 이메일 인증정보 중 암호화된 이메일이 일치하지 않는 경우
 			if (!passwordEncoder.matches(joinDTO.getEmail(), email)) {
 				// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteEmailCookie = new Cookie("Email", "");
@@ -1019,7 +1019,7 @@ public class SignUpController {
 				// 에러 코드를 반환한다.
 				return "-1";
 			}
-			// 가입정보 중 이메일 인증번호와 이메일 인증정보 중 암호화된 이메일 인증번호가 일치하지 않는 경우
+			// 가입 정보 중 이메일 인증번호와 이메일 인증정보 중 암호화된 이메일 인증번호가 일치하지 않는 경우
 			if (!passwordEncoder.matches(joinDTO.getEmailKey(), emailKey)) {
 				// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteEmailCookie = new Cookie("Email", "");
@@ -1039,7 +1039,7 @@ public class SignUpController {
 				return "-1";
 			}
 
-			// 가입정보와 이메일 인증정보가 일치하는 경우
+			// 가입 정보와 이메일 인증정보가 일치하는 경우
 
 			// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 			Cookie deleteEmailCookie = new Cookie("Email", "");
@@ -1048,7 +1048,7 @@ public class SignUpController {
 			// 삭제할 Email 쿠키를 추가한다.
 			response.addCookie(deleteEmailCookie);
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////본인인증정보 체크
-			// 쿠키에 들어있는 본인인증정보가 가입정보와 일치하는지 체크한다.
+			// 쿠키에 들어있는 본인인증정보가 가입 정보와 일치하는지 체크한다.
 			// 쿠키에 들어있는 본인인증정보가 값
 			String[] certification = null;
 			// 본인인증정보 중 암호화된 이름 값
@@ -1102,8 +1102,8 @@ public class SignUpController {
 
 			// 본인인증정보가 정상적인 경우
 
-			// 가입정보와 본인인증정보가 일치하는지 체크한다.
-			// 가입정보 중 이름과 본인인증정보 중 암호화된 이름이 일치하지 않는 경우
+			// 가입 정보와 본인인증정보가 일치하는지 체크한다.
+			// 가입 정보 중 이름과 본인인증정보 중 암호화된 이름이 일치하지 않는 경우
 			if (!passwordEncoder.matches(joinDTO.getName(), name)) {
 				// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteCertificationCookie = new Cookie("Certification", "");
@@ -1115,7 +1115,7 @@ public class SignUpController {
 				// 에러 코드를 반환한다.
 				return "-2";
 			}
-			// 가입정보 중 생년월일과 본인인증정보 중 암호화된 생년월일이 일치하지 않는 경우
+			// 가입 정보 중 생년월일과 본인인증정보 중 암호화된 생년월일이 일치하지 않는 경우
 			if (!passwordEncoder.matches(joinDTO.getBirthday(), birthday)) {
 				// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteCertificationCookie = new Cookie("Certification", "");
@@ -1127,7 +1127,7 @@ public class SignUpController {
 				// 에러 코드를 반환한다.
 				return "-2";
 			}
-			// 가입정보 중 휴대폰 번호와 본인인증정보 중 암호화된 휴대폰 번호가 일치하지 않는 경우
+			// 가입 정보 중 휴대폰 번호와 본인인증정보 중 암호화된 휴대폰 번호가 일치하지 않는 경우
 			if (!passwordEncoder.matches(joinDTO.getPhoneNumber(), phoneNumber)) {
 				// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteCertificationCookie = new Cookie("Certification", "");
@@ -1140,7 +1140,7 @@ public class SignUpController {
 				return "-2";
 			}
 
-			// 가입정보와 본인인증정보가 일치하는 경우
+			// 가입 정보와 본인인증정보가 일치하는 경우
 
 			// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 			Cookie deleteCertificationCookie = new Cookie("Certification", "");
@@ -1165,7 +1165,7 @@ public class SignUpController {
 			sign.setConsent(0); // 동의 항목
 			// 저장 실패하는 경우
 			String result = "no";
-			// 가입 유저정보 저장
+			// 가입 유저 정보 저장
 			Sign join = signService.insertIntoSign(sign);
 			if ( join != null ) {
 				// 저장 성공하는 경우
@@ -1178,7 +1178,7 @@ public class SignUpController {
 			// kakao 회원가입자가 들어오는 경우
 			if ( joinDTO.getPlatform().equals("kakao") ) {
 				////////////////////////////////////////////////////////////////////////////////////////////////////////본인인증정보 체크
-				// 쿠키에 들어있는 본인인증정보가 가입정보와 일치하는지 체크한다.
+				// 쿠키에 들어있는 본인인증정보가 가입 정보와 일치하는지 체크한다.
 				// 쿠키에 들어있는 본인인증정보가 값
 				String[] certification = null;
 				// 본인인증정보 중 암호화된 이름 값
@@ -1232,8 +1232,8 @@ public class SignUpController {
 
 				// 본인인증정보가 정상적인 경우
 
-				// 가입정보와 본인인증정보가 일치하는지 체크한다.
-				// 가입정보 중 이름과 본인인증정보 중 암호화된 이름이 일치하지 않는 경우
+				// 가입 정보와 본인인증정보가 일치하는지 체크한다.
+				// 가입 정보 중 이름과 본인인증정보 중 암호화된 이름이 일치하지 않는 경우
 				if (!passwordEncoder.matches(joinDTO.getName(), name)) {
 					// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCertificationCookie = new Cookie("Certification", "");
@@ -1245,7 +1245,7 @@ public class SignUpController {
 					// 에러 코드를 반환한다.
 					return "-2";
 				}
-				// 가입정보 중 생년월일과 본인인증정보 중 암호화된 생년월일이 일치하지 않는 경우
+				// 가입 정보 중 생년월일과 본인인증정보 중 암호화된 생년월일이 일치하지 않는 경우
 				if (!passwordEncoder.matches(joinDTO.getBirthday(), birthday)) {
 					// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCertificationCookie = new Cookie("Certification", "");
@@ -1257,7 +1257,7 @@ public class SignUpController {
 					// 에러 코드를 반환한다.
 					return "-2";
 				}
-				// 가입정보 중 휴대폰 번호와 본인인증정보 중 암호화된 휴대폰 번호가 일치하지 않는 경우
+				// 가입 정보 중 휴대폰 번호와 본인인증정보 중 암호화된 휴대폰 번호가 일치하지 않는 경우
 				if (!passwordEncoder.matches(joinDTO.getPhoneNumber(), phoneNumber)) {
 					// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCertificationCookie = new Cookie("Certification", "");
@@ -1270,7 +1270,7 @@ public class SignUpController {
 					return "-2";
 				}
 
-				// 가입정보와 본인인증정보가 일치하는 경우
+				// 가입 정보와 본인인증정보가 일치하는 경우
 
 				// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteCertificationCookie = new Cookie("Certification", "");
@@ -1284,7 +1284,7 @@ public class SignUpController {
 				// 이메일 인증하고 들어오는 경우
 				if ( joinDTO.getEmailKey() != null ) {
 					////////////////////////////////////////////////////////////////////////////////////////////////////이메일 인증정보 체크
-					// 쿠키에 들어있는 이메일 인증정보가 가입정보와 일치하는지 체크한다.
+					// 쿠키에 들어있는 이메일 인증정보가 가입 정보와 일치하는지 체크한다.
 					// 쿠키에 들어있는 이메일 인증정보 값
 					String[] emailCredential = null;
 					// 이메일 인증정보 중 암호화된 이메일 값
@@ -1341,8 +1341,8 @@ public class SignUpController {
 
 					// 이메일 인증정보가 정상적인 경우
 
-					// 가입정보와 이메일 인증정보가 일치하는지 체크한다.
-					// 가입정보 중 이메일과 이메일 인증정보 중 암호화된 이메일이 일치하지 않는 경우
+					// 가입 정보와 이메일 인증정보가 일치하는지 체크한다.
+					// 가입 정보 중 이메일과 이메일 인증정보 중 암호화된 이메일이 일치하지 않는 경우
 					if (!passwordEncoder.matches(joinDTO.getEmail(), email)) {
 						// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 						Cookie deleteEmailCookie = new Cookie("Email", "");
@@ -1361,7 +1361,7 @@ public class SignUpController {
 						// 에러 코드를 반환한다.
 						return "-1";
 					}
-					// 가입정보 중 이메일 인증번호와 이메일 인증정보 중 암호화된 이메일 인증번호가 일치하지 않는 경우
+					// 가입 정보 중 이메일 인증번호와 이메일 인증정보 중 암호화된 이메일 인증번호가 일치하지 않는 경우
 					if (!passwordEncoder.matches(joinDTO.getEmailKey(), emailKey)) {
 						// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 						Cookie deleteEmailCookie = new Cookie("Email", "");
@@ -1381,7 +1381,7 @@ public class SignUpController {
 						return "-1";
 					}
 
-					// 가입정보와 이메일 인증정보가 일치하는 경우
+					// 가입 정보와 이메일 인증정보가 일치하는 경우
 
 					// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteEmailCookie = new Cookie("Email", "");
@@ -1391,16 +1391,16 @@ public class SignUpController {
 					response.addCookie(deleteEmailCookie);
 				}
 				////////////////////////////////////////////////////////////////////////////////////////////////////////이메일 중복 체크
-				// 네이버 로그인 API에서 이메일을 가져오는 방식이 변경됨에 따라 이메일에 해당하는 유저정보가 존재하는지 조회하여 체크한다.
+				// 네이버 로그인 API에서 이메일을 가져오는 방식이 변경됨에 따라 이메일에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
 				Sign emailCheck = signService.findByEmail(joinDTO.getEmail());
 
-				// 조회한 유저정보가 존재하는 경우
+				// 조회한 유저 정보가 존재하는 경우
 				if ( emailCheck != null ) {
 					// 에러 코드 전달
 					return "-3";
 				}
 
-				// 조회한 유저정보가 존재하지 않는 경우
+				// 조회한 유저 정보가 존재하지 않는 경우
 
 			}
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////가입 진행
@@ -1420,7 +1420,7 @@ public class SignUpController {
 			sign.setConsent(0); // 동의 항목
 			// 저장 실패하는 경우
 			String result = "no";
-			// 가입 유저정보 저장
+			// 가입 유저 정보 저장
 			Sign join = signService.insertIntoSign(sign);
 			if ( join != null ) {
 				// 저장 성공하는 경우

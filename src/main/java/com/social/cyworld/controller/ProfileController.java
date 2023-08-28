@@ -171,9 +171,9 @@ public class ProfileController {
 			return "Page/main";
 		}
 
-		// 미니홈피 유저정보 조회
+		// 미니홈피 유저 정보 조회
 		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저정보를 바인딩
+		// 조회된 유저 정보를 바인딩
 		model.addAttribute("sign", sign);
 		// 로그인 유저 idx를 바인딩
 		model.addAttribute("loginIdx", loginIdx);
@@ -200,8 +200,8 @@ public class ProfileController {
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////상품 - 미니미
 	// 미니미 팝업
-	@RequestMapping("/profile_minimi_popup/{idx}") // 경로 매개변수
-	public String popup(@PathVariable int idx, Model model) {
+	@RequestMapping("/minimi_popup/{idx}") // 경로 매개변수
+	public String minimiPopup(@PathVariable int idx, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -228,13 +228,13 @@ public class ProfileController {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
 				// 미니미 팝업으로 이동
-				return "Page/minimiPopUp";
+				return "Page/minimi_popup";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 				// 미니미 팝업으로 이동
-				return "Page/minimiPopUp";
+				return "Page/minimi_popup";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -245,7 +245,7 @@ public class ProfileController {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 미니미 팝업으로 이동
-			return "Page/minimiPopUp";
+			return "Page/minimi_popup";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
@@ -258,7 +258,7 @@ public class ProfileController {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 미니미 팝업으로 이동
-				return "Page/minimiPopUp";
+				return "Page/minimi_popup";
 			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
 				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
@@ -269,7 +269,7 @@ public class ProfileController {
 					// 에러 메시지를 바인딩한다.
 					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 미니미 팝업으로 이동
-					return "Page/minimiPopUp";
+					return "Page/minimi_popup";
 				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
@@ -303,7 +303,7 @@ public class ProfileController {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 			// 미니미 팝업으로 이동
-			return "Page/minimiPopUp";
+			return "Page/minimi_popup";
 		}
 		
 		// idx에 해당하는 프로필 조회
@@ -347,7 +347,7 @@ public class ProfileController {
 		model.addAttribute("loginIdx", loginIdx);
 
 		// 미니미 팝업으로 이동
-		return "Page/minimiPopUp";
+		return "Page/minimi_popup";
 	}
 	
 	// 미니미 변경
@@ -379,13 +379,13 @@ public class ProfileController {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
 				// 미니미 팝업으로 이동
-				return "Page/minimiPopUp";
+				return "Page/minimi_popup";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 				// 미니미 팝업으로 이동
-				return "Page/minimiPopUp";
+				return "Page/minimi_popup";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -396,7 +396,7 @@ public class ProfileController {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 미니미 팝업으로 이동
-			return "Page/minimiPopUp";
+			return "Page/minimi_popup";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
@@ -409,7 +409,7 @@ public class ProfileController {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 미니미 팝업으로 이동
-				return "Page/minimiPopUp";
+				return "Page/minimi_popup";
 			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
 				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
@@ -420,7 +420,7 @@ public class ProfileController {
 					// 에러 메시지를 바인딩한다.
 					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 미니미 팝업으로 이동
-					return "Page/minimiPopUp";
+					return "Page/minimi_popup";
 				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
@@ -454,14 +454,14 @@ public class ProfileController {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 			// 미니미 팝업으로 이동
-			return "Page/minimiPopUp";
+			return "Page/minimi_popup";
 		}
 		
 		// 변경할 미니미 정보로 갱신
 		profileService.updateSetMinimiByIdx(sign);
 
 		// idx를 들고 미니미 팝업으로 URL로 이동
-		return "redirect:/profile/profile_minimi_popup/" + sign.getIdx();
+		return "redirect:/profile/minimi_popup/" + sign.getIdx();
 	}
 	
 	// 미니미 구매
@@ -571,10 +571,10 @@ public class ProfileController {
 			return "no";
 		// 아직 구매하지 않은 미니미일 경우
 		} else {
-			// 로그인 유저 idx에 해당하는 유저정보를 조회한다.
+			// 로그인 유저 idx에 해당하는 유저 정보를 조회한다.
 			Sign sign = signService.findByIdx(idx);
 
-			// 조회한 유저정보 중 보유 중인 도토리 개수를 가져와 미니미 가격보다 적은지 체크한다.
+			// 조회한 유저 정보 중 보유 중인 도토리 개수를 가져와 미니미 가격보다 적은지 체크한다.
 			// 보유 중인 도토리 개수가 미니미 가격보다 적은 경우
 			if ( sign.getDotory() < price ) {
 				// 에러 코드를 반환한다.

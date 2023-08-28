@@ -20,7 +20,7 @@
 </script>
 <body th:if="${ errMsg eq null }">
 	<!-- 관리자용 상품 추가 버튼 -->
-	<input th:if="${ miniRole eq 'ADMIN' && loginRole eq 'ADMIN' }" id="btn_cover" type="button" value="상품 추가" onclick="AddDotoryPopUp()">
+	<input th:if="${ miniRole eq 'ADMIN' && loginRole eq 'ADMIN' }" id="btn_cover" type="button" value="상품 추가" onclick="AddDotoryPopup()">
 	<!-- 비회원용 로그인 버튼 -->
 	<th:block th:if="${ loginUser.idx <= 0 }">
 		<input id="btn_cover" class="returnMyHome" type="button" value="로그인하러 가기" onclick="location.href='/logout'">
@@ -127,7 +127,7 @@
 					<p class="title"><a th:href="@{main(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
 					<!-- 검색 -->
 					<form name="sf" method="GET">
-						<input id="btn_cover" class="search" type="button" value="유저 검색" onclick="searchPopUp();">
+						<input id="btn_cover" class="search" type="button" value="유저 검색" onclick="searchPopup();">
 					</form>
 					<!-- bgm - 페이지 오른쪽 상단에 재생 플레이어와 노래 제목 표시 -->
 					<img class="musicLogo" src="/images/noneMain15.gif" alt="">
@@ -141,7 +141,7 @@
 					<aside class="right-aside" id="scrollBar">
 						<!-- 도토리 - 타 유저한테는 안보이게 숨김 -->
 						<th:block th:if="${ sign.idx eq loginUser.idx }">
-							<div class="dotory"><span th:text="'도토리 보유량 : ' + ${ sign.dotory } + '개'"></span> <input id="btn_cover" class="dotoryBtn" type="button" value="도토리 충전" onclick="DotoryPopUp()"></div>
+							<div class="dotory"><span th:text="'도토리 보유량 : ' + ${ sign.dotory } + '개'"></span> <input id="btn_cover" class="dotoryBtn" type="button" value="도토리 충전" onclick="DotoryPopup()"></div>
 						</th:block>
 						<!-- 미니룸 -->
 						<div class="miniRoomBox"><p>Mini Room</p>
@@ -157,9 +157,9 @@
 						<th:block th:if="${ sign.idx eq loginUser.idx }">
 							<div class="right-banner" id="banner">
 								<p class="title">액션 미니미 <br>출시!</p>
-								<p class="blink blink1">NEW</p><div class="img"><img src="/images/cat.gif" alt="" onclick="minimiPopUp();"></div>
-								<p class="blink blink2">NEW</p><div class="img"><img src="/images/thePooh.gif" alt="" onclick="minimiPopUp();"></div>
-								<p class="blink blink3">NEW</p><div class="img"><img src="/images/fat.gif" alt="" onclick="minimiPopUp();"></div>
+								<p class="blink blink1">NEW</p><div class="img"><img src="/images/cat.gif" alt="" onclick="minimiPopup();"></div>
+								<p class="blink blink2">NEW</p><div class="img"><img src="/images/thePooh.gif" alt="" onclick="minimiPopup();"></div>
+								<p class="blink blink3">NEW</p><div class="img"><img src="/images/fat.gif" alt="" onclick="minimiPopup();"></div>
 								<input type="button" class="bannerCancel" id="btn_cover" onclick="displayNone(this)" value="끄기">
 							</div>
 						</th:block>
@@ -271,21 +271,21 @@
 	<!-- 각종 팝업창 -->
 	<script th:inline="javascript">
 		// 상품 추가 팝업창
-		function AddDotoryPopUp() {
+		function AddDotoryPopup() {
 			let popUrl = "/product/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			let pop = window.open(popUrl, "_blank", popOption);
 		}
 
 		// 도토리 결제 팝업창
-		function DotoryPopUp() {
+		function DotoryPopup() {
 			let popUrl = "/dotory/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=800, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			let pop = window.open(popUrl, "_blank", popOption);
 		}
 		
 		// 검색 팝업창
-		function searchPopUp() {
+		function searchPopup() {
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open("", "search", popOption);
 			document.sf.action = "/main_search_popup";
@@ -441,8 +441,8 @@
 	<!-- 액션 미니미 광고 배너 -->
 	<script th:inline="javascript">
 		// 액션 미니미 광고 배너 클릭시 --> 미니미 수정 팝업창
-		function minimiPopUp() {
-			let popUrl = "/profile/profile_minimi_popup/" + [[${ sign.idx }]];
+		function minimiPopup() {
+			let popUrl = "/profile/minimi_popup/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open(popUrl, "minimi", popOption);
 		}
@@ -568,21 +568,21 @@
 	<script type="text/javascript" src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js" charset="utf-8"></script>
 	<!-- 네이버 로그아웃 -->
 	<script>
-		let naverLogoutPopUp; // 팝업창 만들기
+		let naverLogoutPopup; // 팝업창 만들기
 		// 팝업창 열기 메소드
-		function naverOpenPopUp() {
+		function naverOpenPopup() {
 			// 팝업창에 로그아웃 실행 기능 추가 - 네이버 로그아웃이 가능한 주소를 가져다 사용
-			naverLogoutPopUp = window.open("https://nid.naver.com/nidlogin.logout", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,width=1,height=1");
+			naverLogoutPopup = window.open("https://nid.naver.com/nidlogin.logout", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,width=1,height=1");
 		}
 		// 팝업창 닫기 메소드
-		function naverClosePopUp() {
-			naverLogoutPopUp.close(); // 열린 팝업창을 다시 닫는 기능
+		function naverClosePopup() {
+			naverLogoutPopup.close(); // 열린 팝업창을 다시 닫는 기능
 		}
 		// 네이버 로그아웃 실행 메소드
 		function naverLogout() {
-			naverOpenPopUp(); // 팝업창 열기
+			naverOpenPopup(); // 팝업창 열기
 			setTimeout(function() {
-				naverClosePopUp(); // 팝업창 닫기
+				naverClosePopup(); // 팝업창 닫기
 				location.href = "/logout"; // 첫 페이지로 이동
 			}, 500); // 팝업창 여는거부터 순차적으로 0.5초 간격으로 실행
 		}
@@ -592,21 +592,21 @@
 	<script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
 	<!-- 카카오 로그아웃 -->
 	<script>
-		let kakaoLogoutPopUp; // 팝업창 만들기
+		let kakaoLogoutPopup; // 팝업창 만들기
 		// 팝업창 열기 메소드
-		function kakaoOpenPopUp() {
+		function kakaoOpenPopup() {
 			// 팝업창에 로그아웃 실행 기능 추가 - 카카오 로그아웃이 가능한 주소를 가져다 사용
-			kakaoLogoutPopUp = window.open("https://accounts.kakao.com/logout?continue=https://accounts.kakao.com/weblogin/account", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,width=1,height=1");
+			kakaoLogoutPopup = window.open("https://accounts.kakao.com/logout?continue=https://accounts.kakao.com/weblogin/account", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,width=1,height=1");
 		}
 		// 팝업창 닫기 메소드
-		function kakaoClosePopUp() {
-			kakaoLogoutPopUp.close(); // 열린 팝업창을 다시 닫는 기능
+		function kakaoClosePopup() {
+			kakaoLogoutPopup.close(); // 열린 팝업창을 다시 닫는 기능
 		}
 		// 카카오 로그아웃 실행 메소드
 		function kakaoLogout() {
-			kakaoOpenPopUp(); // 팝업창 열기
+			kakaoOpenPopup(); // 팝업창 열기
 			setTimeout(function() {
-				kakaoClosePopUp(); // 팝업창 닫기
+				kakaoClosePopup(); // 팝업창 닫기
 				location.href = "/logout"; // 첫 페이지로 이동
 			}, 500); // 팝업창 여는거부터 순차적으로 0.5초 간격으로 실행
 		}
@@ -620,7 +620,7 @@
 		//function kakaoLinkLogout() {
 			//// AccessToken을 가지고 있는지 확인
 			//if (Kakao.Auth.getAccessToken()) {
-				//// 유저정보 받아오기
+				//// 유저 정보 받아오기
 				//Kakao.API.request({
 					//// url을 통해 현재 로그인한 사용자를 unlink한다.
 					//url: '/v1/user/logout',

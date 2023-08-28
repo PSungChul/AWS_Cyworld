@@ -140,9 +140,9 @@ public class DiaryController {
 		// 조회된 모든 다이어리 글을 리스트 형태로 바인딩
 		model.addAttribute("list", list);
 		
-		// 그 다음 idx에 해당하는 유저정보를 조회
+		// 그 다음 idx에 해당하는 유저 정보를 조회
 		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저정보를 바인딩
+		// 조회된 유저 정보를 바인딩
 		model.addAttribute("sign", sign);
 		// 로그인 유저 idx를 바인딩
 		model.addAttribute("loginIdx", loginIdx);

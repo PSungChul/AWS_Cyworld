@@ -117,7 +117,7 @@
 								<h2>::개인정보 수정::</h2>
 								<p id="my-minimi">My minimi</p>
 								<!-- 미니미 수정 -->
-								<input class="minimi-main" type="button" th:src="@{/filePath/minimi/} + ${ sign.minimi }" onclick="minimiPopUp();">
+								<input class="minimi-main" type="button" th:src="@{/filePath/minimi/} + ${ sign.minimi }" onclick="minimiPopup();">
 								<!-- 해당 미니홈피 유저의 idx -->
 								<input name="idx" th:value="${ sign.idx }" type="hidden">
 								<!-- 해당 미니홈피 유저의 플랫폼 -->
@@ -162,7 +162,7 @@
 								</th:block>
 								<input class="final-button" id="btn-cover" type="button" value="수정" onclick="modifyUserData(this.form);">
 							</div>
-							<input id="btn-cover" type="button" value="API 설정" onclick="apiPopUp();" style="position: relative; top: 1565px; left: 80%;">
+							<input id="btn-cover" type="button" value="API 설정" onclick="apiPopup();" style="position: relative; top: 1565px; left: 80%;">
 						</form>
 					</aside>
 				</div>
@@ -337,8 +337,8 @@
 	
 	<script th:inline="javascript">
 		//window.open (미니미 수정창)
-		function minimiPopUp() {
-			let popUrl = "/profile/profile_minimi_popup/" + [[${ sign.idx }]];
+		function minimiPopup() {
+			let popUrl = "/profile/minimi_popup/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open(popUrl, "minimi", popOption);
 		}
@@ -635,7 +635,7 @@
 	<!-- API 팝업 -->
 	<script th:inline="javascript">
 		// window.open (API 발급창)
-		function apiPopUp() {
+		function apiPopup() {
 			let popUrl = "/api/profile_api_popup/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=600, height=800, status=no, menubar=no, toolbar=no, resizable=no";
 			window.open(popUrl, "api", popOption);

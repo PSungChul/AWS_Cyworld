@@ -37,5 +37,6 @@ out/
 .vscode/
 
 ### Information ###
+application.properties
 application-information.properties
 application-redis.properties

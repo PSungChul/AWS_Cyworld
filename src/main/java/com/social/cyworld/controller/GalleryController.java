@@ -151,17 +151,17 @@ public class GalleryController {
 		// 조회된 모든 댓글을 리스트 형태로 바인딩
 		model.addAttribute("commentList", commentList);
 		
-		// 그 다음 idx에 해당하는 유저정보를 조회
+		// 그 다음 idx에 해당하는 유저 정보를 조회
 		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저정보를 바인딩
+		// 조회된 유저 정보를 바인딩
 		model.addAttribute("sign", sign);
 		// 로그인 유저 idx를 바인딩
 		model.addAttribute("loginIdx", loginIdx);
 		
-		// 그 다음 사진첩에 댓글 작성자를 만들기 위해 로그인 유저 idx에 해당하는 유저정보를 조회
+		// 그 다음 사진첩에 댓글 작성자를 만들기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
 		Sign loginUser = signService.findByIdx(loginIdx);
 		
-		// 조회한 유저정보에서 댓글 작성자를 만들어 담을 String변수
+		// 조회한 유저 정보에서 댓글 작성자를 만들어 담을 String변수
 		String galleryCommentName = "";
 
 		/* 이메일 @부분까지 잘라낸 뒤 플랫폼명 추가 - 폐기

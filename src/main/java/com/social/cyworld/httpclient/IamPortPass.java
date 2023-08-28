@@ -68,7 +68,7 @@ public class IamPortPass {
     }
 
     public static JsonNode getUserInfo(String impUid, String accessToken) { // 19. 파라미터로 컨트롤러에서 넘어온 imp_uid와 accessToken을 받아온다.
-        // 20. IamPort로 인증된 유저정보를 받아오는 IamPort 서버 URL에 19에서 받아온 imp_uid를 추가해서 작성한다.
+        // 20. IamPort로 인증된 유저 정보를 받아오는 IamPort 서버 URL에 19에서 받아온 imp_uid를 추가해서 작성한다.
         final String RequestUrl = "https://api.iamport.kr/certifications/" + impUid;
 
         // 21. 외부 서버와 통신을 맡아줄 HttpClient를 생성한다.
