@@ -73,6 +73,9 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	구매 - 도토리 등을 이용한 사이트 내부 재화 사용
 	미니미 구매 테이블 --> 상품 구매 테이블로 변경
 	상품 결제 테이블 추가
+	Sign 테이블 --> Sign, UserLogin, UserProfile, UserMain 테이블 정규화
+	Sign 테이블의 컬럼들을 각각 사용처에 맞게 분리한 후 각 테이블의 고유 키값으로 접근할 수 있도록 변경하여 유저 정보 보안 강화
+	유저 로그인 정보를 담당하는 UserLogin 테이블, 유저 프로필 정보를 담당하는 UserProfile 테이블, 유저 메인 정보를 담당하는 UserMain 테이블을 각각 추가
 
 #
 
@@ -94,30 +97,52 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	CREATE DATABASE Cyworld DEFAULT CHARACTER SET UTF8MB4;
 	# 생성한 데이터베이스 사용
 	USE Cyworld;
-### ✔ TABLE - Sign, Views, Ilchon, Ilchonpyeong, BuyProduct, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey, ApiConsent, Product, PayProduct
+### ✔ TABLE - Sign, UserLogin, UserProfile, UserMain, Views, Ilchon, Ilchonpyeong, BuyProduct, Diary, Gallery, GalleryLike, GalleryComment, Guestbook, GuestbookLike, ApiKey, ApiConsent, Product, PayProduct
 	# 테이블 생성
 	
-	# 유저 테이블
+	# 유저 키 테이블
 	CREATE TABLE Sign (
-		idx  INT PRIMARY KEY AUTO_INCREMENT, # IDX - 기본키, 시퀀스
+		idx INT PRIMARY KEY AUTO_INCREMENT, # IDX - 기본키, 시퀀스
+		mUid VARCHAR(255) NOT NULL UNIQUE, # 유저 메인 정보 테이블 키
+		pUid VARCHAR(255) NOT NULL UNIQUE, # 유저 프로필 정보 테이블 키
+		lUid VARCHAR(255) NOT NULL UNIQUE, # 유저 로그인 정보 테이블 키
+		platform VARCHAR(10) NOT NULL, # 플랫폼
+		roles VARCHAR(255) NOT NULL, # 권한
+		consent INT # API 동의 항목 체크
+	);
+	
+	# 유저 로그인 정보 테이블
+	CREATE TABLE UserLogin (
+		idx VARCHAR(255) PRIMARY KEY, # IDX - 테이블 키
+		CONSTRAINT fk_UserLoginIdx FOREIGN KEY(idx) REFERENCES Sign(lUid) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
+		userId VARCHAR(255) NOT NULL UNIQUE, # ID - 암호화
+		info VARCHAR(255) NOT NULL # PW - 암호화
+	);
+	
+	# 유저 프로필 정보 테이블
+	CREATE TABLE UserProfile (
+		idx VARCHAR(255) PRIMARY KEY, # IDX - 테이블 키
+		CONSTRAINT fk_UserProfileIdx FOREIGN KEY(idx) REFERENCES Sign(pUid) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
 		email VARCHAR(50) NOT NULL UNIQUE, # Email
-		info VARCHAR(255) NOT NULL, # PW
 		gender VARCHAR(5) NOT NULL, # 성별
 		name VARCHAR(15) NOT NULL, # 이름
 		birthday VARCHAR(10) NOT NULL, # 생년월일
-		phoneNumber VARCHAR(30) NOT NULL UNIQUE, # 휴대전화
-		platform VARCHAR(10) NOT NULL, # 플랫폼
-		roles VARCHAR(255) NOT NULL, # 권한
-		minimi VARCHAR(30) NOT NULL, # 미니미
+		phoneNumber VARCHAR(30) NOT NULL UNIQUE # 휴대전화
+	);
+	
+	# 유저 메인 정보 테이블
+	CREATE TABLE UserMain (
+		idx VARCHAR(255) PRIMARY KEY, # IDX - 테이블 키
+		CONSTRAINT fk_UserMainIdx FOREIGN KEY(idx) REFERENCES Sign(mUid) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
 		dotory INT NOT NULL, # 도토리 개수
+		minimi VARCHAR(30) NOT NULL, # 미니미
 		ilchon INT NOT NULL, # 일촌 수
 		mainTitle VARCHAR(100), # 메인 타이틀
 		mainPhoto VARCHAR(100), # 메인 사진
 		mainText VARCHAR(255), # 메인 소개글
 		today INT NOT NULL, # 일일 조회수
 		total INT NOT NULL, # 총합 조회수
-		toDate VARCHAR(20) NOT NULL, # 접속 일자
-		consent INT # API 동의 항목 체크
+		toDate VARCHAR(20) NOT NULL # 접속 일자
 	);
 	
 	# 조회수 테이블
@@ -136,7 +161,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		ilchonSessionIdx INT NOT NULL, # 로그인 유저 IDX
 		CONSTRAINT fk_IlchonSessionIdx FOREIGN KEY(ilchonSessionIdx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE, # 포린키 연결
 		ilchonName VARCHAR(100) NOT NULL, # 일촌 이름
-		ilchonUp INT NOT NULL # 일촌 수
+		ilchonUp INT NOT NULL # 일촌 상태
 	);
 	
 	
@@ -230,7 +255,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		guestbookLikeSessionIdx INT NOT NULL, # 로그인 유저 IDX
 		CONSTRAINT fk_GuestbookLikeSessionIdx FOREIGN KEY(guestbookLikeSessionIdx) REFERENCES Sign(idx) ON DELETE CASCADE ON UPDATE CASCADE # 포린키 연결
 	);
-
+	
 	# API 정보 테이블
 	CREATE TABLE ApiKey (
 		idx INT PRIMARY KEY, # 로그인 유저 IDX
@@ -244,7 +269,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		phoneNumber INT, # 휴대폰 번호 동의 항목
 		email INT # 이메일 동의 항목
 	);
-
+	
 	# API 동의 항목 체크 테이블
 	CREATE TABLE ApiConsent (
 		idx INT PRIMARY KEY, # 로그인 유저 IDX
@@ -255,7 +280,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		phoneNumber INT, # 휴대폰 번호 동의 항목
 		email INT # 이메일 동의 항목
 	);
-
+	
 	# 상품 정보 테이블
 	CREATE TABLE Product (
 		idx INT PRIMARY KEY AUTO_INCREMENT, # IDX - 기본키, 시퀀스
@@ -264,7 +289,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		name VARCHAR(50) NOT NULL, # 상품 이름
 		price INT NOT NULL # 상품 가격
 	);
-
+	
 	# 상품 결제 테이블
 	CREATE TABLE PayProduct (
 		orderId VARCHAR(255) PRIMARY KEY, # 상품 주문 번호
