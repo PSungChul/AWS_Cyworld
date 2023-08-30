@@ -46,15 +46,15 @@ public class GalleryDTO {
 
     // 게시글 작성
     public Gallery toInsertEntity() {
-        // 작성 시간을 기록하기 위해 Date객체 사용
+        // 작성 시간을 기록하기 위해 Date 객체를 생성한다.
         Date date = new Date();
-        // Date객체를 원하는 모양대로 재조합
+        // Date 객체를 원하는 형식대로 포맷한다.
         SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return Gallery.builder()
                 .idx(null)
                 .galleryIdx(galleryIdx)
                 .galleryTitle(galleryTitle)
-                .galleryRegDate(today.format(date))
+                .galleryRegDate(today.format(date)) // 사진첩 게시물 작성 시간에 Date 객체로 만든 작성 시간을 가져와 setter를 통해 전달한다.
                 .galleryContent(galleryContent)
                 .galleryFileName(galleryFileName)
                 .galleryFileExtension(galleryFileExtension)
@@ -64,15 +64,15 @@ public class GalleryDTO {
 
     // 게시글 수정
     public Gallery toModifyEntity() {
-        // 수정 시간을 기록하기 위해 Date객체 사용
+        // 수정 시간을 기록하기 위해 Date 객체를 생성한다.
         Date date = new Date();
-        // Date객체를 원하는 모양대로 재조합
+        // Date 객체를 원하는 형식대로 포맷한다.
         SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return Gallery.builder()
                 .idx(idx)
                 .galleryIdx(galleryIdx)
                 .galleryTitle(galleryTitle)
-                .galleryRegDate(today.format(date))
+                .galleryRegDate(today.format(date)) // 사진첩 게시물 작성 시간에 Date 객체로 만든 수정 시간을 가져와 setter를 통해 전달한다.
                 .galleryContent(galleryContent)
                 .galleryFileName(galleryFileName)
                 .galleryFileExtension(galleryFileExtension)

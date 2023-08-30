@@ -16,25 +16,23 @@ import java.util.List;
 public class MainService {
     @Autowired
     ViewsRepository viewsRepository;
-
     @Autowired
     IlchonpyeongRepository ilchonpyeongRepository;
-
     @Autowired
     IlchonRepository ilchonRepository;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Views
-    // 로그인한 유저가 해당 미니홈피로 방문한 기록 조회
+    // 로그인 유저가 해당 미니홈피로 방문한 기록 조회
     public Views findByViewsIdxAndViewsSessionIdx(HashMap<String, Object> map) {
         Views views = viewsRepository.findByViewsIdxAndViewsSessionIdx((Integer) map.get("1"), (Integer) map.get("2"));
         return views;
     }
 
-    // 방문 기록이 없을 경우 첫 방문 저장
+    // 방문 기록이 없는 경우 첫 방문 저장
     public void insertIntoViews(Views views) {
         viewsRepository.save(views);
     }
 
-    // 방문 기록이 있을 경우 날짜 비교 후 날짜가 다르면 해당 날짜에 현재 날짜로 갱신
+    // 방문 기록이 있는 경우 날짜 비교 후 날짜가 다르면 해당 날짜에 현재 날짜로 갱신
     public void updateSetTodayDateByViewsIdxAndViewsSessionIdx(HashMap<String, Object> map) {
         viewsRepository.updateSetTodayDateByViewsIdxAndViewsSessionIdx((String) map.get("3"), (Integer) map.get("1"), (Integer) map.get("2"));
     }
@@ -57,7 +55,7 @@ public class MainService {
         return ilchonList;
     }
 
-    // 로그인한 유저와 해당 미니홈피 유저의 일촌관계
+    // 로그인 유저와 해당 미니홈피 유저의 일촌관계
     public Ilchon findByIlchonIdxAndIlchonSessionIdx(Ilchon ilchon) {
         Ilchon ilchonUser = ilchonRepository.findByIlchonIdxAndIlchonSessionIdx(ilchon.getIlchonIdx(), ilchon.getIlchonSessionIdx());
         return ilchonUser;

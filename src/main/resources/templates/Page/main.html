@@ -20,7 +20,7 @@
 </script>
 <body th:if="${ errMsg eq null }">
 	<!-- 관리자용 상품 추가 버튼 -->
-	<input th:if="${ miniRole eq 'ADMIN' && loginRole eq 'ADMIN' }" id="btn_cover" type="button" value="상품 추가" onclick="AddDotoryPopup()">
+	<input th:if="${ sign.roles eq 'ADMIN' && loginUser.roles eq 'ADMIN' }" id="btn_cover" type="button" value="상품 추가" onclick="AddDotoryPopup()">
 	<!-- 비회원용 로그인 버튼 -->
 	<th:block th:if="${ loginUser.idx <= 0 }">
 		<input id="btn_cover" class="returnMyHome" type="button" value="로그인하러 가기" onclick="location.href='/logout'">
@@ -29,20 +29,20 @@
 	<th:block th:if="${ sign.idx ne loginUser.idx && loginUser.idx > 0 }">
 		<input id="btn_cover" class="returnMyHome" type="button" value="내 미니홈피로 가기" th:onclick="|location.href='@{/main/{idx}(idx=${ loginUser.idx })}'|">
 	</th:block>
-	<!-- 로그인한 유저의 플랫폼에 따른 로그아웃 버튼 생성 -->
-	<!-- 플랫폼이 싸이월드일 경우 -->
+	<!-- 로그인 유저 플랫폼에 따른 로그아웃 버튼 생성 -->
+	<!-- 플랫폼이 싸이월드인 경우 -->
 	<th:block th:if="${ loginUser.platform eq 'cyworld' }">
 		<input id="btn_cover" class="cy_logout" type="button" value="로그아웃" onclick="location.href='/logout'">
 	</th:block>
-	<!-- 플랫폼이 네이버일 경우 -->
+	<!-- 플랫폼이 네이버인 경우 -->
 	<th:block th:if="${ loginUser.platform eq 'naver' }">
 		<input th:if="${ loginUser.platform eq 'naver' }" id="btn_cover" class="na_logout" type="button" value="네이버 로그아웃" onclick="naverLogout();">
 	</th:block>
-	<!-- 플랫폼이 카카오일 경우 -->
+	<!-- 플랫폼이 카카오인 경우 -->
 	<th:block th:if="${ loginUser.platform eq 'kakao' }">
 		<input id="btn_cover" class="ka_logout" type="button" value="카카오 로그아웃" onclick="kakaoLogout();">
 	</th:block>
-	<!-- 비회원일 경우 -->
+	<!-- 비회원인 경우 -->
 	<th:block th:if="${ loginUser eq null }">
 		<input id="btn_cover" class="ka_logout" type="button" value="로그인" onclick="location.href='/logout'">
 	</th:block>
@@ -51,15 +51,15 @@
 		<section class="left-section">
 			<div class="left-dashed-line">
 				<div class="left-gray-background">
-					<!-- 로그안힌 유저의 미니홈피일 경우 일촌 수 -->
+					<!-- 로그안힌 유저의 미니홈피인 경우 일촌 수 -->
 					<th:block th:if="${ sign.idx eq loginUser.idx }">
 						<div id="ilchonNum" th:text="'나의 일촌: ' + ${ sign.ilchon }"></div>
 					</th:block>
-					<!-- 타 유저의 미니홈피일 경우 일촌 수 -->
+					<!-- 타 유저의 미니홈피인 경우 일촌 수 -->
 					<th:block th:if="${ sign.idx ne loginUser.idx }">
 						<div id="ilchonNum" th:text="${ sign.name } + '님의 일촌: ' + ${ sign.ilchon }"></div>
 					</th:block>
-					<!-- 타 유저의 미니홈피일 경우 일촌 신청 버튼 생성 -->
+					<!-- 타 유저의 미니홈피인 경우 일촌 신청 버튼 생성 -->
 					<th:block th:if="${ sign.idx ne loginUser.idx }">
 						<!-- 일촌 신청 상태를 나타내는 숫자 -->
 						<input id="ilchonUp" type="hidden" th:value="${ ilchon.ilchonUp }">
@@ -184,9 +184,9 @@
 			<div class="tabs">
 				<form>
 					<div class="tab-btns">
-						<!-- 해당 미니홈피 유저의 idx -->
+						<!-- 미니홈피 유저 idx -->
 						<input id="idx" name="idx" type="hidden" th:value="${ sign.idx }">
-						<!-- 로그인한 유저의 idx -->
+						<!-- 로그인 유저 idx -->
 						<input id="loginIdx" type="hidden" th:value="${ loginUser.idx }">
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
@@ -277,7 +277,7 @@
 			let pop = window.open(popUrl, "_blank", popOption);
 		}
 
-		// 도토리 결제 팝업창
+		// 도토리 팝업창
 		function DotoryPopup() {
 			let popUrl = "/dotory/" + [[${ sign.idx }]];
 			let popOption = "top=100, left=800, width=800, height=800, status=no, menubar=no, toolbar=no, resizable=no";
@@ -303,7 +303,7 @@
 			let idx = document.getElementById("idx").value;
 			let loginIdx = document.getElementById("loginIdx").value;
 			
-			// 비회원일 경우
+			// 비회원인 경우
 			if ( loginIdx <= 0 ) {
 				alert("로그인후 이용 가능합니다");
 				return;
@@ -364,13 +364,13 @@
 			let loginIdx = document.getElementById("loginIdx").value;
 			let ilchonpyeongContent = f.ilchonpyeongContent.value;
 			
-			// 비회원일 경우
+			// 비회원인 경우
 			if ( loginIdx <= 0 ) {
 				alert("로그인후 이용 가능합니다");
 				return;
 			}
 			
-			// 타 유저의 미니홈피일 경우
+			// 타 유저의 미니홈피인 경우
 			if ( idx != loginIdx ) {
 				let ilchonUp = document.getElementById("ilchonUp").value; // 일촌 신청 상태를 나타내는 숫자
 				
@@ -381,13 +381,13 @@
 				}
 			}
 			
-			// 공백일 경우
+			// 공백인 경우
 			if ( ilchonpyeongContent == "" ) {
 				alert("일촌평을 작성해주세요.");
 				return;
 			}
 			
-			let url = "/ilchon_write";
+			let url = "/ilchonpyeong_write";
 			let param = "ilchonpyeongIdx=" + idx +
 						"&ilchonpyeongContent=" + ilchonpyeongContent +
 						"&loginUserIdx=" + loginIdx;
@@ -501,7 +501,7 @@
 			let loginIdx = document.getElementById("loginIdx").value;
 			let idx = document.getElementById("idx").value;
 			
-			// 비회원일 경우
+			// 비회원인 경우
 			if ( loginIdx <= 0 ) {
 				alert("로그인후 이용 가능합니다");
 				return;
@@ -515,7 +515,7 @@
 			let loginIdx = document.getElementById("loginIdx").value;
 			let idx = document.getElementById("idx").value;
 			
-			// 비회원일 경우
+			// 비회원인 경우
 			if ( loginIdx <= 0 ) {
 				alert("로그인후 이용 가능합니다");
 				return;
@@ -529,7 +529,7 @@
 			let loginIdx = document.getElementById("loginIdx").value;
 			let idx = document.getElementById("idx").value;
 			
-			// 비회원일 경우
+			// 비회원인 경우
 			if ( loginIdx <= 0 ) {
 				alert("로그인후 이용 가능합니다");
 				return;

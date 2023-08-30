@@ -1,23 +1,9 @@
 package com.social.cyworld.controller;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.social.cyworld.dto.LeftProfileDTO;
-import com.social.cyworld.entity.BuyProduct;
-import com.social.cyworld.entity.Ilchon;
-import com.social.cyworld.entity.Product;
-import com.social.cyworld.entity.Sign;
-import com.social.cyworld.service.MainService;
-import com.social.cyworld.service.ProductService;
-import com.social.cyworld.service.ProfileService;
-import com.social.cyworld.service.SignService;
+import com.social.cyworld.dto.UserDTO;
+import com.social.cyworld.entity.*;
+import com.social.cyworld.service.*;
 import com.social.cyworld.util.JwtUtil;
 import com.social.cyworld.util.PhoneKey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +17,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 @PropertySource("classpath:application-information.properties")
 @RequestMapping("/profile")
@@ -53,6 +47,8 @@ public class ProfileController {
 	ProfileService profileService;
 	@Autowired
 	ProductService productService;
+	@Autowired
+	UserDTOService userDTOService;
 
 	// properties - sens
 	@Value("${naverAccessKey:naverAccessKey}")
@@ -171,28 +167,27 @@ public class ProfileController {
 			return "Page/main";
 		}
 
-		// 미니홈피 유저 정보 조회
-		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저 정보를 바인딩
-		model.addAttribute("sign", sign);
-		// 로그인 유저 idx를 바인딩
+		// 로그인 유저 idx에 해당하는 프로필 페이지 유저 정보를 조회한다.
+		UserDTO userDTO = userDTOService.findProfileByIdx(loginIdx);
+		// 조회한 프로필 페이지 유저 정보 DTO를 바인딩한다.
+		model.addAttribute("sign", userDTO);
+		// 로그인 유저 idx를 바인딩한다.
 		model.addAttribute("loginIdx", loginIdx);
 
-		// 일촌 관계를 알아보기 위해 Ilchon 생성
+		// 일촌 Entity를 생성한다.
 		Ilchon ilchon = new Ilchon();
-
-		// 맞일촌 상태를 알리는 ilchonUp을 2로 지정
+		// 일촌 상태에 맞일촌을 의미하는 2를 setter를 통해 전달한다.
 		ilchon.setIlchonUp(2);
-		// 일촌 idx에 로그인 유저 idx를 지정
+		// 일촌 idx에 로그인 유저 idx를 setter를 통해 전달한다.
 		ilchon.setIlchonSessionIdx(loginIdx);
-		// 로그인 유저 idx에 해당하는 일촌 조회
+		// 전달받은 맞일촌에 해당하는 일촌을 모두 조회하여 리스트로 가져온다.
 		List<Ilchon> ilchonList = mainService.findByIlchonSessionIdxAndIlchonUp(ilchon);
-		// 조회된 맞일촌 리스트를 바인딩
+		// 가져온 일촌 리스트를 바인딩한다.
 		model.addAttribute("ilchonList", ilchonList);
 
-		// 좌측 프로필 DTO에 좌측 프로필 정보 전달
-		LeftProfileDTO leftProfileDTO = new LeftProfileDTO(sign);
-		// 좌측 프로필 DTO를 바인딩
+		// 조회한 프로필 페이지 유저 정보 DTO를 전달하여 좌측 프로필 DTO로 변환한다.
+		LeftProfileDTO leftProfileDTO = new LeftProfileDTO(userDTO);
+		// 변환한 좌측 프로필 DTO를 바인딩한다.
 		model.addAttribute("leftProfileDTO", leftProfileDTO);
 
 		// 프로필 페이지로 이동
@@ -306,28 +301,31 @@ public class ProfileController {
 			return "Page/minimi_popup";
 		}
 		
-		// idx에 해당하는 프로필 조회
-		Sign sign = signService.findByIdx(idx);
-		// 조회된 프로필 정보중 미니미 정보를 바인딩
-		model.addAttribute("minimi", sign.getMinimi());
-		// 조회된 프로필 정보중 도토리 개수를 바인딩
-		model.addAttribute("dotory", sign.getDotory());
+		// 로그인 유저 idx에 해당하는 유저 메인 정보를 조회한다.
+		UserMain userMain = signService.findUserMainBySignIdx(loginIdx);
+		// 조회한 유저 메인 정보 중 미니미를 바인딩한다.
+		model.addAttribute("minimi", userMain.getMinimi());
+		// 조회한 유저 메인 정보 중 도토리 개수를 바인딩한다.
+		model.addAttribute("dotory", userMain.getDotory());
+		// 로그인 유저 idx를 바인딩한다.
+		model.addAttribute("loginIdx", loginIdx);
 
 		// 상품 타입이 미니미에 해당하는 상품 정보를 모두 조회하여 리스트로 가져온다.
 		List<Product> productList = productService.findByProductType(2);
-		// 가져온 미니미 상품 리스트를 바인딩
+		// 가져온 미니미 상품 리스트를 바인딩한다.
 		model.addAttribute("productList", productList);
 		
-		// idx에 해당하는 구매한 미니미를 모두 조회하여 리스트로 가져온다.
-		List<BuyProduct> buyProductList = profileService.findByBuyIdx(idx);
+		// 로그인 유저 idx에 해당하는 미니미 구매 내역을 모두 조회하여 리스트로 가져온다.
+		List<BuyProduct> buyProductList = profileService.findByBuyIdx(loginIdx);
 
-		// 가져온 구매한 미니미 리스트가 비어있는지 체크한다.
-		// 구매한 미니미 리스트가 비어있는 경우
+		// 가져온 미니미 구매 내역 리스트가 비어있는지 체크한다.
+		// 미니미 구매 내역 리스트가 비어있는 경우
 		if ( buyProductList.size() == 0 ) {
-			// 구매한 미니미가 하나도 없다는 의미로 null을 바인딩
+			// 구매한 미니미가 하나도 없다는 의미로 null을 바인딩한다.
 			model.addAttribute("buyProductList", null);
+		// 미니미 구매 내역 리스트가 비어있지 않는 경우
 		} else {
-			// 조회된 구매한 미니미를 리스트 형태로 바인딩
+			// 조회한 미니미 구매 내역 리스트를 바인딩한다.
 			model.addAttribute("boughtProductList", buyProductList);
 
 			// 미니미 상품 리스트에서 구매한 미니미를 제거한다.
@@ -339,12 +337,10 @@ public class ProfileController {
 					}
 				}
 			}
-			// 구매한 미니미가 제거된 미니미 상품 리스트를 바인딩
+
+			// 구매한 미니미를 제거한 미니미 상품 리스트를 바인딩한다.
 			model.addAttribute("buyProductList", productList);
 		}
-
-		// 로그인 유저 idx 바인딩
-		model.addAttribute("loginIdx", loginIdx);
 
 		// 미니미 팝업으로 이동
 		return "Page/minimi_popup";
@@ -352,7 +348,7 @@ public class ProfileController {
 	
 	// 미니미 변경
 	@RequestMapping("/profile_minimi_change")
-	public String minimiChange(Sign sign, Model model) {
+	public String minimiChange(UserDTO userDTO, Model model) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -450,18 +446,18 @@ public class ProfileController {
 		model.addAttribute("errMsg", null);
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
-		if ( loginIdx != sign.getIdx() ) {
+		if ( loginIdx != userDTO.getIdx() ) {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 			// 미니미 팝업으로 이동
 			return "Page/minimi_popup";
 		}
-		
-		// 변경할 미니미 정보로 갱신
-		profileService.updateSetMinimiByIdx(sign);
+
+		// 로그인 유저 idx에 해당하는 유저 메인 정보 중 미니미를 갱신한다.
+		profileService.updateSetMinimiByIdx(userDTO.toUpdateMinimi(), loginIdx);
 
 		// idx를 들고 미니미 팝업으로 URL로 이동
-		return "redirect:/profile/minimi_popup/" + sign.getIdx();
+		return "redirect:/profile/minimi_popup/" + loginIdx;
 	}
 	
 	// 미니미 구매
@@ -558,46 +554,38 @@ public class ProfileController {
 			return "-4";
 		}
 
-		// 미니미 idx에 AUTO_INCREMENT로 null 지정
+		// 미니미 idx에 AUTO_INCREMENT로 null을 설정하여 setter를 통해 전달한다.
 		buyProduct.setIdx(null);
-		// 미니미를 구매한 idx를 지정
-		buyProduct.setBuyIdx(idx);
-		
-		// 이미 구매한 미니미인지 조회 - 중복 구매 방지
-		BuyProduct boughtMinimi = profileService.findByBuyIdxAndBuyName(buyProduct);
-		
-		// 이미 구매한 미니미일 경우
-		if ( boughtMinimi != null ) {
-			return "no";
-		// 아직 구매하지 않은 미니미일 경우
-		} else {
-			// 로그인 유저 idx에 해당하는 유저 정보를 조회한다.
-			Sign sign = signService.findByIdx(idx);
+		// 미니미 buyIdx에 로그인 유저 idx를 setter를 통해 전달한다.
+		buyProduct.setBuyIdx(loginIdx);
 
-			// 조회한 유저 정보 중 보유 중인 도토리 개수를 가져와 미니미 가격보다 적은지 체크한다.
-			// 보유 중인 도토리 개수가 미니미 가격보다 적은 경우
-			if ( sign.getDotory() < price ) {
-				// 에러 코드를 반환한다.
-				return "-9";
-			}
+		// 로그인 유저 idx에 해당하는 유저 메인 정보를 조회한다.
+		UserMain userMain = signService.findUserMainBySignIdx(loginIdx);
 
-			// 보유 중인 도토리 개수가 미니미 가격보다 많거나 같은 경우
-
-			// 보유 중인 도토리 개수에서 미니미 가격만큼을 차감한다.
-			sign.setDotory(sign.getDotory() - price);
-
-			// 차감한 도토리 개수로 보유 중인 도토리 개수 갱신
-			signService.updateSetDotoryByIdx(sign);
-			
-			// 구매한 미니미를 저장
-			profileService.insertIntoBuyProduct(buyProduct);
-			
-			return "yes";
+		// 조회한 유저 메인 정보 중 도토리 개수를 가져와 미니미 가격보다 적은지 체크한다.
+		// 도토리 개수가 미니미 가격보다 적은 경우
+		if ( userMain.getDotory() < price ) {
+			// 에러 코드를 반환한다.
+			return "-9";
 		}
+
+		// 도토리 개수가 미니미 가격보다 많거나 같은 경우
+
+		// 도토리 개수에 미니미 가격만큼을 차감하여 setter를 통해 전달한다.
+		userMain.setDotory(userMain.getDotory() - price);
+
+		// 유저 메인 정보 중 도토리 개수를 차감한 도토리 개수로 갱신한다.
+		signService.updateSetDotoryByIdx(userMain);
+
+		// 미니미 구매 내역에 구매한 미니미를 저장한다.
+		profileService.insertIntoBuyProduct(buyProduct);
+
+		// 성공 메시지를 전달한다.
+		return "yes";
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////프로필 수정
 	// 프로필 좌측 - 메인 사진 및 메인 소개글 수정
-	@RequestMapping("/profile_modify_main")
+	@RequestMapping("/profile_modify_left")
 	public String profileModifyMain(LeftProfileDTO leftProfileDTO, Model model) {
 		// 토큰 값
 		String authorization = null;
@@ -702,20 +690,20 @@ public class ProfileController {
 			// 프로필 페이지로 이동
 			return "Page/profile";
 		}
-		
-		// 메인 사진 업로드를 위해 절대 경로를 생성
+
+		// 업로드한 사진 저장을 위해 절대 경로를 생성한다.
 		String savePath = "/Users/p._.sc/IT/ToyProject/CyworldProject/util/files/profile"; // 절대 경로
-		// 메인 사진 업로드를 위해 파라미터로 넘어온 사진의 정보
+		// 업로드한 사진의 정보
 		MultipartFile mainPhotoFile = leftProfileDTO.getMainPhotoFile();
-		// 업로드된 사진이 없을 경우 이미 저장되어 있는 사진 이름 지정
+		// 업로드한 사진이 없는 경우 이미 저장되어 있는 사진 이름 지정
 		String mainPhoto = leftProfileDTO.getMainPhoto();
 		
-		// 업로드된 사진이 있을 경우
+		// 업로드한 사진이 있는 경우
 		if ( !mainPhotoFile.isEmpty() ) {
 //			// 이미 저장되어 있는 사진 삭제
 //			File delFile = new File(savePath, mainPhoto);
 //			delFile.delete();
-			// 업로드된 사진의 원본 이름을 지정
+			// 업로드한 사진의 원본 이름을 지정
 			mainPhoto = mainPhotoFile.getOriginalFilename();
 			/* 확장자 구하기
 			 * 파일 원본 이름에서 마지막 .이 들어간 위치에서 한 칸 더한 위치부터 끝까지 잘라내기
@@ -727,12 +715,12 @@ public class ProfileController {
 			mainPhoto = String.format("%d.%s", time, extension);
 			// 사진 저장할 경로를 지정
 			File saveFile = new File(savePath, mainPhoto);
-			// 저장할 경로가 없을 경우
+			// 저장할 경로가 없는 경우
 			if( !saveFile.exists() ) {
 				// 경로를 생성
 				saveFile.mkdirs();
 			}
-			// 업로드된 사진을 실제로 저장 - try~catch 필요
+			// 업로드한 사진을 실제로 저장 - try~catch 필요
 			try {
 				// 업로드된 사진을 실제로 저장해 주는 메소드
 				mainPhotoFile.transferTo(saveFile);
@@ -745,17 +733,17 @@ public class ProfileController {
 			}
 		}
 
-		// 업로드된 사진 정보로 갱신
-		profileService.updateSetMainPhotoAndMainTextByIdx(leftProfileDTO.toEntity());
+		// 로그인 유저 idx에 해당하는 유저 메인 정보 중 메인 사진을 업로드한 사진 정보로 갱신한다.
+		profileService.updateSetMainPhotoAndMainTextByIdx(leftProfileDTO.toEntity(), loginIdx);
 
 		// idx를 들고 프로필 페이지 URL로 이동
-		return "redirect:/profile?idx=" + leftProfileDTO.getIdx();
+		return "redirect:/profile?idx=" + loginIdx;
 	}
 	
 	// 프로필 우측 - 메인 타이틀 및 비밀번호 수정
-	@RequestMapping("/profile_modify_userdata")
+	@RequestMapping("/profile_modify_right")
 	@ResponseBody
-	public String profileModifyUserData(Sign sign) {
+	public String profileModifyUserData(UserDTO userDTO) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -841,12 +829,12 @@ public class ProfileController {
 		}
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
-		if ( loginIdx != sign.getIdx() ) {
+		if ( loginIdx != userDTO.getIdx() ) {
 			// 에러 코드를 반환한다.
 			return "4";
 		}
 		
-		// 수정 실패할 경우
+		// 수정 실패하는 경우
 		String result = "no";
 		
 		/* 플랫폼이 cyworld일때와 소셜일 때 구분
@@ -854,27 +842,40 @@ public class ProfileController {
 		 * 소셜 가입자는 아이디와 비밀번호를 소셜 플랫폼 것을 가져다 쓰기에 비밀번호 변경이 없다
 		 */
 
-		// 수정할 비밀번호가 있을 경우
-		if ( sign.getInfo() == null ) {
-			// 비밀번호 X, 메인 타이틀만 수정
-			int res = profileService.updateSetMainTitleByIdx(sign);
-			if ( res == 1 ) {
-				// 수정 성공할 경우
-				result = "yes";
+		// 수정할 비밀번호가 없는 경우
+		if ( userDTO.getInfo() == null ) {
+			// 로그인 유저 idx에 해당하는 유저 메인 정보 중 메인 타이틀을 수정한다.
+			int res = profileService.updateSetMainTitleByIdx(userDTO.toRightMainTitle(), loginIdx);
+			if ( res == 0 ) {
+				// 실패 메시지 전달
+				return result;
 			}
-			// 콜백 메소드에 전달
+
+			// 수정 성공하는 경우
+			result = "yes";
+
+			// 성공 메시지 전달
 			return result;
-		// 수정할 비밀번호가 없을 경우
+		// 수정할 비밀번호가 있는 경우
 		} else {
-			// 새로운 비밀번호 암호화
-			sign.setInfo(passwordEncoder.encode(sign.getInfo()));
-			// 비밀번호 및 메인 타이틀 수정
-			int res = profileService.updateSetInfoAndMainTitleByIdx(sign);
-			if (res == 1) {
-				// 수정 성공할 경우
-				result = "yes";
+			// 로그인 유저 idx에 해당하는 유저 로그인 정보 중 비밀번호를 수정한다.
+			int userLoginRes = profileService.updateSetInfoByIdx(userDTO.toRightInfo(passwordEncoder), loginIdx);
+			if ( userLoginRes == 0 ) {
+				// 실패 메시지 전달
+				return result;
 			}
-			// 콜백 메소드에 전달
+
+			// 로그인 유저 idx에 해당하는 유저 메인 정보 중 메인 타이틀을 수정한다.
+			int userMainRes = profileService.updateSetMainTitleByIdx(userDTO.toRightMainTitle(), loginIdx);
+			if ( userMainRes == 0 ) {
+				// 실패 메시지 전달
+				return result;
+			}
+
+			// 수정 성공하는 경우
+			result = "yes";
+
+			// 성공 메시지 전달
 			return result;
 		}
 	}
@@ -973,25 +974,24 @@ public class ProfileController {
 			return "4";
 		}
 
-		// 휴대폰 번호 하이픈 제거
-		phoneNumber = phoneNumber.replaceAll("-", "");
-		// 가입자가 아닐 경우
+		// 가입자인 경우
 		String result = "no";
 
-		// 인증 전 가입자인지 체크
-		Sign join = signService.findByPhoneNumber(phoneNumber);
+		// 인증 전 휴대폰 번호에 해당하는 가입자인지 조회하여 체크한다.
+		UserProfile userProfile = signService.findUserProfileByPhoneNumber(phoneNumber.replaceAll("-", "")); // 휴대폰 번호 하이픈 제거
 
-		// 조회한 값이 있을 경우 - 가입자
-		if ( join != null ) {
-			// 콜백 메소드에 전달
+		// 조회한 값이 있는 경우 - 가입자
+		if ( userProfile != null ) {
+			// 가입자 메시지 전달
 			return result;
-			// 조회한 값이 없을 경우 - 비가입자
+		// 조회한 값이 없는 경우 - 비가입자
 		} else {
 			// 인증번호 생성 및 전송
 			String smsKey = PhoneKey.randomSmsKey(phoneNumber, smsPhoneNumber, naverAccessKey, naverSecretKey, naverSensKey);
 			// 생성된 인증번호 암호화
 			result = passwordEncoder.encode(smsKey);
-			// 콜백 메소드에 전달
+
+			// 암호화한 인증번호 전달
 			return result;
 		}
 	}
@@ -1090,8 +1090,8 @@ public class ProfileController {
 			return "4";
 		}
 
-		boolean isMatch = passwordEncoder.matches(phoneKey, hPhoneKey);
 		// 반환된 결과 값(true/false)에 따른 값을 반환한다.
+		boolean isMatch = passwordEncoder.matches(phoneKey, hPhoneKey);
 		if (isMatch) {
 			return "1";
 		} else {
@@ -1102,7 +1102,7 @@ public class ProfileController {
 	// 휴대폰 번호 변경
 	@RequestMapping("/profile_phone_update")
 	@ResponseBody
-	public String phoneUpdate(Sign sign) {
+	public String phoneUpdate(UserDTO userDTO) {
 		// 토큰 값
 		String authorization = null;
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
@@ -1188,25 +1188,22 @@ public class ProfileController {
 		}
 
 		// 토큰에서 추출한 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 프로필은 오로지 미니홈피 주인만 들어갈 수 있다.
-		if ( loginIdx != sign.getIdx() ) {
+		if ( loginIdx != userDTO.getIdx() ) {
 			// 에러 코드를 반환한다.
 			return "4";
 		}
 
-		// 휴대폰 번호 하이픈 제거
-		sign.setPhoneNumber(sign.getPhoneNumber().replaceAll("-", ""));
-
-		// 수정 실패할 경우
+		// 갱신 실패하는 경우
 		String result = "no";
 
-		// 휴대폰 번호만 수정
-		int res = profileService.updateSetPhoneNumberByIdx(sign);
+		// 로그인 유저 idx에 해당하는 유저 프로필 정보 중 휴대폰 번호를 갱신한다.
+		int res = profileService.updateSetPhoneNumberByIdx(userDTO.toUpdatePhoneNumber(), loginIdx);
 		if ( res == 1 ) {
-			// 수정 성공할 경우
+			// 갱신 성공하는 경우
 			result = "yes";
 		}
 
-		// 콜백 메소드에 전달
+		// 결과 메시지 전달
 		return result;
 	}
 }

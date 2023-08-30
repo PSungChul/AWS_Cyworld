@@ -15,7 +15,7 @@ public class GuestbookService {
     @Autowired
     GuestbookRepository guestbookRepository;
     @Autowired
-    private GuestbookLikeRepository guestbookLikeRepository;
+    GuestbookLikeRepository guestbookLikeRepository;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Guestbook
     // 방명록 전체 조회 - 내림차순
     public List<Guestbook> findByGuestbookIdxOrderByIdxDesc(int idx) {

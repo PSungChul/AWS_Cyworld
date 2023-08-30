@@ -15,7 +15,7 @@ public interface IlchonRepository extends JpaRepository<Ilchon, Object> {
     // 일촌 전체 목록 조회
     List<Ilchon> findByIlchonSessionIdxAndIlchonUp(int ilchonSessionIdx, int inchonUp);
 
-    // 로그인한 유저와 해당 미니홈피 유저의 일촌관계
+    // 로그인 유저와 해당 미니홈피 유저의 일촌관계
     Ilchon findByIlchonIdxAndIlchonSessionIdx(int ilchonIdx, int ilchonSessionIdx);
 
     // 일촌 이중 조회

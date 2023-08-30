@@ -1,20 +1,16 @@
 package com.social.cyworld.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.social.cyworld.dto.JoinDTO;
-import com.social.cyworld.httpclient.IamPortPass;
-import com.social.cyworld.util.JwtUtil;
+import com.social.cyworld.dto.UserDTO;
 import com.social.cyworld.entity.Sign;
-import com.social.cyworld.util.MailKey;
+import com.social.cyworld.entity.UserLogin;
+import com.social.cyworld.entity.UserMain;
+import com.social.cyworld.entity.UserProfile;
+import com.social.cyworld.httpclient.IamPortPass;
+import com.social.cyworld.repository.SignRepository;
 import com.social.cyworld.service.SignService;
+import com.social.cyworld.util.JwtUtil;
+import com.social.cyworld.util.MailKey;
 import com.social.cyworld.util.PhoneKey;
 import org.apache.commons.mail.HtmlEmail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +23,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Properties;
 
 @PropertySource("classpath:application-information.properties")
 @Controller
@@ -70,7 +75,10 @@ public class SignUpController {
 	private String naverSensKey;
 	@Value("${smsPhoneNumber:smsPhoneNumber}")
 	private String smsPhoneNumber;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	@Autowired
+	private SignRepository signRepository;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 기본 및 로그인
 	@RequestMapping(value= {"/", "login"})
 	public String basic(Model model) {
@@ -242,11 +250,9 @@ public class SignUpController {
 	
 	// 싸이월드 가입자와 비가입자 구별
 	@RequestMapping("/login_authentication")
-	public String login_authentication(Sign sign, Model model) {
+	public String login_authentication(UserDTO userDTO, Model model) {
 		// 파라미터로 받아온 유저 정보 중 이메일이 없는 경우 - 회원가입
-		if ( sign.getEmail() == null ) {
-			// 파라미터로 받아온 유저 정보를 바인딩한다.
-			model.addAttribute("sign", sign);
+		if ( userDTO.getEmail() == null ) {
 			// IamPort 가맹점 번호를 바인딩한다.
 			model.addAttribute("impNumber", impNumber);
 
@@ -256,8 +262,11 @@ public class SignUpController {
 
 		// 파라미터로 받아온 유저 정보 중 이메일이 있는 경우 - 로그인
 
-		// 로그인한 이메일로 유저 정보를 조회한다.
-		Sign login = signService.findByEmail(sign.getEmail());
+		// 파라미터로 받아온 유저 정보 DTO를 유저 프로필 정보 Entity로 변환한다.
+		UserProfile userProfile = userDTO.toCyworldJoinCheck();
+
+		// 이메일에 해당하는 유저 정보를 조회한다.
+		Sign login = signService.findByEmail(userProfile.getEmail());
 
 		// Authorization 쿠키에 토큰이 존재하는지 체크한다.
 		Cookie[] cookies = request.getCookies();
@@ -293,14 +302,18 @@ public class SignUpController {
 					// 로그인용 세션으로 "login"을 지정한다.
 					session.setAttribute("login", "login");
 
-					// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+					// 접속 날짜를 기록하기 위해 Date 객체를 생성한다.
 					Date date = new Date();
-					// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+					// Date 객체를 원하는 형식대로 포맷한다.
 					SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-					// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
-					login.setToDate(today.format(date));
-					// 로그인한 유저의 접속 날짜를 갱신한다.
-					signService.updateTodayDate(login);
+					// 접속 날짜를 갱신하기 위해 유저 메인 정보 Entity를 생성한다.
+					UserMain userMain = new UserMain();
+					// 유저 메인 정보 idx에 조회한 유저 정보 중 로그인 유저의 메인 정보 키를 가져와 setter를 통해 전달한다.
+					userMain.setIdx(login.getMUid());
+					// 유저 메인 정보 접속 날짜에 Date 객체로 만든 접속 날짜을 가져와 setter를 통해 전달한다.
+					userMain.setToDate(today.format(date));
+					// 로그인 유저의 접속 날짜를 갱신한다.
+					signService.updateUserMainSetToDateByIdx(userMain);
 
 					// 로그인 유저 idx에 해당하는 메인 페이지로 이동
 					return "redirect:/main/" + login.getIdx();
@@ -327,14 +340,18 @@ public class SignUpController {
 		// 로그인용 세션으로 "login"을 지정한다.
 		session.setAttribute("login", "login");
 
-		// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+		// 접속 날짜를 기록하기 위해 Date 객체를 생성한다.
 		Date date = new Date();
-		// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+		// Date 객체를 원하는 형식대로 포맷한다.
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-		// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
-		login.setToDate(today.format(date));
-		// 로그인한 유저의 접속 날짜를 갱신한다.
-		signService.updateTodayDate(login);
+		// 접속 날짜를 갱신하기 위해 유저 메인 정보 Entity를 생성한다.
+		UserMain userMain = new UserMain();
+		// 유저 메인 정보 idx에 조회한 유저 정보 중 로그인 유저의 메인 정보 키를 가져와 setter를 통해 전달한다.
+		userMain.setIdx(login.getMUid());
+		// 유저 메인 정보 접속 날짜에 Date 객체로 만든 접속 날짜을 가져와 setter를 통해 전달한다.
+		userMain.setToDate(today.format(date));
+		// 로그인 유저의 접속 날짜를 갱신한다.
+		signService.updateUserMainSetToDateByIdx(userMain);
 
 		// 로그인 유저 idx에 해당하는 메인 페이지로 이동
 		return "redirect:/main/" + login.getIdx();
@@ -349,6 +366,7 @@ public class SignUpController {
 
 		// 이메일에 해당하는 가입 유저 정보가 존재하는지 조회하여 체크한다.
 		Sign join = signService.findByEmail(email);
+
 		// 조회한 유저 정보가 존재하지 않는 경우 - 비가입자
 		if ( join == null ) {
 			// 회원가입 코드 전달
@@ -394,14 +412,18 @@ public class SignUpController {
 							// 로그인용 세션으로 "login"을 지정한다.
 							session.setAttribute("login", "login");
 
-							// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+							// 접속 날짜를 기록하기 위해 Date 객체를 생성한다.
 							Date date = new Date();
-							// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+							// Date 객체를 원하는 형식대로 포맷한다.
 							SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-							// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
-							join.setToDate(today.format(date));
-							// 로그인한 유저의 접속 날짜를 갱신한다.
-							signService.updateTodayDate(join);
+							// 접속 날짜를 갱신하기 위해 유저 메인 정보 Entity를 생성한다.
+							UserMain userMain = new UserMain();
+							// 유저 메인 정보 idx에 조회한 유저 정보 중 로그인 유저의 메인 정보 키를 가져와 setter를 통해 전달한다.
+							userMain.setIdx(join.getMUid());
+							// 유저 메인 정보 접속 날짜에 Date 객체로 만든 접속 날짜을 가져와 setter를 통해 전달한다.
+							userMain.setToDate(today.format(date));
+							// 로그인 유저의 접속 날짜를 갱신한다.
+							signService.updateUserMainSetToDateByIdx(userMain);
 
 							// 로그인 유저 idx 전달
 							return result;
@@ -428,24 +450,28 @@ public class SignUpController {
 				// 로그인용 세션으로 "login"을 지정한다.
 				session.setAttribute("login", "login");
 
-				// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+				// 접속 날짜를 기록하기 위해 Date 객체를 생성한다.
 				Date date = new Date();
-				// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+				// Date 객체를 원하는 형식대로 포맷한다.
 				SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-				// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
-				join.setToDate(today.format(date));
-				// 로그인한 유저의 접속 날짜를 갱신한다.
-				signService.updateTodayDate(join);
+				// 접속 날짜를 갱신하기 위해 유저 메인 정보 Entity를 생성한다.
+				UserMain userMain = new UserMain();
+				// 유저 메인 정보 idx에 조회한 유저 정보 중 로그인 유저의 메인 정보 키를 가져와 setter를 통해 전달한다.
+				userMain.setIdx(join.getMUid());
+				// 유저 메인 정보 접속 날짜에 Date 객체로 만든 접속 날짜을 가져와 setter를 통해 전달한다.
+				userMain.setToDate(today.format(date));
+				// 로그인 유저의 접속 날짜를 갱신한다.
+				signService.updateUserMainSetToDateByIdx(userMain);
 
 				// 로그인 유저 idx 전달
 				return result;
 			// 조회한 유저 정보 중 플랫폼이 카카오가 아닌 경우
 			} else {
-				// 조죄한 유저 정보 중 플랫픔이 싸이월드인 경우
+				// 조회한 유저 정보 중 플랫픔이 싸이월드인 경우
 				if ( join.getPlatform().equals("cyworld") ) {
 					// 에러 코드로 변경
 					result = -1;
-					// 조죄한 유저 정보 중 플랫픔이 네이버인 경우
+					// 조회한 유저 정보 중 플랫픔이 네이버인 경우
 				} else if ( join.getPlatform().equals("naver") ) {
 					// 에러 코드로 변경
 					result = -2;
@@ -460,14 +486,16 @@ public class SignUpController {
 	// 네이버 가입자 비가입자 구별
 	@RequestMapping("/naver_authentication")
 	@ResponseBody
-	public int naver_authentication(Sign sign, Model model) {
+	public int naver_authentication(UserDTO userDTO, Model model) {
 		// 가입자가 아닌 경우 - 회원가입 코드
 		int result = 0;
-		// 휴대폰 번호 하이픈 제거
-		sign.setPhoneNumber(sign.getPhoneNumber().replaceAll("-", ""));
+
+		// 파라미터로 받아온 유저 정보 DTO를 유저 프로필 정보 Entity로 변환한다.
+		UserProfile userProfile = userDTO.toNaverJoinCheck();
 
 		// 이름 + 생년월일 + 휴대폰 번호에 해당하는 가입 유저 정보가 존재하는지 조회하여 체크한다.
-		Sign join = signService.findByNameAndBirthdayAndPhoneNumber(sign.getName(), sign.getBirthday(), sign.getPhoneNumber());
+		Sign join = signService.findByNameAndBirthdayAndPhoneNumber(userProfile.getName(), userProfile.getBirthday(), userProfile.getPhoneNumber());
+
 		// 조회한 유저 정보가 존재하지 않는 경우 - 비가입자
 		if ( join == null ) {
 			// 회원가입 코드 전달
@@ -513,14 +541,18 @@ public class SignUpController {
 							// 로그인용 세션으로 "login"을 지정한다.
 							session.setAttribute("login", "login");
 
-							// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+							// 접속 날짜를 기록하기 위해 Date 객체를 생성한다.
 							Date date = new Date();
-							// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+							// Date 객체를 원하는 형식대로 포맷한다.
 							SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-							// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
-							join.setToDate(today.format(date));
-							// 로그인한 유저의 접속 날짜를 갱신한다.
-							signService.updateTodayDate(join);
+							// 접속 날짜를 갱신하기 위해 유저 메인 정보 Entity를 생성한다.
+							UserMain userMain = new UserMain();
+							// 유저 메인 정보 idx에 조회한 유저 정보 중 로그인 유저의 메인 정보 키를 가져와 setter를 통해 전달한다.
+							userMain.setIdx(join.getMUid());
+							// 유저 메인 정보 접속 날짜에 Date 객체로 만든 접속 날짜을 가져와 setter를 통해 전달한다.
+							userMain.setToDate(today.format(date));
+							// 로그인 유저의 접속 날짜를 갱신한다.
+							signService.updateUserMainSetToDateByIdx(userMain);
 
 							// 로그인 유저 idx 전달
 							return result;
@@ -547,14 +579,18 @@ public class SignUpController {
 				// 로그인용 세션으로 "login"을 지정한다.
 				session.setAttribute("login", "login");
 
-				// 접속 날짜를 기록하기 위해 Date객체를 생성한다.
+				// 접속 날짜를 기록하기 위해 Date 객체를 생성한다.
 				Date date = new Date();
-				// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+				// Date 객체를 원하는 형식대로 포맷한다.
 				SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-				// 위에서 구한 현재 날짜를 로그인한 유저의 접속 날짜에 입력한다.
-				join.setToDate(today.format(date));
-				// 로그인한 유저의 접속 날짜를 갱신한다.
-				signService.updateTodayDate(join);
+				// 접속 날짜를 갱신하기 위해 유저 메인 정보 Entity를 생성한다.
+				UserMain userMain = new UserMain();
+				// 유저 메인 정보 idx에 조회한 유저 정보 중 로그인 유저의 메인 정보 키를 가져와 setter를 통해 전달한다.
+				userMain.setIdx(join.getMUid());
+				// 유저 메인 정보 접속 날짜에 Date 객체로 만든 접속 날짜을 가져와 setter를 통해 전달한다.
+				userMain.setToDate(today.format(date));
+				// 로그인 유저의 접속 날짜를 갱신한다.
+				signService.updateUserMainSetToDateByIdx(userMain);
 
 				// 로그인 유저 idx 전달
 				return result;
@@ -602,11 +638,11 @@ public class SignUpController {
 	@RequestMapping("/email_send")
 	@ResponseBody
 	public HashMap<String, String> emailSend(String email) {
-		// 이메일 전송하기 전 중복된 이메일인지 조회
-		Sign sign = signService.findByEmail(email);
+		// 이메일 전송하기 전 중복된 이메일인지 조회하여 체크한다.
+		UserProfile userProfile = signService.findUserProfileByEmail(email);
 
 		// 중복된 이메일인 경우
-		if ( sign != null ) {
+		if ( userProfile != null ) {
 			HashMap<String, String> map = new HashMap<>();
 			map.put("email", "0");
 			map.put("msg", "이미 가입된 이메일입니다.\n로그인 혹은 아이디/비밀번호 찾기를 이용해주세요");
@@ -721,11 +757,11 @@ public class SignUpController {
 		// 전달받은 유저 정보들을 반환하기 위해 Map을 생성한다.
 		HashMap<String, String> userMap = new HashMap<>();
 
-		// 전달받은 이름, 생년월일, 휴대폰 번호로 가입자인지 체크한다.
-		Sign sign = signService.findByNameAndBirthdayAndPhoneNumber(name, birthday, phoneNumber);
+		// 이름 + 생년월일 + 휴대폰 번호에 해당하는 유저 프로필 정보를 조회하여 가입자인지 체크한다.
+		UserProfile userProfile = signService.findUserProfileByNameAndBirthdayAndPhoneNumber(name, birthday, phoneNumber);
 
 		// 가입자인 경우
-		if ( sign != null ) {
+		if ( userProfile != null ) {
 			// name을 키로 사용하고, 에러 코드를 값으로 사용하여, 유저 정보 Map에 추가한다.
 			userMap.put("name", "-1");
 
@@ -794,18 +830,18 @@ public class SignUpController {
 	// ID 찾기
 	@RequestMapping("/find_id_check")
 	@ResponseBody
-	public String findIdCheck(Sign sign) {
-		// 휴대폰 번호 하이픈 제거
-		sign.setPhoneNumber(sign.getPhoneNumber().replaceAll("-", ""));
+	public String findIdCheck(UserDTO userDTO) {
+		// 파라미터로 받아온 유저 정보 DTO를 유저 프로필 정보 Entity로 변환한다.
+		UserProfile userProfile = userDTO.toFindId();
 
-		// 이름 + 휴대폰 번호에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
-		Sign join = signService.findByNameAndPhoneNumber(sign);
+		// 이름 + 휴대폰 번호에 해당하는 유저 프로필 정보가 존재하는지 조회하여 체크한다.
+		UserProfile join = signService.findUserProfileByNameAndPhoneNumber(userProfile);
 		if ( join == null ) {
-			// 조회한 유저 정보가 존재하지 않는 경우 "no"를 전달
+			// 조회한 유저 프로필 정보가 존재하지 않는 경우 "no"를 전달
 			return "no";
 		}
 
-		// 조회한 유저 정보가 존재하는 경우 조회한 유저 정보 중 이메일을 전달
+		// 조회한 유저 프로필 정보가 존재하는 경우 조회한 유저 정보 중 이메일을 전달
 		return join.getEmail();
 	}
 	
@@ -817,17 +853,20 @@ public class SignUpController {
 	// PW 찾기
 	@RequestMapping("/find_pw_send_email")
 	@ResponseBody
-	public String findPwCheck(Sign sign) {
-		// 이메일 + 이름 + 휴대폰 번호에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
-		Sign join = signService.findByEmailAndNameAndPhoneNumber(sign);
+	public String findPwCheck(UserDTO userDTO) {
+		// 파라미터로 받아온 유저 정보 DTO를 유저 프로필 정보 Entity로 변환한다.
+		UserProfile userProfile = userDTO.toFindPw();
+
+		// 이메일 + 이름 + 휴대폰 번호에 해당하는 유저 프로필 정보가 존재하는지 조회하여 체크한다.
+		UserProfile join = signService.findUserProfileByEmailAndNameAndPhoneNumber(userProfile);
 		if ( join == null ) {
-			// 조회한 유저 정보가 존재히자 않는 경우 "no"를 전달
+			// 조회한 유저 프로필 정보가 존재히자 않는 경우 "no"를 전달
 			return "no";
 		}
 
-		// 유저 정보가 존재하는 경우
+		// 유저 프로필 정보가 존재하는 경우
 
-		// 조회한 유저 정보 중 비밀번호를 가져가는게 아닌 임시 비밀번호를 생성해 발급한다.
+		// 조회한 유저 프로필 정보 중 비밀번호를 가져가는게 아닌 임시 비밀번호를 생성해 발급한다.
 		// 미리 만들어둔 랜덤키 생성 메소드를 mail패키지의 MailKey.java에서 가져와 사용한다
 		String emailKey = new MailKey().getKey(10, false); // 랜덤키 길이 설정
 		// Mail Server 설정
@@ -847,7 +886,7 @@ public class SignUpController {
 		String subject = "[Cyworld] 임시 비밀번호 발급 안내입니다."; // 제목
 		
 		// 받는 사람 E-Mail 주소
-		String mail = sign.getEmail(); // 받는 사람 email
+		String mail = join.getEmail(); // 받는 사람 email
 		
 		try {
 			HtmlEmail email = new HtmlEmail(); // Email 생성
@@ -868,6 +907,9 @@ public class SignUpController {
 					"<p>" + "아래 임시 비밀번호를 이용해 로그인 후 프로필 변경에서 비밀번호를 재설정해 주세요." + "</p>" +
 					"<p>" + "[" + emailKey + "]" + "</p>"); // 본문 내용
 			email.send(); // 메일 보내기
+
+			// 이메일에 해당하는 유저 정보를 조회한다.
+			Sign sign = signService.findByEmail(join.getEmail());
 			
 			/* HashMap - java.util.HashMap
 			 * 메일 보내기가 성공하면 해당 ID의 비밀번호에 랜덤키를 보내야 하는데,
@@ -883,10 +925,10 @@ public class SignUpController {
 			 * map.put("b", mail_key);
 			 */
 			HashMap<String, String> m_key = new HashMap<>();
-			m_key.put("1", sign.getEmail()); // 1번 키에 이메일을 추가한다.
+			m_key.put("1", sign.getLUid()); // 1번 키에 조회한 유저 정보 중 유저 로그인 정보 키를 추가한다.
 			m_key.put("2", passwordEncoder.encode(emailKey)); // 2번 키에 임시 비밀번호를 암호화하여 추가한다.
 			// 현재 비밀번호를 암호화된 임시 비밀번호로 갱신한다.
-			signService.updateSetInfoByEmail(m_key);
+			signService.updateUserLoginSetInfoByEmail(m_key);
 			// 메일 보내기가 성공하면 "success"를 전달
 			return "success";
 		} catch (Exception e) {
@@ -899,21 +941,34 @@ public class SignUpController {
 	// 로그인 체크
 	@RequestMapping("/login_check")
 	@ResponseBody
-	public String loginCheck(Sign sign) {
-		// 이메일에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
-		Sign login = signService.findByEmail(sign.getEmail());
+	public String loginCheck(UserDTO userDTO) {
+		// 파라미터로 받아온 유저 정보 DTO를 유저 로그인 정보 Entity로 변환한다.
+		UserLogin userLogin = userDTO.toLogin();
+
+		// 아이디에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
+		Sign loginKey = signService.findByEmail(userLogin.getUserId());
 
 		// 조회한 유저 정보가 존재하지 않는 경우
-		if ( login == null ) {
+		if ( loginKey == null ) {
 			// json 형식의 에러 메시지 전달
 			return "{'result':'no_id'}";
 		}
 
 		// 조회한 유저 정보가 존재하는 경우
 
-		// 조회한 유저 정보 중 암호회된 비밀번호와 입력한 비밀번호가 일치하는지 체크한다.
+		// 조회한 유저 정보 중 유저 로그인 정보 키에 해당하는 유저 로그인 정보를 조회한다.
+		UserLogin login = signService.findUserLoginByIdx(loginKey.getLUid());
+
+		// 조회한 유저 로그인 정보 중 암호회된 아이디와 입력한 아이디가 일치하는지 체크한다.
+		// 아이디가 일치하지 않는 경우
+		if (!passwordEncoder.matches(userLogin.getUserId(), login.getUserId())) {
+			// json 형식의 에러 메시지 전달
+			return "{'result':'no_id'}";
+		}
+
+		// 조회한 유저 로그인 정보 중 암호회된 비밀번호와 입력한 비밀번호가 일치하는지 체크한다.
 		// 비밀번호가 일치하지 않는 경우
-		if (!passwordEncoder.matches(sign.getInfo(), login.getInfo())) {
+		if (!passwordEncoder.matches(userLogin.getInfo(), login.getInfo())) {
 			// json 형식의 에러 메시지 전달
 			return "{'result':'no_info'}";
 		}
@@ -927,20 +982,9 @@ public class SignUpController {
 	// 회원가입 시 추가적으로 더 필요한 정보를 넣기 위한 장소
 	@RequestMapping("/welcome")
 	@ResponseBody
-	public String welcome(JoinDTO joinDTO, Model model) {
-		// 회원가입 DTO로 가져온 가입 정보를 Entity로 변환한다.
-		Sign sign = joinDTO.toEntity();
-
-		// 접속 날짜에 가입 날짜를 기록하기 위해 Date객체 사용
-		Date date = new Date();
-		// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
-		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-
-		// 휴대폰 번호 하이픈 제거
-		sign.setPhoneNumber(sign.getPhoneNumber().replaceAll("-", ""));
-
+	public String welcome(UserDTO userDTO, Model model) {
 		// cyworld 회원가입자가 들어오는 경우
-		if ( joinDTO.getPlatform().equals("cyworld") ) {
+		if ( userDTO.getPlatform().equals("cyworld") ) {
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////이메일 인증정보 체크
 			// 쿠키에 들어있는 이메일 인증정보가 가입 정보와 일치하는지 체크한다.
 			// 쿠키에 들어있는 이메일 인증정보 값
@@ -1001,7 +1045,7 @@ public class SignUpController {
 
 			// 가입 정보와 이메일 인증정보가 일치하는지 체크한다.
 			// 가입 정보 중 이메일과 이메일 인증정보 중 암호화된 이메일이 일치하지 않는 경우
-			if (!passwordEncoder.matches(joinDTO.getEmail(), email)) {
+			if (!passwordEncoder.matches(userDTO.getEmail(), email)) {
 				// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteEmailCookie = new Cookie("Email", "");
 				// Email 쿠키의 만료 시간을 0으로 설정한다.
@@ -1020,7 +1064,7 @@ public class SignUpController {
 				return "-1";
 			}
 			// 가입 정보 중 이메일 인증번호와 이메일 인증정보 중 암호화된 이메일 인증번호가 일치하지 않는 경우
-			if (!passwordEncoder.matches(joinDTO.getEmailKey(), emailKey)) {
+			if (!passwordEncoder.matches(userDTO.getEmailKey(), emailKey)) {
 				// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteEmailCookie = new Cookie("Email", "");
 				// Email 쿠키의 만료 시간을 0으로 설정한다.
@@ -1104,7 +1148,7 @@ public class SignUpController {
 
 			// 가입 정보와 본인인증정보가 일치하는지 체크한다.
 			// 가입 정보 중 이름과 본인인증정보 중 암호화된 이름이 일치하지 않는 경우
-			if (!passwordEncoder.matches(joinDTO.getName(), name)) {
+			if (!passwordEncoder.matches(userDTO.getName(), name)) {
 				// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteCertificationCookie = new Cookie("Certification", "");
 				// Certification 쿠키의 만료 시간을 0으로 설정한다.
@@ -1116,7 +1160,7 @@ public class SignUpController {
 				return "-2";
 			}
 			// 가입 정보 중 생년월일과 본인인증정보 중 암호화된 생년월일이 일치하지 않는 경우
-			if (!passwordEncoder.matches(joinDTO.getBirthday(), birthday)) {
+			if (!passwordEncoder.matches(userDTO.getBirthday(), birthday)) {
 				// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteCertificationCookie = new Cookie("Certification", "");
 				// Certification 쿠키의 만료 시간을 0으로 설정한다.
@@ -1128,7 +1172,7 @@ public class SignUpController {
 				return "-2";
 			}
 			// 가입 정보 중 휴대폰 번호와 본인인증정보 중 암호화된 휴대폰 번호가 일치하지 않는 경우
-			if (!passwordEncoder.matches(joinDTO.getPhoneNumber(), phoneNumber)) {
+			if (!passwordEncoder.matches(userDTO.getPhoneNumber(), phoneNumber)) {
 				// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 				Cookie deleteCertificationCookie = new Cookie("Certification", "");
 				// Certification 쿠키의 만료 시간을 0으로 설정한다.
@@ -1149,34 +1193,61 @@ public class SignUpController {
 			// 삭제할 Certification 쿠키를 추가한다.
 			response.addCookie(deleteCertificationCookie);
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////가입 진행
-			// 추가 정보들을 임의로 지정
-			sign.setIdx(null); // AUTO_INCREMENT로 null값 지정시 자동 인덱스 증가
-			sign.setInfo(passwordEncoder.encode(sign.getInfo())); // 비밀번호를 암호화한다.
-			sign.setRoles(passwordEncoder.encode("USER")); // 권한을 "USER"로 설정하여 암호화한다.
-			sign.setMinimi("mainMinimi.png"); // 기본 미니미 지정
-			sign.setDotory(0); // 기본 도토리 개수 지정
-			sign.setMainTitle("안녕하세요~ " + sign.getName() + "님의 미니홈피입니다!"); // 메인 화면 제목
-			sign.setMainPhoto("noImage"); // 메인 화면 사진 지정
-			sign.setMainText(sign.getName() + "님의 미니홈피에 오신걸 환영합니다!"); // 메인 화면 소개글
-			sign.setIlchon(0); // 일촌 수 지정
-			sign.setToday(0); // 일일 조회수
-			sign.setTotal(0); // 누적 조회수
-			sign.setToDate(today.format(date)); // 접속 날짜 ( 가입 날짜 )
-			sign.setConsent(0); // 동의 항목
 			// 저장 실패하는 경우
 			String result = "no";
-			// 가입 유저 정보 저장
-			Sign join = signService.insertIntoSign(sign);
-			if ( join != null ) {
-				// 저장 성공하는 경우
-				result = "yes";
+
+			// 파라미터로 받아온 가입 유저 정보 DTO를 유저 정보 Entity로 변환하여 유저 정보에 저장한다.
+			Sign join = signService.insertIntoSign(userDTO.toJoinSign(passwordEncoder));
+			if ( join == null ) {
+				// 유저 정보 저장 실패 메시지 전달
+				return result;
 			}
-			// 콜백메소드에 전달
+
+			// 파라미터로 받아온 가입 유저 정보 DTO에 저장한 유저 정보 중 유저 로그인 정보 키를 전달해 유저 로그인 정보 Entity로 변환하여 유저 정보에 저장한다.
+			UserLogin userLogin = signService.insertIntoUserLogin(userDTO.toJoinUserLogin(join.getLUid(), passwordEncoder));
+			if ( userLogin == null ) {
+				// 저장한 유저 정보를 삭제한다.
+				signService.deleteByIdx(join.getIdx());
+
+				// 유저 정보 저장 실패 메시지 전달
+				return result;
+			}
+
+			// 파라미터로 받아온 가입 유저 정보 DTO에 저장한 유저 정보 중 유저 프로필 정보 키를 전달해 유저 프로필 정보 Entity로 변환하여 유저 정보에 저장한다.
+			UserProfile userProfile = signService.insertIntoUserProfile(userDTO.toJoinUserProfile(join.getPUid()));
+			if ( userProfile == null ) {
+				// 저장한 유저 정보를 삭제한다.
+				signService.deleteByIdx(join.getIdx());
+				// 저장한 유저 로그인 정보를 삭제한다.
+				signService.deleteUserProfileByIdx(userProfile.getIdx());
+
+				// 유저 정보 저장 실패 메시지 전달
+				return result;
+			}
+
+			// 파라미터로 받아온 가입 유저 정보 DTO에 저장한 유저 정보 중 유저 메인 정보 키를 전달해 유저 메인 정보 Entity로 변환하여 유저 정보에 저장한다.
+			UserMain userMain = signService.insertIntoUserMain(userDTO.toJoinUserMain(join.getMUid()));
+			if ( userMain == null ) {
+				// 저장한 유저 정보를 삭제한다.
+				signService.deleteByIdx(join.getIdx());
+				// 저장한 유저 로그인 정보를 삭제한다.
+				signService.deleteUserLoginByIdx(userLogin.getIdx());
+				// 저장한 유저 프로필 정보를 삭제한다.
+				signService.deleteUserProfileByIdx(userProfile.getIdx());
+
+				// 유저 정보 저장 실패 메시지 전달
+				return result;
+			}
+
+			// 저장 성공하는 경우
+			result = "yes";
+
+			// 유저 정보 저장 성공 메시지 전달
 			return result;
 		// 소셜 회원가입자가 들어오는 경우
 		} else {
 			// kakao 회원가입자가 들어오는 경우
-			if ( joinDTO.getPlatform().equals("kakao") ) {
+			if ( userDTO.getPlatform().equals("kakao") ) {
 				////////////////////////////////////////////////////////////////////////////////////////////////////////본인인증정보 체크
 				// 쿠키에 들어있는 본인인증정보가 가입 정보와 일치하는지 체크한다.
 				// 쿠키에 들어있는 본인인증정보가 값
@@ -1234,7 +1305,7 @@ public class SignUpController {
 
 				// 가입 정보와 본인인증정보가 일치하는지 체크한다.
 				// 가입 정보 중 이름과 본인인증정보 중 암호화된 이름이 일치하지 않는 경우
-				if (!passwordEncoder.matches(joinDTO.getName(), name)) {
+				if (!passwordEncoder.matches(userDTO.getName(), name)) {
 					// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCertificationCookie = new Cookie("Certification", "");
 					// Certification 쿠키의 만료 시간을 0으로 설정한다.
@@ -1246,7 +1317,7 @@ public class SignUpController {
 					return "-2";
 				}
 				// 가입 정보 중 생년월일과 본인인증정보 중 암호화된 생년월일이 일치하지 않는 경우
-				if (!passwordEncoder.matches(joinDTO.getBirthday(), birthday)) {
+				if (!passwordEncoder.matches(userDTO.getBirthday(), birthday)) {
 					// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCertificationCookie = new Cookie("Certification", "");
 					// Certification 쿠키의 만료 시간을 0으로 설정한다.
@@ -1258,7 +1329,7 @@ public class SignUpController {
 					return "-2";
 				}
 				// 가입 정보 중 휴대폰 번호와 본인인증정보 중 암호화된 휴대폰 번호가 일치하지 않는 경우
-				if (!passwordEncoder.matches(joinDTO.getPhoneNumber(), phoneNumber)) {
+				if (!passwordEncoder.matches(userDTO.getPhoneNumber(), phoneNumber)) {
 					// Certification 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 					Cookie deleteCertificationCookie = new Cookie("Certification", "");
 					// Certification 쿠키의 만료 시간을 0으로 설정한다.
@@ -1280,9 +1351,9 @@ public class SignUpController {
 				response.addCookie(deleteCertificationCookie);
 			}
 			// naver 회원가입자가 들어오는 경우
-			if ( joinDTO.getPlatform().equals("naver") ) {
+			if ( userDTO.getPlatform().equals("naver") ) {
 				// 이메일 인증하고 들어오는 경우
-				if ( joinDTO.getEmailKey() != null ) {
+				if ( userDTO.getEmailKey() != null ) {
 					////////////////////////////////////////////////////////////////////////////////////////////////////이메일 인증정보 체크
 					// 쿠키에 들어있는 이메일 인증정보가 가입 정보와 일치하는지 체크한다.
 					// 쿠키에 들어있는 이메일 인증정보 값
@@ -1343,7 +1414,7 @@ public class SignUpController {
 
 					// 가입 정보와 이메일 인증정보가 일치하는지 체크한다.
 					// 가입 정보 중 이메일과 이메일 인증정보 중 암호화된 이메일이 일치하지 않는 경우
-					if (!passwordEncoder.matches(joinDTO.getEmail(), email)) {
+					if (!passwordEncoder.matches(userDTO.getEmail(), email)) {
 						// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 						Cookie deleteEmailCookie = new Cookie("Email", "");
 						// Email 쿠키의 만료 시간을 0으로 설정한다.
@@ -1362,7 +1433,7 @@ public class SignUpController {
 						return "-1";
 					}
 					// 가입 정보 중 이메일 인증번호와 이메일 인증정보 중 암호화된 이메일 인증번호가 일치하지 않는 경우
-					if (!passwordEncoder.matches(joinDTO.getEmailKey(), emailKey)) {
+					if (!passwordEncoder.matches(userDTO.getEmailKey(), emailKey)) {
 						// Email 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
 						Cookie deleteEmailCookie = new Cookie("Email", "");
 						// Email 쿠키의 만료 시간을 0으로 설정한다.
@@ -1392,7 +1463,7 @@ public class SignUpController {
 				}
 				////////////////////////////////////////////////////////////////////////////////////////////////////////이메일 중복 체크
 				// 네이버 로그인 API에서 이메일을 가져오는 방식이 변경됨에 따라 이메일에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
-				Sign emailCheck = signService.findByEmail(joinDTO.getEmail());
+				Sign emailCheck = signService.findByEmail(userDTO.getEmail());
 
 				// 조회한 유저 정보가 존재하는 경우
 				if ( emailCheck != null ) {
@@ -1404,29 +1475,42 @@ public class SignUpController {
 
 			}
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////가입 진행
-			// 추가 정보들을 임의로 지정
-			sign.setIdx(null); // AUTO_INCREMENT로 null값 지정시 자동 인덱스 증가
-			sign.setInfo(passwordEncoder.encode(UUID.randomUUID().toString())); // 소셜 가입자는 비밀번호가 따로 없으므로 비밀번호에 중복 가능성이 매우 적은 UUID로 랜덤 지정하여 암호화한다.
-			sign.setRoles(passwordEncoder.encode("USER")); // 권한을 "USER"로 설정하여 암호화한다.
-			sign.setMinimi("mainMinimi.png"); // 기본 미니미 지정
-			sign.setDotory(0); // 기본 도토리 개수 지정
-			sign.setMainTitle("안녕하세요~ " + sign.getName() + " 님의 미니홈피입니다!"); // 메인 화면 제목
-			sign.setMainPhoto("noImage"); // 메인 화면 사진 지정
-			sign.setMainText(sign.getName() + "님의 미니홈피에 오신걸 환영합니다!"); // 메인 화면 소개글
-			sign.setIlchon(0); // 일촌 수 지정
-			sign.setToday(0); // 일일 조회수
-			sign.setTotal(0); // 누적 조회수
-			sign.setToDate(today.format(date)); // 접속 날짜 ( 가입 날짜 )
-			sign.setConsent(0); // 동의 항목
 			// 저장 실패하는 경우
 			String result = "no";
-			// 가입 유저 정보 저장
-			Sign join = signService.insertIntoSign(sign);
-			if ( join != null ) {
-				// 저장 성공하는 경우
-				result = "yes";
+
+			// 파라미터로 받아온 가입 유저 정보 DTO를 유저 정보 Entity로 변환하여 유저 정보에 저장한다.
+			Sign join = signService.insertIntoSign(userDTO.toJoinSign(passwordEncoder));
+			if ( join == null ) {
+				// 유저 정보 저장 실패 메시지 전달
+				return result;
 			}
-			// 콜백 메소드에 전달
+
+			// 파라미터로 받아온 가입 유저 정보 DTO에 저장한 유저 정보 중 유저 프로필 정보 키를 전달해 유저 프로필 정보 Entity로 변환하여 유저 정보에 저장한다.
+			UserProfile userProfile = signService.insertIntoUserProfile(userDTO.toJoinUserProfile(join.getPUid()));
+			if ( userProfile == null ) {
+				// 저장한 유저 정보를 삭제한다.
+				signService.deleteByIdx(join.getIdx());
+
+				// 유저 정보 저장 실패 메시지 전달
+				return result;
+			}
+
+			// 파라미터로 받아온 가입 유저 정보 DTO에 저장한 유저 정보 중 유저 메인 정보 키를 전달해 유저 메인 정보 Entity로 변환하여 유저 정보에 저장한다.
+			UserMain userMain = signService.insertIntoUserMain(userDTO.toJoinUserMain(join.getMUid()));
+			if ( userMain == null ) {
+				// 저장한 유저 정보를 삭제한다.
+				signService.deleteByIdx(join.getIdx());
+				// 저장한 유저 프로필 정보를 삭제한다.
+				signService.deleteUserProfileByIdx(userProfile.getIdx());
+
+				// 유저 정보 저장 실패 메시지 전달
+				return result;
+			}
+
+			// 저장 성공하는 경우
+			result = "yes";
+
+			// 유저 정보 저장 성공 메시지 전달
 			return result;
 		}
 	}

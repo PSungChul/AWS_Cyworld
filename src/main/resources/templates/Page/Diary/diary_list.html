@@ -10,10 +10,15 @@
 <script th:inline="javascript">
 	window.onload = function () {
 		let errMsg = [[${errMsg}]];
+		let updateErrMsg = [[${updateErrMsg}]];
 
 		if ( errMsg != null ) {
 			alert(errMsg);
 			location.href = "/logout";
+		}
+		if ( updateErrMsg != null ) {
+			alert(updateErrMsg);
+			window.location.reload();
 		}
 	};
 </script>
@@ -77,7 +82,7 @@
 						<div class="fake"></div>
 						<div id="main_box">
 							<h1>다이어리</h1>
-							<!-- 로그인한 유저가 다이어리 주인일 경우에만 보인다 -->
+							<!-- 로그인 유저가 다이어리 주인인 경우에만 보인다 -->
 							<th:block th:if="${ loginIdx eq sign.idx }">
 								<div>
 									<input class="writing" type="button" value="글쓰기" th:onclick="|location.href='@{/diary/diary_insert_form(idx=${ sign.idx })}'|">
@@ -97,7 +102,7 @@
 												<label class="date" th:text="'작성일자 : ' + ${ diary.diaryRegDate }"></label>
 											</p>
 										</div>
-										<!-- 로그인한 유저가 다이어리 주인일 경우에만 보인다 -->
+										<!-- 로그인 유저가 다이어리 주인인 경우에만 보인다 -->
 										<th:block th:if="${ loginIdx eq diary.diaryIdx }">
 											<input class="modify" id="btn-cover" type="button" value="수정" onclick="modify(this.form);">
 											<input class="delete" id="btn-cover" type="button" value="삭제" onclick="del(this.form);">
@@ -115,9 +120,9 @@
 			<div class="tabs">
 				<form>
 					<div class="tab-btns">
-						<!-- 해당 미니홈피 유저의 idx -->
+						<!-- 미니홈피 유저 idx -->
 						<input id="idx" name="idx" type="hidden" th:value="${ sign.idx }" readonly>
-						<!-- 로그인한 유저의 idx -->
+						<!-- 로그인 유저 idx -->
 						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
@@ -201,11 +206,11 @@
 				}
 				
 				if ( data == "no" ) {
-					alert("삭제 실패");
+					alert("알 수 없는 이유로 삭제에 실패하였습니다.\n새로고침 후 다시 시도해주시기 바랍니다.");
 					return;
 				}
 				
-				alert("삭제성공");
+				alert("삭제가 성공적으로 완료되었습니다.");
 				location.href = "/diary/" + idx;
 			}
 		}

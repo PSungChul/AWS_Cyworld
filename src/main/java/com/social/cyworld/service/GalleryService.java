@@ -16,10 +16,8 @@ import java.util.List;
 public class GalleryService {
     @Autowired
     GalleryRepository galleryRepository;
-
     @Autowired
     GalleryCommentRepository galleryCommentRepository;
-
     @Autowired
     GalleryLikeRepository galleryLikeRepository;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Gallery

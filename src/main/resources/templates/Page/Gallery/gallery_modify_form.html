@@ -45,11 +45,11 @@
 									<td>
 										<!-- 첨부된 이미지가 있는 경우에만 image 및 video태그를 보여주자! -->
 										<th:block th:if="${ galleryDTO.galleryFileName ne 'no_file' }">
-											<!-- 확장자가 image일 경우 -->
+											<!-- 확장자가 image인 경우 -->
 											<th:block th:if="${ galleryDTO.galleryFileExtension eq 'image' }">
 												<img th:src="@{/filePath/gallery/} + ${ galleryDTO.galleryFileName }" width="100"/>
 											</th:block>
-											<!-- 확장자가 video일 경우 -->
+											<!-- 확장자가 video인 경우 -->
 											<th:block th:if="${ galleryDTO.galleryFileExtension eq 'video' }">
 												<!-- video태그 autoplay : 자동 재생 / controls loop : 반복 재생 / muted : 음소거 -->
 												<video autoplay controls loop muted th:src="@{/filePath/gallery/} + ${ galleryDTO.galleryFileName }" width="100"/>

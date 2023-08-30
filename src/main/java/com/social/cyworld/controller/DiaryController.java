@@ -1,18 +1,9 @@
 package com.social.cyworld.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import com.social.cyworld.dto.UserDTO;
 import com.social.cyworld.entity.Diary;
-import com.social.cyworld.entity.Sign;
 import com.social.cyworld.service.DiaryService;
-import com.social.cyworld.service.SignService;
+import com.social.cyworld.service.UserDTOService;
 import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,6 +11,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 @RequestMapping("/diary")
 @Controller
@@ -32,9 +31,9 @@ public class DiaryController {
 	@Autowired
 	JwtUtil jwtUtil;
 	@Autowired
-	SignService signService;
-	@Autowired
 	DiaryService diaryService;
+	@Autowired
+	UserDTOService userDTOService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 다이어리 조회
 	@RequestMapping("/{idx}") // 경로 매개변수
@@ -135,23 +134,23 @@ public class DiaryController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 		
-		// 그 다음 idx에 해당하는 다이어리의 모든 글을 조회
+		// 미니홈피 유저 idx에 해당하는 다이어리 게시글을 모두 조회하여 리스트로 가져온다.
 		List<Diary> list = diaryService.findByDiaryIdxOrderByIdxDesc(idx);
-		// 조회된 모든 다이어리 글을 리스트 형태로 바인딩
+		// 가져온 다이어리 게시글 리스트를 바인딩한다.
 		model.addAttribute("list", list);
-		
-		// 그 다음 idx에 해당하는 유저 정보를 조회
-		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저 정보를 바인딩
-		model.addAttribute("sign", sign);
-		// 로그인 유저 idx를 바인딩
+
+		// 미니홈피 유저 idx에 해당하는 다이어리 페이지 유저 정보를 조회한다.
+		UserDTO userDTO = userDTOService.findDiaryByIdx(idx);
+		// 조회한 다이어리 페이지 유저 정보 DTO를 바인딩한다.
+		model.addAttribute("sign", userDTO);
+		// 로그인 유저 idx를 바인딩한다.
 		model.addAttribute("loginIdx", loginIdx);
 		
 		// 다이어리 페이지로 이동
 		return "Page/Diary/diary_list";
 	}
 	
-	// 다이어리 글 작성 페이지로 이동
+	// 다이어리 게시글 작성 페이지로 이동
 	@RequestMapping("/diary_insert_form")
 	public String insert_form(int idx, Model model) {
 		// 토큰 값
@@ -258,13 +257,12 @@ public class DiaryController {
 			return "Page/Diary/diary_list";
 		}
 
-		// 다이어리 작성자 정보 생성
+		// 다이어리 게시글 Entity를 생성한다.
 		Diary diary = new Diary();
+		// 다이어리 게시글 idx에 로그인 유저 idx를 setter를 통해 전달한다.
+		diary.setDiaryIdx(loginIdx);
 
-		// 미니홈피 유저 idx 지정
-		diary.setDiaryIdx(idx);
-
-		// 다이어리 작성자 정보 바인딩
+		// 전달받은 다이어리 게시글 작성자 정보를 바인딩한다.
 		model.addAttribute("diary", diary);
 		
 		// 다이어리 작성 페이지로 이동
@@ -378,24 +376,24 @@ public class DiaryController {
 			return "Page/Diary/diary_insert_form";
 		}
 
-		// 작성 시간를 기록하기 위해 Date객체 사용
+		// 작성 시간를 기록하기 위해 Date 객체를 생성한다.
 		Date date = new Date();
-		// Date객체를 원하는 모양대로 재조합
+		// Date 객체를 원하는 형식대로 포맷한다.
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		// 다이어리 idx에 AUTO_INCREMENT로 null 지정
+		// 다이어리 게시글 idx에 AUTO_INCREMENT로 null을 설정하여 setter를 통해 전달한다.
 		diary.setIdx(null);
-		// 다이어리에 작성 시간 지정
+		// 다이어리 게시글 작성 시간에 Date 객체로 만든 작성 시간을 가져와 setter를 통해 전달한다.
 		diary.setDiaryRegDate(today.format(date));
 
-		// 작성한 다이어리 글을 저장
+		// 전달받은 다이어리 작성 게시글을 저장한다.
 		diaryService.insertIntoDiary(diary);
 
 		// idx를 들고 다이어리 페이지 URL로 이동
 		return "redirect:/diary/" + diary.getDiaryIdx();
 	}
 	
-	// 다이어리 글 삭제
+	// 다이어리 게시글 삭제
 	@RequestMapping("/diary_delete")
 	@ResponseBody
 	public String delete(Diary diary) {
@@ -489,21 +487,21 @@ public class DiaryController {
 			return "-4";
 		}
 
-		// 삭제 실패할 경우
+		// 삭제 실패하는 경우
 		String result = "no";
 		
-		// DB에 저장된 다이어리 글 중 가져온 정보에 해당하는 다이어리 글 삭제
+		// 다이어리 게시글 정보에 해당하는 다이어리 작성 게시글을 삭제한다.
 		int res = diaryService.deleteByDiaryIdxAndIdx(diary);
 		if ( res == 1 ) {
-			// 삭제 성공할 경우
+			// 삭제 성공하는 경우
 			result = "yes";
 		}
 		
-		// 콜백 메소드에 전달
+		// 결과 메시지 전달
 		return result;
 	}
 	
-	// 다이어리 글 수정 페이지로 이동
+	// 다이어리 게시글 수정 페이지로 이동
 	@RequestMapping("/diary_modify_form")
 	public String modify_form(Diary diary, Model model) {
 		// 토큰 값
@@ -610,18 +608,27 @@ public class DiaryController {
 			return "Page/Diary/diary_list";
 		}
 		
-		// 해당 idx의 다이어리에 수정할 글을 조회
+		// 다이어리 게시글 정보에 해당하는 다이어리 작성 게시글을 조회한다.
 		Diary updateDiary = diaryService.findByDiaryIdxAndIdx(diary);
-		if ( updateDiary != null ) {
-			// 조회된 다이어리 글을 바인딩
-			model.addAttribute("updateDiary", updateDiary);
+
+		// 조회한 다이어리 작성 게시글이 없는 경우
+		if ( updateDiary == null ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("updateErrMsg", "수정하려는 글 정보가 없습니다.\n새로고침 후 다시 시도해주시기 바랍니다.");
+			// 다이어리 페이지로 이동
+			return "Page/Diary/diary_list";
 		}
+
+		// 조회한 다이어리 작성 게시글이 있는 경우
+
+		// 조회한 다이어리 작성 게시글을 바인딩한다.
+		model.addAttribute("updateDiary", updateDiary);
 		
 		// 다이어리 수정 페이지로 이동
 		return "Page/Diary/diary_modify_form";
 	}
 	
-	// 다이어리 글 수정하기
+	// 다이어리 게시글 수정하기
 	@RequestMapping("/diary_modify")
 	@ResponseBody
 	public String modify(Diary diary) {
@@ -715,25 +722,25 @@ public class DiaryController {
 			return "-4";
 		}
 
-		// 갱신 실패할 경우
-		String result = "no";
-
-		// 수정 시간을 기록하기 위해 Date객체 사용
+		// 수정 시간을 기록하기 위해 Date 객체를 생성한다.
 		Date date = new Date();
-		// Date객체를 원하는 모양대로 재조합
+		// Date 객체를 원하는 형식대로 포맷한다.
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		// 다이어리에 수정 시간 지정
+		// 다이어리 게시글 작성 시간에 Date 객체로 만든 수정 시간을 가져와 setter를 통해 전달한다.
 		diary.setDiaryRegDate(today.format(date));
+
+		// 갱신 실패하는 경우
+		String result = "no";
 		
-		// 수정된 다이어리 글로 갱신
+		// 전달받은 다이어리 수정 게시글로 갱신한다.
 		int res = diaryService.updateSetDiaryContentAndDiaryRegDateByDiaryIdxAndIdx(diary);
 		if ( res != 0 ) {
-			// 갱신 성공할 경우
+			// 갱신 성공하는 경우
 			result = "yes";
 		}
 		
-		// 콜백 메소드에 전달
+		// 결과 메시지 전달
 		return result;
 	}
 }

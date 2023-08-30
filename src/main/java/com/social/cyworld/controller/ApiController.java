@@ -3,11 +3,8 @@ package com.social.cyworld.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social.cyworld.dto.ApiDTO;
-import com.social.cyworld.entity.ApiConsent;
-import com.social.cyworld.entity.ApiKey;
-import com.social.cyworld.entity.Sign;
+import com.social.cyworld.entity.*;
 import com.social.cyworld.service.ApiService;
-import com.social.cyworld.service.ProfileService;
 import com.social.cyworld.service.SignService;
 import com.social.cyworld.util.ApiToken;
 import com.social.cyworld.util.CodeExpirationManager;
@@ -91,8 +88,6 @@ public class ApiController {
 	PasswordEncoder passwordEncoder;
 	@Autowired
 	SignService signService;
-	@Autowired
-	ProfileService profileService;
 	@Autowired
 	ApiService apiService;
 
@@ -534,36 +529,46 @@ public class ApiController {
 	@PostMapping("/loginform/login")
 	@ResponseBody
 	public int apiLogin(String email, String info) {
-		// 이메일에 해당하는 유저 정보가 존재하는지 체크한다.
-		Sign sign = signService.findByEmail(email);
+		// 아이디에 해당하는 유저 정보가 존재하는지 조회하여 체크한다.
+		Sign loginKey = signService.findByEmail(email);
 
-		// 유저 정보가 존재하지 않는 경우 - 이메일 X
-		if ( sign == null ) {
-			// 에러 값을 반환한다.
+		// 조회한 유저 정보가 존재하지 않는 경우
+		if ( loginKey == null ) {
+			// 에러 코드를 반환한다.
 			return -1;
 		}
 
-		// 유저 정보가 존재하는 경우
+		// 조회한 유저 정보가 존재하는 경우
 
-		// 조회한 유저 정보에서 비빌번호를 가져와 입력한 비밀번호와 일치하는지 체크한다.
-		// 비밀번호가 일치하지 않는 경우 - 비밀번호 X
-		if ( !passwordEncoder.matches(info, sign.getInfo()) ) {
-			// 에러 값을 반환한다.
+		// 조회한 유저 정보 중 유저 로그인 정보 키에 해당하는 유저 로그인 정보를 조회한다.
+		UserLogin login = signService.findUserLoginByIdx(loginKey.getLUid());
+
+		// 조회한 유저 로그인 정보 중 암호회된 아이디와 입력한 아이디가 일치하는지 체크한다.
+		// 아이디가 일치하지 않는 경우
+		if (!passwordEncoder.matches(email, login.getUserId())) {
+			// 에러 코드를 반환한다.
+			return -1;
+		}
+
+		// 조회한 유저 로그인 정보 중 암호회된 비밀번호와 입력한 비밀번호가 일치하는지 체크한다.
+		// 비밀번호가 일치하지 않는 경우
+		if (!passwordEncoder.matches(info, login.getInfo())) {
+			// 에러 코드를 반환한다.
 			return -2;
 		}
 
-		// 비밀번호가 일치하는 경우 - 로그인
+		// 비밀번호가 일치하는 경우
 
-		// 조죄한 유저 정보에서 동의 항목 체크 값을 가져와 동의 항목 페이지를 거쳤는지 체크한다.
+		// 조회한 유저 정보에서 동의 항목 체크 값을 가져와 동의 항목 페이지를 거쳤는지 체크한다.
 		// 동의 항목에 체크하지 않은 경우
-		if ( sign.getConsent() == 0 ) {
+		if ( loginKey.getConsent() == 0 ) {
 			// 로그인 유저 idx를 반환한다.
-			return sign.getIdx();
+			return loginKey.getIdx();
 		}
 
 		// 동의 항목에 체크한 경우
 
-		// 성공 값을 반환한다.
+		// 성공 코드를 반환한다.
 		return 0;
 	}
 
@@ -789,8 +794,8 @@ public class ApiController {
 
 		// 로그인 유저 idx가 정상인 경우
 
-		// 로그인 유저 idx에 해당하는 유저 정보가 존재하는지 체크한다.
-		Sign loginUser = signService.findByIdx(loginIdx);
+		// 로그인 유저 idx에 해당하는 유저 프로필 정보가 존재하는지 체크한다.
+		UserProfile loginUser = signService.findUserProfileBySignIdx(loginIdx);
 
 		// 유저 정보가 존재하지 않는 경우
 		if ( loginUser == null ) {
@@ -818,7 +823,7 @@ public class ApiController {
 		ObjectMapper objectMapper = new ObjectMapper();
 		// 로그인 유저 정보를 전달할 Map을 생성한다.
 		Map<String, String> responseMap = new HashMap<>();
-		// 생성한 Map에 로그인 유저 정보 중 동의 항목 페이지에서 체크한 정보들만 추가한다.
+		// 생성한 Map에 로그인 유저 프로필 정보 중 동의 항목 페이지에서 체크한 정보들만 추가한다.
 		// 성별 동의 항목에 체크한 경우
 		if ( apiConsent.getGender() == 5 || apiConsent.getGender() == 3 ) {
 			responseMap.put("gender", loginUser.getGender()); // gender를 키로 사용하고, 로그인 유저 성별을 값으로 사용하여 추가한다.

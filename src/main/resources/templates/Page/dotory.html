@@ -151,7 +151,7 @@
 	<script>
 		function NoMultiChk(chk) {
 			let obj = document.getElementsByName("dotoryIdx");
-			for (let i=0; i < obj.length; i++) {
+			for ( let i=0; i < obj.length; i++ ) {
 				if (obj[i] != chk) {
 					obj[i].checked = false;
 				}
@@ -191,7 +191,7 @@
 			currentList = target;
 			count++;
 
-			if (count >= list.length) {
+			if ( count >= list.length ) {
 				count = 0;
 			}
 		}

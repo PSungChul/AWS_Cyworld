@@ -54,12 +54,12 @@
 										<input id="btn-cover"type="button" class="write" value="수정" onclick="send(this.form)">
 										<input id="btn-cover" class="cancel" type="button" value="취소" th:onclick="|location.href='@{/guestbook/{idx}(idx=${ updateGuestbook.guestbookIdx })}'|">
 										<select class="textChoice" name="guestbookSecretCheck" onchange="selectbox">
-											<!-- 수정할 방명록이 공개글일 경우 -->
+											<!-- 수정할 방명록이 공개글인 경우 -->
 											<th:block th:if="${ updateGuestbook.guestbookSecretCheck eq 0 }">
 												<option value="0" selected>전체 공개</option>
 												<option value="1">비밀글</option> 
 											</th:block>
-											<!-- 수정할 방명록이 비밀글일 경우 -->
+											<!-- 수정할 방명록이 비밀글인 경우 -->
 											<th:block th:if="${ updateGuestbook.guestbookSecretCheck eq 1 }">
 												<option value="0">전체 공개</option>
 												<option value="1" selected>비밀글</option>

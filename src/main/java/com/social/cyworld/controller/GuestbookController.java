@@ -1,19 +1,11 @@
 package com.social.cyworld.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import com.social.cyworld.dto.UserDTO;
 import com.social.cyworld.entity.*;
 import com.social.cyworld.service.GuestbookService;
 import com.social.cyworld.service.MainService;
 import com.social.cyworld.service.SignService;
+import com.social.cyworld.service.UserDTOService;
 import com.social.cyworld.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -21,6 +13,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 @RequestMapping("/guestbook")
 @Controller
@@ -38,6 +39,8 @@ public class GuestbookController {
 	MainService mainService;
 	@Autowired
 	GuestbookService guestbookService;
+	@Autowired
+	UserDTOService userDTOService;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 방명록 조회
 	@RequestMapping("/{idx}") // 경로 매개변수
@@ -137,158 +140,157 @@ public class GuestbookController {
 		}
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
-		
+
 		// 조회수 구역 시작 //
-		
-		// 먼저 접속 날짜를 기록하기 위해 Date객체 사용
+
+		// 접속 날짜를 기록하기 위해 Date 객체를 생성한다.
 		Date date = new Date();
-		// Date객체를 그냥 사용하면 뒤에 시간까지 모두 기록되기에 날짜만 따로 뺴는 작업을 한다.
+		// Date 객체를 원하는 형식대로 포맷한다.
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd");
-		
-		// 그리고 앞으로 사용할 로그인한 유저의 idx와 해당 미니홈피의 idx와 접속 날짜를 편하게 사용하기 위해 Map으로 만들어 둔다
+
+		// 방문 기록 조회용 Map을 생성한다.
 		HashMap<String, Object> todayMap = new HashMap<String, Object>();
-		todayMap.put("1", idx); // 해당 미니홈피 유저의 idx
-		todayMap.put("2", loginIdx); // 로그인한 유저의 idx
+		todayMap.put("1", idx); // 미니홈피 유저 idx
+		todayMap.put("2", loginIdx); // 로그인 유저 idx
 		todayMap.put("3", today.format(date)); // 접속 날짜
 
-		// 로그인 유저 idx가 비회원이 아닐 경우 - 로그인 유저 idx가 비회원일 경우 조회수 증가 X
-		if ( loginIdx > 0 ) {
+		// 로그인 유저 idx와 미니홈피 유저 idx가 다른 경우 - 타 유저 미니홈피 조회 - 조회수 증가 O
+		if ( loginIdx != idx ) {
 
-			// 로그인 유저 idx와 미니홈피 유저 idx값이 다를 경우 - 타 유저 미니홈피 조회 - 조회수 증가 O
-			if ( loginIdx != idx ) {
+			// 로그인 유저가 해당 미니홈피에 방문 기록이 있는지 조회한다.
+			Views loginUser = mainService.findByViewsIdxAndViewsSessionIdx(todayMap);
 
-				// 그 다음 로그인한 유저가 해당 미니홈피로 방문 기록이 있는지 조회
-				Views loginUser = mainService.findByViewsIdxAndViewsSessionIdx(todayMap);
+			// 미니홈피 유저 idx에 해당하는 유저 메인 정보를 조회한다.
+			UserMain miniUser = signService.findUserMainBySignIdx(idx);
 
-				// 그 다음 idx에 해당하는 미니홈피 유저 정보를 조회
-				Sign miniUser = signService.findByIdx(idx);
+			// 방문 기록이 있는 경우
+			if ( loginUser != null ) {
 
-				// 로그인한 유저의 방문 기록이 있을 경우
-				if ( loginUser != null ) {
+				// 방문 기록 중 방문 날짜가 현재 날짜와 다른 경우
+				if ( !loginUser.getTodayDate().equals(today.format(date)) ) {
 
-					// 로그인한 유저의 방문 기록 중 방문 날짜가 현재 날짜와 다를 경우
-					if ( !loginUser.getTodayDate().equals(today.format(date)) ) {
+					// 방문 기록 중 방문 날짜를 현재 날짜로 갱신한다.
+					mainService.updateSetTodayDateByViewsIdxAndViewsSessionIdx(todayMap);
 
-						// 로그인한 유저의 해당 미니홈피 방문 날짜를 현재 날짜로 갱신
-						mainService.updateSetTodayDateByViewsIdxAndViewsSessionIdx(todayMap);
-
-						// 해당 미니홈피 유저의 조회된 기록 중 접속 날짜가 현재 날짜와 다를 경우
-						if ( !miniUser.getToDate().equals(today.format(date)) ) {
-
-							// 해당 미니홈피 유저의 일일 조회수를 누적 조회수에 추가
-							miniUser.setTotal(miniUser.getTotal() + miniUser.getToday());
-							// 해당 미니홈피 유저의 일일 조회수를 0으로 초기화 후 1 증가
-							miniUser.setToday(1);
-							// 해당 미니홈피 유저의 접속 날짜를 현재 날짜로 갱신
-							miniUser.setToDate(today.format(date));
-							// 수정된 값들로 해당 미니홈피 유저의 유저 정보 갱신
-							signService.updateSetTodayAndTotalAndToDateByIdx(miniUser);
-
-						// 해당 미니홈피 유저의 조회된 기록 중 접속 날짜가 현재 날짜와 같을 경우
-						} else {
-
-							// 해당 미니홈피 유저의 일일 조회수 1 증가
-							miniUser.setToday(miniUser.getToday() + 1);
-							// 증가된 일일 조회수로 해당 미니홈피 유저 정보 갱신
-							signService.updateSetTodayByIdx(miniUser);
-
-						}
-
-					// 로그인한 유저의 방문 기록중 방문 날짜가 현재 날짜와 같을 경우
-					} else {
-
-						// 조회수를 증가시키지 않고 통과
-
-					}
-
-				// 로그인한 유저의 방문 기록이 없을 경우
-				} else {
-
-					// 로그인한 유저의 해당 미니홈피 방문 기록을 추가
-					Views views = new Views();
-					views.setIdx(null);
-					views.setViewsIdx((Integer) todayMap.get("1"));
-					views.setViewsSessionIdx((Integer) todayMap.get("2"));
-					views.setTodayDate((String) todayMap.get("3"));
-					mainService.insertIntoViews(views);
-
-					// 해당 미니홈피 유저의 조회된 기록 중 접속 날짜가 현재 날짜와 다를 경우
+					// 조회한 유저 메인 정보 중 접속 날짜가 현재 날짜와 다른 경우
 					if ( !miniUser.getToDate().equals(today.format(date)) ) {
 
-						// 해당 미니홈피 유저의 일일 조회수를 누적 조회수에 추가
+						// 누적 조회수에 일일 조회수를 더하여 setter를 통해 전달한다.
 						miniUser.setTotal(miniUser.getTotal() + miniUser.getToday());
-						// 해당 미니홈피 유저의 일일 조회수를 0으로 초기화 후 1 증가
+						// 일일 조회수에 0으로 초기화 후 1 증가시켜 setter를 통해 전달한다.
 						miniUser.setToday(1);
-						// 해당 미니홈피 유저의 접속 날짜를 현재 날짜로 갱신
+						// 접속 날짜에 현재 날짜를 setter를 통해 전달한다.
 						miniUser.setToDate(today.format(date));
-						// 수정된 값들로 해당 미니홈피 유저의 유저 정보 갱신
+						// 전달받은 방문 기록으로 미니홈피 유저 메인 정보를 갱신한다.
 						signService.updateSetTodayAndTotalAndToDateByIdx(miniUser);
 
-					// 해당 미니홈피 유저의 조회된 기록 중 접속 날짜가 현재 날짜와 같을 경우
+					// 조회한 유저 메인 정보 중 접속 날짜가 현재 날짜와 같은 경우
 					} else {
 
-						// 해당 미니홈피 유저의 일일 조회수 1 증가
+						// 일일 조회수에 1 증가시켜 setter를 통해 전달한다.
 						miniUser.setToday(miniUser.getToday() + 1);
-						// 증가된 일일 조회수로 해당 미니홈피 유저 정보 갱신
+						// 전달받은 일일 조회수로 미니홈피 유저 메인 정보를 갱신한다.
 						signService.updateSetTodayByIdx(miniUser);
 
 					}
 
-				}
-
-			// 로그인 유저 idx와 미니홈피 유저 idx값이 같을 경우 - 내 미니홈피 조회 - 조회수 증가 X
-			} else {
-
-				// 내 미니홈피 접속 날짜 조회
-				Sign myMini = signService.findByIdx(loginIdx);
-
-				// 조회된 접속 날짜가 현재 날짜와 다를 경우
-				if ( !myMini.getToDate().equals(today.format(date)) ) {
-
-					// 내 미니홈피의 일일 조회수를 누적 조회수에 추가
-					myMini.setTotal(myMini.getTotal() + myMini.getToday());
-					// 내 미니홈피의 일일 조회수를 0으로 초기화
-					myMini.setToday(0);
-					// 내 미니홈피의 접속 날짜를 현재 날짜로 갱신
-					myMini.setToDate(today.format(date));
-					// 수정된 값들로 내 미니홈피 정보 갱신
-					signService.updateSetTodayAndTotalAndToDateByIdx(myMini);
-
-				// 조회된 접속 날짜가 현재 날짜와 같을 경우
+				// 방문 기록 중 방문 날짜가 현재 날짜와 같은 경우
 				} else {
 
 					// 조회수를 증가시키지 않고 통과
 
 				}
 
+			// 방문 기록이 없는 경우
+			} else {
+
+				// 방문 기록 Entity를 생성한다.
+				Views views = new Views();
+				// 방문 기록 idx에 AUTO_INCREMENT로 null을 설정하여 setter를 통해 전달한다.
+				views.setIdx(null);
+				// 방문 기록 viewsIdx에 미니홈피 유저 idx를 setter를 통해 전달한다.
+				views.setViewsIdx(idx);
+				// 방문 기록 sessionIdx에 로그인 유저 idx를 setter를 통해 전달한다.
+				views.setViewsSessionIdx(loginIdx);
+				// 방문 기록 날짜에 현재 날짜를 setter를 통해 전달한다.
+				views.setTodayDate(today.format(date));
+				// 전달받은 방문 기록을 저장한다.
+				mainService.insertIntoViews(views);
+
+				// 조회한 유저 메인 정보 중 접속 날짜가 현재 날짜와 다른 경우
+				if ( !miniUser.getToDate().equals(today.format(date)) ) {
+
+					// 누적 조회수에 일일 조회수를 더하여 setter를 통해 전달한다.
+					miniUser.setTotal(miniUser.getTotal() + miniUser.getToday());
+					// 일일 조회수에 0으로 초기화 후 1 증가시켜 setter를 통해 전달한다.
+					miniUser.setToday(1);
+					// 접속 날짜에 현재 날짜를 setter를 통해 전달한다.
+					miniUser.setToDate(today.format(date));
+					// 전달받은 방문 기록으로 미니홈피 유저 메인 정보를 갱신한다.
+					signService.updateSetTodayAndTotalAndToDateByIdx(miniUser);
+
+				// 조회한 유저 메인 정보 중 접속 날짜가 현재 날짜와 같은 경우
+				} else {
+
+					// 일일 조회수에 1 증가시켜 setter를 통해 전달한다.
+					miniUser.setToday(miniUser.getToday() + 1);
+					// 전달받은 일일 조회수로 미니홈피 유저 메인 정보를 갱신한다.
+					signService.updateSetTodayByIdx(miniUser);
+
+				}
+
+			}
+
+		// 로그인 유저 idx와 미니홈피 유저 idx가 같은 경우 - 내 미니홈피 조회 - 조회수 증가 X
+		} else {
+
+			// 로그인 유저 idx에 해당하는 유저 메인 정보를 조회한다.
+			UserMain myMini = signService.findUserMainBySignIdx(loginIdx);
+
+			// 조회한 유저 메인 정보 중 접속 날짜가 현재 날짜와 다른 경우
+			if ( !myMini.getToDate().equals(today.format(date)) ) {
+
+				// 누적 조회수에 일일 조회수를 더하여 setter를 통해 전달한다.
+				myMini.setTotal(myMini.getTotal() + myMini.getToday());
+				// 일일 조회수에 0으로 초기화시켜 setter를 통해 전달한다.
+				myMini.setToday(0);
+				// 접속 날짜에 현재 날짜를 setter를 통해 전달한다.
+				myMini.setToDate(today.format(date));
+				// 전달받은 방문 기록으로 로그인 유저 메인 정보를 갱신한다.
+				signService.updateSetTodayAndTotalAndToDateByIdx(myMini);
+
+			// 조회한 유저 메인 정보 중 접속 날짜가 현재 날짜와 같은 경우
+			} else {
+
+				// 조회수를 증가시키지 않고 통과
+
 			}
 
 		}
-		
+
 		// 조회수 구역 끝 //
-		
-		// 그 다음 idx에 해당하는 방명록의 모든 방문글을 조회
+
+		// 미니홈피 유저 idx에 해당하는 방명록 방문글을 모두 조회하여 리스트로 가져온다.
 		List<Guestbook> list = guestbookService.findByGuestbookIdxOrderByIdxDesc(idx);
-		// 조회된 모든 방문글을 리스트 형태로 바인딩
+		// 가져온 방명록 방문글 리스트를 바인딩한다.
 		model.addAttribute("list", list);
 		
-		// 그 다음 idx에 해당하는 유저 정보를 조회
-		Sign sign = signService.findByIdx(idx);
-		// 조회된 유저 정보를 바인딩
-		model.addAttribute("sign", sign);
-		// 로그인 유저 idx를 바인딩
+		// 로그인 유저 idx에 해당하는 방명록 페이지 유저 정보를 조회한다.
+		UserDTO userDTO = userDTOService.findGuestbookByIdx(idx);
+		// 조회한 방명록 페이지 유저 정보 DTO를 바인딩한다.
+		model.addAttribute("sign", userDTO);
+		// 로그인 유저 idx를 바인딩한다.
 		model.addAttribute("loginIdx", loginIdx);
-		
-		// 그 다음 일촌 관계를 알아보기 위해 Ilchon을 생성
+
+		// 일촌 Entity를 생성한다.
 		Ilchon ilchon = new Ilchon();
-		
-		// 맞일촌 상태를 알리는 ilchonUp을 2로 지정
+		// 일촌 상태에 맞일촌을 의미하는 2를 setter를 통해 전달한다.
 		ilchon.setIlchonUp(2);
-		// 일촌 idx에 idx를 지정
+		// 일촌 idx에 로그인 유저 idx를 setter를 통해 전달한다.
 		ilchon.setIlchonSessionIdx(loginIdx);
-		// 그 다음 idx에 해당하는 일촌 조회
+		// 전달받은 맞일촌에 해당하는 일촌을 모두 조회하여 리스트로 가져온다.
 		List<Ilchon> ilchonList = mainService.findByIlchonSessionIdxAndIlchonUp(ilchon);
-		// 조회된 맞일촌을 리스트 형태로 바인딩
+		// 가져온 일촌 리스트를 바인딩한다.
 		model.addAttribute("ilchonList", ilchonList);
 		
 		// 방명록 페이지로 이동
@@ -394,32 +396,31 @@ public class GuestbookController {
 		// 에러 메시지에 정상이라는 의미로 null을 바인딩한다.
 		model.addAttribute("errMsg", null);
 		
-		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
-		Sign loginUser = signService.findByIdx(loginIdx);
+		// 방명록에 작성자 정보를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회한다.
+		UserDTO loginUser = userDTOService.findSignJoinUserProfileJoinUserMainByIdx(loginIdx);
 		
-		// 방문글 작성자 정보 생성
+		// 방명록 방문글 Entity를 생성한다.
 		Guestbook guestbook = new Guestbook();
-
-		// 미니홈피 유저 idx 지정
+		// 방명록 방문글 guestbookIdx에 미니홈피 유저 idx를 setter를 통해 전달한다.
 		guestbook.setGuestbookIdx(idx);
-		// 작성자 idx 지정
+		// 방명록 방문글 guestbookSessionIdx에 로그인 유저 idx를 setter를 통해 전달한다.
 		guestbook.setGuestbookSessionIdx(loginIdx);
-		// 작성자 미니미 지정
+		// 방명록 방문글 미니미에 조회한 유저 정보 중 미니미를 가져와 setter를 통해 전달한다.
 		guestbook.setGuestbookMinimi(loginUser.getMinimi());
-
 		/* 이메일 @부분까지 잘라낸 뒤 플랫폼명 추가 - 폐기
 		 * 네이버 - qwer@ + naver = qwer@naver
 		 * 카카오 - qwer@ + kakao = qwer@kakao
 		 */
+		// 방명록 방문글 작성자에 조회한 유저 프로필 정보 중 이메일과 플랫폼을 사용하여 작성자 이름을 만들어 setter를 통해 전달한다.
 		// guestbook.setGuestbookContentName(loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") + 1 ) + loginUser.getPlatform());
-
 		/* 이름 + 이메일 @부분부터 뒤쪽을 다 잘라낸다 - 변경
 		 * 네이버 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
 		 * 카카오 - ( + 관리자 + / + sksh0000 + ) = ( 관리자 / sksh0000 )
 		 */
+		// 방명록 방문글 작성자에 조회한 유저 프로필 정보 중 이름과 이메일을 사용하여 작성자 이름을 만들어 setter를 통해 전달한다.
 		guestbook.setGuestbookName("( " + loginUser.getName() + " / " + loginUser.getEmail().substring( 0, loginUser.getEmail().indexOf("@") ) + " )");
 
-		// 방문글 작성자 정보 바인딩
+		// 전달받은 방명록 방문글 작성자 정보를 바인딩한다.
 		model.addAttribute("guestbook", guestbook);
 
 		// 방명록 작성 페이지로 이동
@@ -533,19 +534,19 @@ public class GuestbookController {
 			return "Page/Guestbook/guestbook_insert_form";
 		}
 
-		// 작성 시간을 기록하기 위해 Date객체 사용
+		// 작성 시간을 기록하기 위해 Date 객체를 생성한다.
 		Date date = new Date();
-		// Date객체를 원하는 모양대로 재조합
+		// Date 객체를 원하는 형식대로 포맷한다.
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		// 방명록 idx에 AUTO_INCREMENT로 null 지정
+		// 방명록 방문글 idx에 AUTO_INCREMENT로 null을 설정하여 setter를 통해 전달한다.
 		guestbook.setIdx(null);
-		// 방문글에 좋아요 시작 개수 0 지정
+		// 방명록 방문글 좋아요에 시작 개수 0을 setter를 통해 전달한다.
 		guestbook.setGuestbookLikeNum(0);
-		// 방문글에 작성 시간 지정
+		// 방명록 방문글 작성 시간에 Date 객체로 만든 작성 시간을 가져와 setter를 통해 전달한다.
 		guestbook.setGuestbookRegDate(today.format(date));
 
-		// 작성한 방문글을 저장
+		// 전달받은 방명록 작성 방문글을 저장한다.
 		guestbookService.insertIntoGuestbook(guestbook);
 
 		// idx를 들고 방명록 페이지 URL로 이동
@@ -646,17 +647,17 @@ public class GuestbookController {
 			return "-4";
 		}
 
-		// 삭제 실패할 경우
+		// 삭제 실패하는 경우
 		String result = "no";
-		
-		// DB에 저장된 방문글 중 가져온 정보에 해당하는 방문글 삭제
+
+		// 방명록 방문글 정보에 해당하는 방명록 작성 방문글을 삭제한다.
 		int res = guestbookService.deleteByGuestbookIdxAndIdx(guestbook);
-		if (res == 1) {
-			// 삭제 성공할 경우
+		if ( res == 1 ) {
+			// 삭제 성공하는 경우
 			result = "yes";
 		}
 
-		// 콜백 메소드에 전달
+		// 결과 메시지 전달
 		return result;
 	}
 	
@@ -766,20 +767,30 @@ public class GuestbookController {
 			// 방명록 페이지로 이동
 			return "Page/Guestbook/guestbook_list";
 		}
-		
-		// 방명록에 작성자를 저장하기 위해 로그인 유저 idx에 해당하는 유저 정보를 조회
-		Sign loginUser = signService.findByIdx(loginIdx);
 
-		// 해당 idx의 방명록에 수정할 방문글을 조회
+		// 방명록에 작성자 정보를 수정하기 위해 로그인 유저 idx에 해당하는 유저 메인 정보를 조회한다.
+		UserMain loginUser = signService.findUserMainBySignIdx(loginIdx);
+
+		// 방명록 방문글 정보에 해당하는 방명록 작성 방문글을 조회한다.
 		Guestbook updateGuestbook = guestbookService.findByGuestbookIdxAndIdx(guestbook);
-		if ( updateGuestbook != null ) {
-			// 작성자 미니미 지정
-			updateGuestbook.setGuestbookMinimi(loginUser.getMinimi());
-			// 조회된 방문글을 바인딩
-			model.addAttribute("updateGuestbook", updateGuestbook);
+
+		// 조회한 방명록 작성 방문글이 없는 경우
+		if ( updateGuestbook == null ) {
+			// 에러 메시지를 바인딩한다.
+			model.addAttribute("updateErrMsg", "수정하려는 글 정보가 없습니다.\n새로고침 후 다시 시도해주시기 바랍니다.");
+			// 방명록 페이지로 이동
+			return "Page/Guestbook/guestbook_list";
 		}
 
-		// 수정 페이지로 이동
+		// 조회한 방명록 작성 방문글이 있는 경우
+
+		// 조회한 방명록 작성 방문글 미니미에 조회한 유저 메인 정보 중 미니미를 가져와 setter를 통해 전달한다.
+		updateGuestbook.setGuestbookMinimi(loginUser.getMinimi());
+
+		// 전달받은 방명록 작성 방문글을 바인딩한다.
+		model.addAttribute("updateGuestbook", updateGuestbook);
+
+		// 방명록 수정 페이지로 이동
 		return "Page/Guestbook/guestbook_modify_form";
 	}
 	
@@ -877,25 +888,25 @@ public class GuestbookController {
 			return "-4";
 		}
 
-		// 갱신 실패할 경우
-		String result = "no";
-
-		// 수정 시간을 기록하기 위해 Date객체 사용
+		// 수정 시간을 기록하기 위해 Date 객체를 생성한다.
 		Date date = new Date();
-		// Date객체를 원하는 모양대로 재조합
+		// Date 객체를 원하는 형식대로 포맷한다.
 		SimpleDateFormat today = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		// 방문글에 수정 시간 지정
+		// 방명록 방문글 작성 시간에 Date 객체로 만든 수정 시간을 가져와 setter를 통해 전달한다.
 		guestbook.setGuestbookRegDate(today.format(date));
-		
-		// 수정된 방문글로 갱신
+
+		// 갱신 실패하는 경우
+		String result = "no";
+
+		// 전달받은 방명록 수정 방문글로 갱신한다.
 		int res = guestbookService.updateSetGuestbookNameAndGuestbookMinimiAndGuestbookRegDateAndGuestbookContentAndGuestbookSecretCheckByGuestbookIdxAndGuestbookSessionIdxAndIdx(guestbook);
 		if (res != 0) {
-			// 갱신 성공할 경우
+			// 갱신 성공하는 경우
 			result = "yes";
 		}
 
-		// 콜백 메소드에 전달
+		// 결과 메시지 전달
 		return result;
 	}
 	
@@ -1006,39 +1017,39 @@ public class GuestbookController {
 			return guestbook;
 		}
 
-		// 미니홈피 유저 idx 지정
-		guestbook.setGuestbookIdx(guestbookLike.getGuestbookLikeIdx());
-		// 좋아요를 누른 방문글의 번호 지정
+		// 방명록 방문글 idx에 방명록 좋아요 정보 중 방문글 idx를 가져와 setter를 통해 전달한다.
 		guestbook.setIdx(guestbookLike.getGuestbookLikeRef());
+		// 방명록 방문글 guestbookIdx에 방명록 좋아요 정보 중 미니홈피 유저 idx를 가져와 setter를 통해 전달한다.
+		guestbook.setGuestbookIdx(guestbookLike.getGuestbookLikeIdx());
 
-		// 먼저 DB에 로그인한 유저가 해당 idx의 방명록에 남긴 방문글에 좋아요를 눌렀는지 조회
+		// 방명록 좋아요 정보에 해당하는 좋아요 기록이 존재하는지 조회하여 체크한다.
 		GuestbookLike guestbookLikeCheck = guestbookService.findByGuestbookLikeIdxAndGuestbookLikeRefAndGuestbookLikeSessionIdx(guestbookLike);
 
-		// 이미 좋아요를 눌렀을 경우
+		// 좋아요 기록이 존재하는 경우
 		if ( guestbookLikeCheck != null ) {
-			// 이미 눌린 좋아요를 다시 누를 경우 취소되므로 좋아요 내역을 삭제
+			// 좋아요를 누른 상태에서 좋아요를 또 누르면 좋아요가 취소 되기에 방명록 좋아요 정보에 해당하는 좋아요 기록을 삭제한다.
 			guestbookService.deleteByGuestbookLikeIdxAndGuestbookLikeRefAndGuestbookLikeSessionIdx(guestbookLike);
-			// 좋아요 개수 조회
+			// 방명록 좋아요 정보에 해당하는 방문글의 좋아요 개수를 COUNT로 조회한다.
 			int likeCount = guestbookService.countByGuestbookLikeIdxAndGuestbookLikeRef(guestbookLike);
-			// 조회된 좋아요 개수를 지정
+			// 방명록 방문글 좋아요 개수에 조회한 좋아요 개수를 setter를 통해 전달한다.
 			guestbook.setGuestbookLikeNum(likeCount);
-			// 조회된 좋아요 개수로 갱신
+			// 전달받은 방명록 방문글 정보로 갱신한다.
 			guestbookService.updateSetGuestbookLikeNumByGuestbookIdxAndIdx(guestbook);
-			// 콜백 메소드에 갱신된 방문글 전달
+			// 갱신한 방명록 방문글 정보를 전달
 			return guestbook;
-		// 좋아요를 안 눌렀을 경우
+		// 좋아요 기록이 존재하지 않는 경우
 		} else {
-			// 좋아요 idx에 AUTO_INCREMENT로 null 지정
+			// 방명록 좋아요 idx에 AUTO_INCREMENT로 null을 설정하여 setter를 통해 전달한다.
 			guestbookLike.setIdx(null);
-			// 좋아요를 누를 경우 좋아요 내역을 추가
+			// 좋아요를 안 누른 상태에서 좋아요를 누르면 좋아요가 추가 되기에 방명록 좋아요 정보를 저장한다.
 			guestbookService.insertIntoGuestbookLike(guestbookLike);
-			// 좋아요 개수 조회
+			// 방명록 좋아요 정보에 해당하는 방문글의 좋아요 개수를 COUNT로 조회한다.
 			int likeCount = guestbookService.countByGuestbookLikeIdxAndGuestbookLikeRef(guestbookLike);
-			// 조회된 좋아요 개수를 지정
+			// 방명록 방문글 좋아요 개수에 조회한 좋아요 개수를 setter를 통해 전달한다.
 			guestbook.setGuestbookLikeNum(likeCount);
-			// 조회된 좋아요 개수로 갱신
+			// 전달받은 방명록 방문글 정보로 갱신한다.
 			guestbookService.updateSetGuestbookLikeNumByGuestbookIdxAndIdx(guestbook);
-			// 콜백 메소드에 갱신된 방문글 전달
+			// 갱신한 방명록 방문글 정보를 전달
 			return guestbook;
 		}
 	}

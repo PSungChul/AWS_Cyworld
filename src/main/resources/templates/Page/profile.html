@@ -38,8 +38,6 @@
 						</div>
 						<!-- 좌측 프로필 사진 및 프로필 소개글 수정 -->
 						<form method="POST" enctype="multipart/form-data" th:object="${leftProfileDTO}">
-							<!-- 해당 미니홈피 유저의 idx -->
-							<input th:field="*{idx}" type="hidden">
 							<!-- 기존 프로필 사진 -->
 							<div class="left-image">
 								<th:block th:if="${ leftProfileDTO.mainPhoto eq 'noImage' }">
@@ -118,7 +116,7 @@
 								<p id="my-minimi">My minimi</p>
 								<!-- 미니미 수정 -->
 								<input class="minimi-main" type="button" th:src="@{/filePath/minimi/} + ${ sign.minimi }" onclick="minimiPopup();">
-								<!-- 해당 미니홈피 유저의 idx -->
+								<!-- 미니홈피 유저 idx -->
 								<input name="idx" th:value="${ sign.idx }" type="hidden">
 								<!-- 해당 미니홈피 유저의 플랫폼 -->
 								<input name="platform" th:value="${ sign.platform }" type="hidden">
@@ -140,7 +138,7 @@
 								</th:block>
 								<!-- 공통으로 보이는 항목들 -->
 								<p>이름 : <input type="text" th:value="${ sign.name }" readonly></p>
-								<!-- 남자일 경우 -->
+								<!-- 남자인 경우 -->
 								<th:block th:if="${ sign.gender eq 'M' || sign.gender eq 'male' }">
 									<p>성별:&nbsp; <input class="myRadio" type="radio" th:value="${ sign.gender }" checked readonly>&nbsp;남</p>
 								</th:block>
@@ -172,9 +170,9 @@
 			<div class="tabs">
 				<form>
 					<div class="tab-btns">
-						<!-- 해당 미니홈피 유저의 idx -->
+						<!-- 미니홈피 유저 idx -->
 						<input id="idx" name="idx" type="hidden" th:value="${ sign.idx }" readonly>
-						<!-- 로그인한 유저의 idx -->
+						<!-- 로그인 유저 idx -->
 						<input id="loginIdx" name="loginIdx" type="hidden" th:value="${loginIdx}" readonly>
 						<!-- 홈 탭 -->
 						<label for="tab1" id="btn1">홈</label>
@@ -227,7 +225,7 @@
 			
 			// 소셜 가입자는 가입할때 따로 작성한 아이디 비밀번호가 없기에 메인타이틀만 수정 가능하다.
 			if ( platform != 'cyworld' ) {
-				let url = "/profile/profile_modify_userdata"
+				let url = "/profile/profile_modify_right"
 				let param = "idx=" + idx +
 							"&mainTitle=" + mainTitle +
 							"&platform=" + platform;
@@ -256,7 +254,7 @@
 						return;
 					}
 					
-					let url = "/profile/profile_modify_userdata"
+					let url = "/profile/profile_modify_right"
 					let param = "idx=" + idx +
 								"&info=" + info +
 								"&mainTitle=" + mainTitle +
@@ -264,7 +262,7 @@
 					sendRequest(url, param, resultModify, "POST");
 				// 비밀번호를 변경하지 않고 그대로 가져갈시
 				} else {
-					let url = "/profile/profile_modify_userdata"
+					let url = "/profile/profile_modify_right"
 					let param = "idx=" + idx +
 								"&mainTitle=" + mainTitle +
 								"&platform=" + platform;
@@ -330,7 +328,7 @@
 				return;
 			}
 			
-			f.action = "/profile/profile_modify_main";
+			f.action = "/profile/profile_modify_left";
 			f.submit();
 		}
 	</script>
