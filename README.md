@@ -76,6 +76,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	Sign 테이블 --> Sign, UserLogin, UserProfile, UserMain 테이블 정규화
 	Sign 테이블의 컬럼들을 각각 사용처에 맞게 분리한 후 각 테이블의 고유 키값으로 접근할 수 있도록 변경하여 유저 정보 보안 강화
 	유저 로그인 정보를 담당하는 UserLogin 테이블, 유저 프로필 정보를 담당하는 UserProfile 테이블, 유저 메인 정보를 담당하는 UserMain 테이블을 각각 추가
+	CSS Media Query와 JS Resize Event를 사용하여 메인 페이지에 반응형 웹 적용
 
 #
 
