@@ -83,7 +83,7 @@
 						<div class="IlchonAssist"> <p> <span>※  일촌 신청</span> <img class="IlchonAssistImg" src="/images/noneMain14.gif" alt="">  <br> 일촌 신청을 하고, <br> 상대방도 나에게 일촌 신청을 하면 일촌이 돼요!</p></div>
 					</th:block>
 					<!-- 조회수 -->
-					<p class="todayBanner"><span>Today</span> <span class="todayHere" th:text="${ sign.today }"></span><span th:text="'&nbsp;｜ Total ' + ${ sign.total }"></span></p>
+					<p class="todayBanner"><span>Today&nbsp;</span><span class="todayHere" th:text="${ sign.today }"></span><span th:text="'&nbsp;｜ Total ' + ${ sign.total }"></span></p>
 
 					<aside class="left-aside">
 						<!-- 좌측, 우측 페이지 이어주는 스프링 디자인 -->
@@ -124,7 +124,7 @@
 			<div class="right-dashed-line">
 				<div class="right-gray-background">
 					<!-- 메인 타이틀 - 클릭시 새로고침 역할 -->
-					<p class="title"><a th:href="@{main(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
+					<p id="mainTitle" class="title"><a th:href="@{/main/{idx}(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
 					<!-- 검색 -->
 					<form name="sf" method="GET">
 						<input id="btn_cover" class="search" type="button" value="유저 검색" onclick="searchPopup();">
@@ -145,7 +145,7 @@
 						</th:block>
 						<!-- 미니룸 -->
 						<div class="miniRoomBox"><p>Mini Room</p>
-							<div class="miniRoom"><img src="/images/MainroomGif.gif" alt=""></div>
+							<div class="miniRoom"><img id="miniRoomImg" src="/images/MainroomGif.gif" alt=""></div>
 							<div class=" Crayon box animate__animated animate__bounce animate__infinite"><img src="/images/Crayon.png" alt=""></div>
 							<div class="zzang1"><img src="/images/zzang.gif" alt=""></div>
 							<div class="zzang2"><img src="/images/zzang2.gif" alt=""></div>
@@ -156,10 +156,10 @@
 						<!-- 액션 미니미 광고 배너 - 타 유저한테는 안보이게 숨김 -->
 						<th:block th:if="${ sign.idx eq loginUser.idx }">
 							<div class="right-banner" id="banner">
-								<p class="title">액션 미니미 <br>출시!</p>
-								<p class="blink blink1">NEW</p><div class="img"><img src="/images/cat.gif" alt="" onclick="minimiPopup();"></div>
-								<p class="blink blink2">NEW</p><div class="img"><img src="/images/thePooh.gif" alt="" onclick="minimiPopup();"></div>
-								<p class="blink blink3">NEW</p><div class="img"><img src="/images/fat.gif" alt="" onclick="minimiPopup();"></div>
+								<p id="title" class="title">액션 미니미 <br>출시!</p>
+								<p class="blink blink1">NEW</p><div class="img"><img id="img1" src="/images/cat.gif" alt="" onclick="minimiPopup();"></div>
+								<p class="blink blink2">NEW</p><div class="img"><img id="img2" src="/images/thePooh.gif" alt="" onclick="minimiPopup();"></div>
+								<p class="blink blink3">NEW</p><div class="img"><img id="img3" src="/images/fat.gif" alt="" onclick="minimiPopup();"></div>
 								<input type="button" class="bannerCancel" id="btn_cover" onclick="displayNone(this)" value="끄기">
 							</div>
 						</th:block>
@@ -167,7 +167,7 @@
 						<form>
 							<div class="Ilchonpyeong">
 								<!-- 일촌평 작성 -->
-								<span>일촌평</span> <input type="text" name="ilchonpyeongContent"  onkeyup="check_length(this);" placeholder="일촌과 나누고 싶은 이야기를 남겨보세요 (최대 50글자)">
+								<span>일촌평</span> <input id="ilchonpyeongInput" type="text" name="ilchonpyeongContent"  onkeyup="check_length(this);" placeholder="일촌과 나누고 싶은 이야기를 남겨보세요 (최대 50글자)">
 								<input id="btn_cover" class="Ic-registration" type="button" value="확인" onclick="registration(this.form);">
 
 							</div>
@@ -258,6 +258,9 @@
 	<div class="snowflake"></div>
 	<div class="snowflake"></div>
 <!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
+	<!-- 반응형 JS -->
+	<script src="/js/mainCss.js"></script>
+
 	<!-- bgm 재생  -->
 	<script>
 		//Audio 사용을 위한 객체 생성

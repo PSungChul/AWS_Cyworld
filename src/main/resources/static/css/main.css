@@ -1025,8 +1025,187 @@ input::placeholder {
     filter: blur(1px);
 }
 /* 반응형 페이지 만들기  */
-@media screen and (max-width:1830px) {
-   .container {
-      width: 98%;
-   }
+@media (max-width: 1600px) {
+    .cy_logout {
+        left: 90%;
+    }
+
+    .container {
+        height: 100%; /* 높이를 퍼센트(%)로 조정 */
+        width: 95%; /* 너비를 퍼센트(%)로 조정 */
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        align-items: center; /* 수직 가운데 정렬 */
+    }
+
+    .left-section {
+        order: 1;
+    }
+
+    .left-dashed-line {
+        display: block;
+        margin: 0 auto;
+        margin-top: 2%;
+        margin-right: 10px;
+        height: 92%;
+        border-radius: 50px;
+        border: 3px dashed white;
+    }
+
+    .left-gray-background {
+        display: block;
+        margin: 0 auto;
+        margin-top: 1%;
+        margin-right: 20px;
+        height: 96%;
+        background-color: rgb(235, 232, 232);
+        border-radius: 50px;
+    }
+
+    .left-aside {
+        margin: 0 auto;
+        width: 93%;
+        background-color: white;
+        height: 86%;
+        border-radius: 30px;
+        position: relative;
+        top: 0;
+        left: 0;
+    }
+
+    .right-section {
+        order: 2;
+        margin-bottom: 5%;
+    }
+
+    .right-dashed-line {
+        display: block;
+        margin: 0 auto;
+        margin-top: 2%;
+        margin-right: 30px;
+        height: 93%;
+        border-radius: 50px;
+        position: static;
+        border: 3px dashed white;
+    }
+
+    .right-gray-background {
+        display: block;
+        margin: 0 auto;
+        margin-top: 1%;
+        margin-right: 15px;
+        height: 97%;
+        background-color: rgb(235, 232, 232);
+        border-radius: 50px;
+        position: static;
+    }
+
+    .right-aside {
+        margin: 0 auto;
+        margin-top: 1.5%;
+        margin-bottom: -3%;
+        width: 94%;
+        background-color: white;
+        height: 800px;
+        border-radius: 30px;
+        position: relative;
+        top: 0;
+        right: 0;
+    }
+
+    .left-aside>.item {
+        display: none;
+    }
+
+    .left-aside>.item2 {
+        display: none;
+    }
+
+    .todayBanner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: static;
+        padding: 1.2%;
+    }
+
+    .left-image {
+        position: static;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .left-textarea {
+        position: static;
+        display: block;
+        margin: 0 auto;
+        margin-top: 1%;
+    }
+
+    .history {
+        position: static;
+    }
+
+    .history>h3 {
+        position: static;
+        display: block;
+        margin: 0 auto;
+        margin-top: 2%;
+    }
+
+    .history>img {
+        display: none;
+    }
+
+    .myFriend {
+        position: static;
+        display: block;
+        margin: 0 auto;
+        margin-top: 2%;
+        margin-bottom: 15%;
+    }
+
+    #mainTitle {
+        top: 1.5%;
+    }
+
+    .miniRoomBox {
+        left: 10px;
+    }
+
+    .Ilchonpyeong {
+        left: 10px;
+    }
+
+    .bannerCancel {
+        margin-top: 22px;
+    }
+
+    .circle-container {
+        left: 100%;
+    }
+
+    .dotory {
+        position: absolute;
+    }
+
+    .tab-btns {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .tab-btns>label {
+        left: auto; /* left 속성 제거 */
+        top: auto; /* top 속성 제거 */
+        margin-left: 5%;
+        margin-right: 5%;
+        height: 40px;
+        border-radius: 20px 20px 20px 20px;
+        margin-bottom: 5%;
+    }
 }
