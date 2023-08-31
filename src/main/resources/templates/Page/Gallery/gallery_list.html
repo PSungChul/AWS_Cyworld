@@ -29,7 +29,7 @@
 			<div class="left-dashed-line">
 				<div class="left-gray-background">
 					<!-- 조회수 -->
-					<p class="todayBanner"><span>Today</span> <span class="todayHere" th:text="${ sign.today }"></span><span th:text="'&nbsp;｜ Total ' + ${ sign.total }"></span></p>
+					<p class="todayBanner"><span>Today&nbsp;</span><span class="todayHere" th:text="${ sign.today }"></span><span th:text="'&nbsp;｜ Total ' + ${ sign.total }"></span></p>
 					
 					<aside class="left-aside">
 						<!-- 좌측, 우측 페이지 이어주는 스프링 디자인 -->
@@ -71,7 +71,7 @@
 			<div class="right-dashed-line">
 				<div class="right-gray-background">
 					<!-- 메인 타이틀 - 클릭시 새로고침 역할 -->
-					<p class="title"><a th:href="@{main(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
+					<p class="title"><a th:href="@{/main/{idx}(idx=${ sign.idx })}"><span th:text="${ sign.mainTitle }"></span></a></p>
 					<!-- bgm - 페이지 오른쪽 상단에 재생 플레이어와 노래 제목 표시 -->
 					<img class="musicLogo" src="/images/noneMain15.gif" alt="">
 					<a class="mp3_title" href="#" ><div class="circle-container">

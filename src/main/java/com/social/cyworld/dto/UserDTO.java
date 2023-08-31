@@ -131,19 +131,6 @@ public class UserDTO {
                 .build();
     }
 
-    // 메인
-    public void toMainUserDTO(Sign sign, UserProfile userProfile, UserMain userMain) {
-        this.idx = sign.getIdx();
-        this.email = userProfile.getEmail();
-        this.platform = sign.getPlatform();
-        this.minimi = userMain.getMinimi();
-        this.mainTitle = userMain.getMainTitle();
-        this.mainPhoto = userMain.getMainPhoto();
-        this.mainText = userMain.getMainText();
-        this.today = userMain.getToday();
-        this.total = userMain.getTotal();
-    }
-
     // 로그인 유저 정보
     public void toLoginUserDTO(Sign sign) {
         this.idx = sign.getIdx();
@@ -156,22 +143,6 @@ public class UserDTO {
         this.idx = idx;
         this.dotory = userMain.getDotory();
     }
-
-    // 프로필
-//    public void toProfileUserDTO(Sign sign, UserProfile userProfile, UserMain userMain) {
-//        this.idx = sign.getIdx();
-//        this.email = userProfile.getEmail();
-//        this.gender = userProfile.getGender();
-//        this.name = userProfile.getName();
-//        this.phoneNumber = userProfile.getPhoneNumber();
-//        this.platform = sign.getPlatform();
-//        this.minimi = userMain.getMinimi();
-//        this.mainTitle = userMain.getMainTitle();
-//        this.mainPhoto = userMain.getMainPhoto();
-//        this.mainText = userMain.getMainText();
-//        this.today = userMain.getToday();
-//        this.total = userMain.getTotal();
-//    }
 
     // 미니미 변경
     public UserMain toUpdateMinimi() {
@@ -200,13 +171,4 @@ public class UserDTO {
                 .phoneNumber(phoneNumber.replaceAll("-", "")) // 휴대폰 번호 하이픈 제거
                 .build();
     }
-
-    // 프로필
-//    public void toGalleryUserDTO(Sign sign, UserProfile userProfile, UserMain userMain) {
-//        this.idx = sign.getIdx();
-//        this.name = userProfile.getName();
-//        this.mainTitle = userMain.getMainTitle();
-//        this.today = userMain.getToday();
-//        this.total = userMain.getTotal();
-//    }
 }
