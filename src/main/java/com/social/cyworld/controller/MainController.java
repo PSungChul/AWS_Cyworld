@@ -981,13 +981,13 @@ public class MainController {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
 				// 도토리 팝업으로 이동
-				return "Page/dotory";
+				return "Page/dotory_popup";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 				// 도토리 팝업으로 이동
-				return "Page/dotory";
+				return "Page/dotory_popup";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -998,7 +998,7 @@ public class MainController {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 도토리 팝업으로 이동
-			return "Page/dotory";
+			return "Page/dotory_popup";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
@@ -1011,7 +1011,7 @@ public class MainController {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 도토리 팝업으로 이동
-				return "Page/dotory";
+				return "Page/dotory_popup";
 			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
 				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
@@ -1022,7 +1022,7 @@ public class MainController {
 					// 에러 메시지를 바인딩한다.
 					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 도토리 팝업으로 이동
-					return "Page/dotory";
+					return "Page/dotory_popup";
 				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
@@ -1053,7 +1053,7 @@ public class MainController {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 			// 도토리 팝업으로 이동
-			return "Page/dotory";
+			return "Page/dotory_popup";
 		}
 
 		// 로그인 유저 idx에 해당하는 유저 메인 정보를 조회한다.
@@ -1088,7 +1088,7 @@ public class MainController {
 		}
 
 		// 도토리 팝업으로 이동
-		return "Page/dotory";
+		return "Page/dotory_popup";
 	}
 
 	// 도토리 결제
@@ -1120,13 +1120,13 @@ public class MainController {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
 				// 도토리 팝업으로 이동
-				return "Page/dotory";
+				return "Page/dotory_popup";
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 				// 도토리 팝업으로 이동
-				return "Page/dotory";
+				return "Page/dotory_popup";
 			}
 		}
 		// 쿠키에 토큰이 존재하는 경우 - 로그인 유저
@@ -1137,7 +1137,7 @@ public class MainController {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 			// 도토리 팝업으로 이동
-			return "Page/dotory";
+			return "Page/dotory_popup";
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
 		if ( loginIdx == -1 ) {
@@ -1150,7 +1150,7 @@ public class MainController {
 				// 에러 메시지를 바인딩한다.
 				model.addAttribute("errMsg", "세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 				// 도토리 팝업으로 이동
-				return "Page/dotory";
+				return "Page/dotory_popup";
 			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
 				// JWT에서 리프레쉬 토큰으로 토큰을 재생성한다.
@@ -1161,7 +1161,7 @@ public class MainController {
 					// 에러 메시지를 바인딩한다.
 					model.addAttribute("errMsg", "로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
 					// 도토리 팝업으로 이동
-					return "Page/dotory";
+					return "Page/dotory_popup";
 				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
 					// Authorization 쿠키 삭제를 위해 같은 이름으로 쿠키를 생성한다. - 값은 필요 X
@@ -1192,7 +1192,7 @@ public class MainController {
 			// 에러 메시지를 바인딩한다.
 			model.addAttribute("errMsg", "잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
 			// 도토리 팝업으로 이동
-			return "Page/dotory";
+			return "Page/dotory_popup";
 		}
 
 		// 요청된 결제 정보를 가지고 결제 서버로 이동해서 최종 결제를 승인 받는다.

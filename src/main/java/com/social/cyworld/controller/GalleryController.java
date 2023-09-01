@@ -153,7 +153,7 @@ public class GalleryController {
 		List<GalleryComment> commentList = galleryService.findByGalleryCommentIdxOrderByIdxDesc(idx);
 		// 가져온 사진첩 게시물 댓글 리스트를 바인딩한다.
 		model.addAttribute("commentList", commentList);
-		
+
 		// 로그인 유저 idx에 해당하는 사진첩 페이지 유저 정보를 조회한다.
 		UserDTO userDTO = userDTOService.findGalleryByIdx(idx);
 		// 조회한 사진첩 페이지 유저 정보 DTO를 바인딩한다.
@@ -1160,13 +1160,13 @@ public class GalleryController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 게시글 내용에 에러 코드 지정
+				// 게시글 내용에 에러 코드를 setter를 통해 전달한다.
 				gallery.setGalleryContent("0");
 				// 갱신된 게시글 전달
 				return gallery;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 게시글 내용에 에러 코드 지정
+				// 게시글 내용에 에러 코드를 setter를 통해 전달한다.
 				gallery.setGalleryContent("-4");
 				// 갱신된 게시글 전달
 				return gallery;
@@ -1177,7 +1177,7 @@ public class GalleryController {
 		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// 게시글 내용에 에러 코드 지정
+			// 게시글 내용에 에러 코드를 setter를 통해 전달한다.
 			gallery.setGalleryContent("-99");
 			// 갱신된 게시글 전달
 			return gallery;
@@ -1190,7 +1190,7 @@ public class GalleryController {
 			if ( session.getAttribute("login") == null ) {
 				// 토큰과 리프레쉬 토큰을 삭제한다.
 				jwtUtil.logoutToken(authorization);
-				// 게시글 내용에 에러 코드 지정
+				// 게시글 내용에 에러 코드를 setter를 통해 전달한다.
 				gallery.setGalleryContent("-1");
 				// 갱신된 게시글 전달
 				return gallery;
@@ -1201,7 +1201,7 @@ public class GalleryController {
 				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
 				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
 				if ( refreshToken == null ) {
-					// 게시글 내용에 에러 코드 지정
+					// 게시글 내용에 에러 코드를 setter를 통해 전달한다.
 					gallery.setGalleryContent("-100");
 					// 갱신된 게시글 전달
 					return gallery;
@@ -1233,7 +1233,7 @@ public class GalleryController {
 
 		// 토큰에서 추출한 로그인 유저 idx와 좋아요에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
 		if ( loginIdx != galleryLike.getGalleryLikeSessionIdx() ) {
-			// 게시글 내용에 에러 코드 지정
+			// 게시글 내용에 에러 코드를 setter를 통해 전달한다.
 			gallery.setGalleryContent("-4");
 			// 갱신된 게시글 전달
 			return gallery;

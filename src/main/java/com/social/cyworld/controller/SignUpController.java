@@ -614,9 +614,9 @@ public class SignUpController {
 
 	// 카카오 가입 페이지로 이동
 	@RequestMapping("/kakao_join_form")
-	public String kakaoJoinForm(Sign sign, Model model) {
+	public String kakaoJoinForm(UserDTO userDTO, Model model) {
 		// 파라미터로 받아온 유저 정보를 바인딩한다.
-		model.addAttribute("sign", sign);
+		model.addAttribute("sign", userDTO);
 		// IamPort 가맹점 번호를 바인딩한다.
 		model.addAttribute("impNumber", impNumber);
 
@@ -626,9 +626,9 @@ public class SignUpController {
 
 	// 네이버 가입 페이지로 이동
 	@RequestMapping("/naver_join_form")
-	public String naverJoinForm(Sign sign, Model model) {
+	public String naverJoinForm(UserDTO userDTO, Model model) {
 		// 파라미터로 받아온 유저 정보를 바인딩한다.
-		model.addAttribute("sign", sign);
+		model.addAttribute("sign", userDTO);
 
 		// 네이버 회원가입 페이지
 		return "Sign/naver_join";

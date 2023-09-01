@@ -938,13 +938,13 @@ public class GuestbookController {
 			HttpSession session = request.getSession();
 			// 토큰은 존재하지 않지만 세션은 존재하는 경우 - 비회원
 			if ( session.getAttribute("login") != null ) {
-				// 방문글 내용에 에러 코드 지정
+				// 방문글 내용에 에러 코드를 setter를 통해 전달한다.
 				guestbook.setGuestbookContent("0");
 				// 갱신된 방문글 전달
 				return guestbook;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
-				// 방문글 내용에 에러 코드 지정
+				// 방문글 내용에 에러 코드를 setter를 통해 전달한다.
 				guestbook.setGuestbookContent("-4");
 				// 갱신된 방문글 전달
 				return guestbook;
@@ -955,7 +955,7 @@ public class GuestbookController {
 		int loginIdx = jwtUtil.validationToken(authorization);
 		// idx가 에러 코드 -99인 경우
 		if ( loginIdx == -99 ) {
-			// 방문글 내용에 에러 코드 지정
+			// 방문글 내용에 에러 코드를 setter를 통해 전달한다.
 			guestbook.setGuestbookContent("-99");
 			// 갱신된 방문글 전달
 			return guestbook;
@@ -968,7 +968,7 @@ public class GuestbookController {
 			if ( session.getAttribute("login") == null ) {
 				// 토큰과 리프레쉬 토큰을 삭제한다.
 				jwtUtil.logoutToken(authorization);
-				// 방문글 내용에 에러 코드 지정
+				// 방문글 내용에 에러 코드를 setter를 통해 전달한다.
 				guestbook.setGuestbookContent("-1");
 				// 갱신된 방문글 전달
 				return guestbook;
@@ -979,7 +979,7 @@ public class GuestbookController {
 				// 리프레쉬 토큰으로 토큰이 재생성 됬는지 체크한다.
 				// 토큰이 재생성 안된 경우 - 리프레쉬 토큰 만료
 				if ( refreshToken == null ) {
-					// 방문글 내용에 에러 코드 지정
+					// 방문글 내용에 에러 코드를 setter를 통해 전달한다.
 					guestbook.setGuestbookContent("-100");
 					// 갱신된 방문글 전달
 					return guestbook;
@@ -1011,7 +1011,7 @@ public class GuestbookController {
 
 		// 토큰에서 추출한 로그인 유저 idx와 좋아요에서 가져온 로그인 유저 idx가 다른 경우 - 유효성 검사
 		if ( loginIdx != guestbookLike.getGuestbookLikeSessionIdx() ) {
-			// 방문글 내용에 에러 코드 지정
+			// 방문글 내용에 에러 코드를 setter를 통해 전달한다.
 			guestbook.setGuestbookContent("-4");
 			// 갱신된 방문글 전달
 			return guestbook;
