@@ -5,11 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
 
-@ResponseBody
+@Repository
 public interface SignRepository extends JpaRepository<Sign, Object> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////SignUp
     // 로그인 유저 idx에 해당하는 유저 키 조회
