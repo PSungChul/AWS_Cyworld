@@ -446,21 +446,15 @@ public class ChatController {
 				// 조회한 채팅방 정보 중 채팅방 아이디를 가져와 id에 전달한다.
 				id = user.getChatRooms().get(0).get_id();
 
-				// 전달받은 채팅방 아이디에 해당하는 채팅방 정보에서 상대 메시지 상태를 읽음 상태로 갱신한다.
-				mongoUtil.updateChatStatus(id, loginIdx);
-
-				// 전달받은 채팅방 아이디에 해당하는 메시지를 모두 조회하여 리스트로 가져온다.
-				List<ChatRooms.ChatMessageList> chatMessageList = mongoUtil.findAllChatMessageList(id);
+				// 채팅방 아이디에 해당하는 채팅방 정보에서 상대 메시지 상태 중 안 읽음 상태를 읽음 상태로 갱신하고, 갱신한 메시지를 모두 조회하여 리스트로 가져온다.
+				List<ChatRooms.ChatMessageList> chatMessageList = mongoUtil.findAllChatMessageList(id, idx);
 				// 가져온 메시지 리스트를 바인딩한다.
 				model.addAttribute("chatMessageList", chatMessageList);
 			}
 		// 채팅방 리스트로 들어온 경우 - 채팅방 아이디 존재 O
 		} else {
-			// 채팅방 아이디에 해당하는 채팅방 정보에서 상대 메시지 상태를 읽음 상태로 갱신한다.
-			mongoUtil.updateChatStatus(id, loginIdx);
-
-			// 채팅방 아이디에 해당하는 메시지를 모두 조회하여 리스트로 가져온다.
-			List<ChatRooms.ChatMessageList> chatMessageList = mongoUtil.findAllChatMessageList(id);
+			// 채팅방 아이디에 해당하는 채팅방 정보에서 상대 메시지 상태 중 안 읽음 상태를 읽음 상태로 갱신하고, 갱신한 메시지를 모두 조회하여 리스트로 가져온다.
+			List<ChatRooms.ChatMessageList> chatMessageList = mongoUtil.findAllChatMessageList(id, idx);
 			// 가져온 메시지 리스트를 바인딩한다.
 			model.addAttribute("chatMessageList", chatMessageList);
 		}

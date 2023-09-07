@@ -1,6 +1,6 @@
 package com.social.cyworld.util;
 
-import com.mongodb.client.model.Filters;
+import com.mongodb.BasicDBObject;
 import com.social.cyworld.entity.ChatRooms;
 import com.social.cyworld.entity.Users;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -84,8 +83,8 @@ public class MongoUtil {
         mongoTemplate.upsert(query, update, Users.class);
     }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////ChatRooms
-    // 채팅방 아이디에 해당하는 메시지를 모두 조회
-    public List<ChatRooms.ChatMessageList> findAllChatMessageList(String id) {
+    // 채팅방 아이디에 해당하는 메시지를 모두 조회 + 채팅방 아이디에 해당하는 메시지 중 작성자가 상대 유저 idx에 해당하고 상태가 1인 메시지를 찾아 상태를 0으로 변경
+    public List<ChatRooms.ChatMessageList> findAllChatMessageList(String id, int idx) {
         // 조회 쿼리를 생성한다.
         Query query = new Query(Criteria.where("_id").is(id));
         // 조회 쿼리를 실행한다.
@@ -97,21 +96,34 @@ public class MongoUtil {
             return null;
         // 채팅방 아이디에 해당하는 채팅방 정보가 있는 경우
         } else {
-            // 메시지 리스트를 반환한다.
+            // 조회한 채팅방 정보 중 메시지 리스트를 가져온다.
+            List<ChatRooms.ChatMessageList> messages = chatRoom.getMessages();
+
+            // 가져온 메시지를 리스트를 마지막부터 시작해서 순회하면서 조건에 해당하는 메시지의 상태를 변경한다.
+            for ( int i = messages.size() - 1; i >= 0; i-- ) {
+                // 메시지 전송 유저 idx가 상대 유저 idx이면서, 메시지 상태가 안 읽음 상태를 의미하는 1인 경우
+                if ( messages.get(i).getIdx() == idx && "1".equals(messages.get(i).getStatus()) ) {
+                    // 해당 메시지 상태에 읽음 상태를 의미하는 0을 setter를 통해 전달한다.
+                    messages.get(i).setStatus("0");
+                    // 바로 다음 for문을 실행한다.
+                    continue;
+                }
+                // 메시지 전송 유저 idx가 상대 유저 idx이면서, 메시지 상태가 읽음 상태를 의미하는 0인 경우
+                if ( messages.get(i).getIdx() == idx && "1".equals(messages.get(i).getStatus()) ) {
+                    // for문을 벗어난다.
+                    break;
+                }
+            }
+
+            // 조회한 채팅방 정보 중 메시지 리스트에 상태를 변경한 메시지 리스트를 setter를 통해 전달한다.
+            chatRoom.setMessages(messages);
+
+            // 전달받은 채팅방 정보로 갱신한다.
+            mongoTemplate.save(chatRoom);
+
+            // 상태를 변경한 메시지 리스트를 반환한다.
             return chatRoom.getMessages();
         }
-    }
-
-    // 채팅방 아이디에 해당하는 메시지 중 작성자가 상대 유저 idx에 해당하고 상태가 1인 메시지를 찾아 상태를 0으로 변경
-    public void updateChatStatus(String id, int loginIdx) {
-        // 업데이트 쿼리를 생성한다.
-        Query query = new Query(Criteria.where("_id").is(id)
-                .and("messages.idx").ne(loginIdx)
-                .and("messages.status").is("1"));
-        // 업데이트 내용을 정의한다.
-        Update update = new Update().set("messages.$[].status", "0");
-        // 업데이트 쿼리를 실행한다.
-        mongoTemplate.updateMulti(query, update, ChatRooms.class);
     }
 
     // 채팅방 정보 첫 저장
