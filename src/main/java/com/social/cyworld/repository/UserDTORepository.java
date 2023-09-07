@@ -1,5 +1,6 @@
 package com.social.cyworld.repository;
 
+import com.social.cyworld.dto.SearchDTO;
 import com.social.cyworld.dto.UserDTO;
 import com.social.cyworld.entity.Sign;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -113,9 +114,25 @@ public interface UserDTORepository extends JpaRepository<Sign, UserDTO> {
         }
         return null;
     }
+
+    // 채팅방 페이지 유저 정보 조회
+    @Query("SELECT s.idx, up.email, up.name, um.mainPhoto FROM Sign s JOIN UserProfile up ON s.pUid = up.idx JOIN UserMain um ON s.mUid = um.idx WHERE s.idx = :idx")
+    Tuple findChatRoomByIdx(@Param("idx") int idx);
+    default UserDTO findChatRoomByIdxUserDTO(int idx) {
+        Tuple tuple = findChatRoomByIdx(idx);
+        if ( tuple != null ) {
+            return UserDTO.builder()
+                    .idx(tuple.get(0, Integer.class))
+                    .email(tuple.get(1, String.class))
+                    .name(tuple.get(2, String.class))
+                    .mainPhoto(tuple.get(3, String.class))
+                    .build();
+        }
+        return null;
+    }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////검색
     // 이름으로 친구 검색
-    @Query("SELECT s.idx, s.platform, up.email, up.name, um.minimi FROM Sign s JOIN UserProfile up ON s.pUid = up.idx JOIN UserMain um ON s.mUid = um.idx WHERE up.name Like %:searchValue%")
+    @Query("SELECT s.idx, s.platform, up.email, up.name, um.minimi, um.mainPhoto FROM Sign s JOIN UserProfile up ON s.pUid = up.idx JOIN UserMain um ON s.mUid = um.idx WHERE up.name Like %:searchValue%")
     List<Tuple> findSignJoinUserProfileJoinUserMainByNameLike(@Param("searchValue") String searchValue);
     default List<UserDTO> findSignJoinUserProfileJoinUserMainByNameLikeUserDTO(String searchValue) {
         List<Tuple> tupleList = findSignJoinUserProfileJoinUserMainByNameLike(searchValue);
@@ -169,5 +186,25 @@ public interface UserDTORepository extends JpaRepository<Sign, UserDTO> {
                     .build();
         }
         return null;
+    }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////채팅 유저 정보 조회
+    // 채팅내 이름으로 유저 검색
+    @Query("SELECT s.idx, up.email, up.name, um.mainPhoto FROM Sign s JOIN UserProfile up ON s.pUid = up.idx JOIN UserMain um ON s.mUid = um.idx WHERE up.name Like %:searchValue%")
+    List<Tuple> findChatSignJoinUserProfileJoinUserMainByNameLike(@Param("searchValue") String searchValue);
+    default List<SearchDTO> findChatSignJoinUserProfileJoinUserMainByNameLikeSearchDTO(String searchValue) {
+        List<Tuple> tupleList = findChatSignJoinUserProfileJoinUserMainByNameLike(searchValue);
+        List<SearchDTO> searchDTOList = new ArrayList<>();
+
+        for (Tuple tuple : tupleList) {
+            SearchDTO searchDTO = SearchDTO.builder()
+                    .idx(tuple.get(0, Integer.class))
+                    .email(tuple.get(1, String.class))
+                    .name(tuple.get(2, String.class))
+                    .mainPhoto(tuple.get(3, String.class))
+                    .build();
+            searchDTOList.add(searchDTO);
+        }
+
+        return searchDTOList;
     }
 }

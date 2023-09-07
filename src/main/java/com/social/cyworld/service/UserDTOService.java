@@ -1,5 +1,6 @@
 package com.social.cyworld.service;
 
+import com.social.cyworld.dto.SearchDTO;
 import com.social.cyworld.dto.UserDTO;
 import com.social.cyworld.repository.UserDTORepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,12 @@ public class UserDTOService {
         UserDTO userDTO = userDTORepository.findGuestbookByIdxUserDTO(idx);
         return userDTO;
     }
+
+    // 채팅방 페이지 유저 정보 조회
+    public UserDTO findChatRoomByIdx(int idx) {
+        UserDTO userDTO = userDTORepository.findChatRoomByIdxUserDTO(idx);
+        return userDTO;
+    }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////검색
     // 이름으로 친구 검색
     public List<UserDTO> findSignJoinUserProfileJoinUserMainByNameLike(String searchValue) {
@@ -58,5 +65,11 @@ public class UserDTOService {
     public UserDTO findSignJoinUserProfileJoinUserMainByIdx(int idx) {
         UserDTO userDTO = userDTORepository.findSignJoinUserProfileJoinUserMainByIdxUserDTO(idx);
         return userDTO;
+    }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////채팅
+    // 채팅내 이름으로 유저 검색
+    public List<SearchDTO> findChatSignJoinUserProfileJoinUserMainByNameLike(String searchValue) {
+        List<SearchDTO> searchList = userDTORepository.findChatSignJoinUserProfileJoinUserMainByNameLikeSearchDTO(searchValue);
+        return searchList;
     }
 }

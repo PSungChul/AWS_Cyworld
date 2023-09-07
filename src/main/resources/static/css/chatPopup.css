@@ -4,27 +4,27 @@
 /* https://projects.verou.me/css3patterns/#blueprint-grid
            배경 격자무늬 생성  */
 body {
-   height: 100vh;
-   background-color: rgb(103, 106, 109);
-   background-image: linear-gradient(rgba(255, 255, 255, .3) 3px,
-      transparent 3px), linear-gradient(90deg, rgba(255, 255, 255, .3) 3px,
-      transparent 3px), linear-gradient(rgba(255, 255, 255, .3) 3px,
-      transparent 3px), linear-gradient(90deg, rgba(255, 255, 255, .3) 3px,
-      transparent 3px);
-   background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
-   background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
-   overflow: hidden;
+    height: 100vh;
+    background-color: rgb(103, 106, 109);
+    background-image: linear-gradient(rgba(255, 255, 255, .3) 3px,
+    transparent 3px), linear-gradient(90deg, rgba(255, 255, 255, .3) 3px,
+    transparent 3px), linear-gradient(rgba(255, 255, 255, .3) 3px,
+    transparent 3px), linear-gradient(90deg, rgba(255, 255, 255, .3) 3px,
+    transparent 3px);
+    background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+    overflow: hidden;
 }
 /* position */
 .container {
-   padding-top: 10px;
-   height: 860px;
-   width: 1800px;
-   margin: auto;
-   border-radius: 100px;
-   display: flex;
-   position: relative;
-   top:30px;
+    padding-top: 10px;
+    height: 1100px;
+    width: 1800px;
+    margin: auto;
+    border-radius: 100px;
+    display: flex;
+    position: relative;
+    top:30px;
 }
 
 .left-section {
@@ -42,7 +42,7 @@ body {
 
 .left-dashed-line {
    width: 98%;
-   height: 800px;
+   height: 1030px;
    border-radius: 50px;
    margin: 30px;
    border: 3px dashed white;
@@ -53,7 +53,7 @@ body {
 
 .right-dashed-line {
    width: 99%;
-   height: 800px;
+   height: 1030px;
    border-radius: 50px;
    margin: 30px;
    border: 3px dashed white;
@@ -64,7 +64,7 @@ body {
 
 .left-gray-background {
    width: 98%;
-   height: 780px;
+   height: 1010px;
    background-color: rgb(235, 232, 232);
    border-radius: 50px;
    margin: 10px;
@@ -74,7 +74,7 @@ body {
 
 .right-gray-background {
    width: 99%;
-   height: 780px;
+   height: 1010px;
    background-color: rgb(235, 232, 232);
    border-radius: 50px;
    margin: 10px;
@@ -85,7 +85,7 @@ body {
 .left-aside {
    width: 90%;
    background-color: white;
-   height: 690px;
+   height: 960px;
    border-radius: 30px;
    margin: 10px;
    position: relative;
@@ -97,7 +97,7 @@ body {
 .right-aside {
    width: 94%;
    background-color: white;
-   height: 690px;
+   height: 960px;
    border-radius: 30px;
    margin: 10px;
    position: relative;
@@ -127,422 +127,116 @@ body {
 .left-aside>.item2 {
    top: 260px;
 }
-
+/**********************************************************************************************************************/
 /* content detail */
 /* left content */
-#ilchonNum { position:absolute; top:645px; left:100px; font-size:22px; z-index:10;}
-.wantIlchon { position:absolute; top:642px; left:280px; width:100px; font-size:20px; z-index:10;}
-.IlchonAssist {position:absolute; top:642px; left:400px; width:400px; height:150px; background-color:#badeed4d; 
-opacity:0; z-index:10; font-size:20px; line-height:40px; border: 3px solid black; border-radius : 30px;}
-.IlchonAssist > p { margin-left:30px; margin-top:10px; font-weight:bold;}
-.IlchonAssist > p > span { font-size:32px; color:#ff6565; font-weight:bold; }
-.IlchonAssistImg {position:absolute; width:120px; height:80px; left:210px;}
-
-.wantIlchon:hover + .IlchonAssist {
-   opacity:1; 
+.searchBox {position: relative; top:25px; left: -730px; z-index: 2;}
+.chatSearchList {position: absolute; left: 780px; width: 60px; height: 37px; top: 10px;}
+.chatSearchText {position: absolute; left: 860px; width: 200px; height: 33px; top: 10px;}
+.chatSearch {position: absolute; left: 1086px; width: 100px; top: 10px; font-size: 20px;}
+/* content */
+.memberBox {
+    position: relative;
+    top: -374px;
+    height: 900px;
+    margin-left: 30px;
+    margin-right: 30px;
+    font-size:20px;
+    border: 3px solid black;
+    background-color: #e6f0ffba;
+    overflow-y: auto;
 }
-
-
-.todayBanner {
-   position: relative;
-   left: 120px;
-   top: 25px;
-   font-size: 18px;
-   font-weight: bold;
-   word-spacing: 30px;
+.userMainPhoto { width:100px; height:100px; border: 2px solid black; border-radius: 30px; display:inline; }
+.memberInfo { margin-top: 10px; }
+.chatRoomList { margin-top: 10px; border-bottom: 3px solid black; overflow:hidden; }
+.userName { position:absolute; margin-left:10px; margin-top:40px;}
+.info1 { position:relative; display:block; margin-left:10px; }
+.platform {position:relative; margin-left:10px;}
+/* profile hover */
+.chatRoomList figure {
+position: relative;
 }
-/* word-spacing: 글자 간격 넓힘 */
-.todayHere {
-   color: rgb(243, 43, 43)
+.chatRoomList figure::before {
+position: absolute;
+top: 0;
+left: -75%;
+z-index: 2;
+display: block;
+content: '';
+width: 50%;
+height: 100%;
+background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%, rgba(255, 255, 255, 0.795) 100%);
+background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255, 255, 255, 0.795) 100%);
+-webkit-transform: skewX(-25deg);
+transform: skewX(-25deg);
 }
+.chatRoomList figure:hover::before {
+-webkit-animation: shine .75s;
+animation: shine .75s;
+}
+@-webkit-keyframes shine {
+100% {
+left: 125%;
+}
+}
+@keyframes shine {
+100% {
+left: 125%;
+}
+}
+/* button */
+#btn-cover {  border: 1px solid black;
+background-color: rgba(0,0,0,0);
+color: rgb(26, 27, 28);
+padding: 5px;
+border-radius: 5px; font-weight: bold;
+font-family: 'Jua', sans-serif;
+}
+#btn-cover:hover{
+color:white;
+background-color: skyblue;
 
-.todayIcon {
-   position: relative;
-   width: 300px;
-   height: 50px;
-   border: 1px solid rgb(182, 180, 180);
-   left: 80px;
-   top: -410px;
-   color: rgb(140, 208, 248);
-}
-
-.todayIcon img {
-   position: absolute;
-   left: 170px;
-   top: 7px;
-}
-
-.todayIconText {
-   font-size: 18px;
-   font-weight: bold;
-   position: absolute;
-   margin: 10px;
-   left: 15px;
-}
-
-.left-image {
-   position: relative;
-   width: 300px;
-   height: 360px;
-   border: 1px solid black;
-   left: 80px;
-   top: -400px;
-}
-/* leftImg css 바꿔야 함 */
-#idx {
-   width: 25px;
-}
-
-.leftImg {
-   width: 300px;
-   height: 360px;
-}
-
-.left-textarea {
-   overflow-x: hidden;
-   overflow-y: auto;
-   position: relative;
-   width: 300px;
-   height: 70px;
-   left: 80px;
-   top: -395px;
-   border: none;
-   font-size:24px;
 }
 
-.myFriend {
-   position: relative;
-   width: 280px;
-   padding: .8em .5em;
-   border: 1px solid #999;
-   font-family: inherit;
-   /* 이미지 경로 설정 방식 */
-   background: url("../images/arrow.png") no-repeat 95% 50%;
-   border-radius: 0px;
-   -webkit-appearance: none;
-   -moz-appearance: none;
-   appearance: none;
-   top: -290px;
-   left: 88px;
-   font-size: 18px;
+/* scroll-bar */
+#scrollBar::-webkit-scrollbar {
+width: 8px;  /* 스크롤바의 너비 */
 }
 
-.history {
-   position: relative;
-   top: -380px;
-   left: 70px;
+#scrollBar::-webkit-scrollbar-thumb {
+height: 30%; /* 스크롤바의 길이 */
+background: #79aaee; /* 스크롤바의 색상 */
+
+border-radius: 10px;
 }
 
-.history>img {
-   position: absolute;
-   left: 10px;
-   top: -5px;
+#scrollBar::-webkit-scrollbar-track {
+background: rgba(141, 184, 244, 0.481);  /*스크롤바 뒷 배경 색상*/
 }
+/**********************************************************************************************************************/
 
-.history>h3 {
-   position: absolute;
-   width: 258px;
-   left: 50px;
-   border-bottom: 1px solid black;
-}
-
-/* right content */
-.returnMyHome { position:absolute; top:5px; left:1560px; width:120px; height:30px;}
-.cy_logout {
-   position: absolute;
-   left: 1700px;
-   top: 5px;
-   width: 100px;
-   height: 30px;
-   font-size: 18px;
-}
-
-.na_logout {
-   position: absolute;
-   left: 1700px;
-   top: 5px;
-}
-
-.ka_logout {
-   position: absolute;
-   left: 1700px;
-   top: 5px;
-}
-
-.title {
-   position: relative;
-   left: 80px;
-   top: 27px;
-   font-size: 24px;
-   font-weight: bold;
-   color: black;
-}
-/* .titleLink { position: relative; left: 930px; top:3px; 
-   font-size: 18px; font-weight: bold;} */
-.miniRoomBox {
-   position: relative;
-   left: 80px;
-   top: 20px;
-   width: 200px;
-   height: 50px;
-   border: 1px solid rgb(182, 180, 180);
-   border-radius: 15px 15px 7px 7px;
-   margin-bottom: 10px;
-}
-
-.miniRoomBox>p {
-   font-size: 24px;
-   color: skyblue;
-   font-weight: bold;
-   position: relative;
-   top: 7px;
-   text-align: center;
-}
-
-.miniRoom>img {
-   position: absolute;
-   width: 930px;
-   height: 330px;
-   top: 60px;
-   border-top: 1px solid black;
-}
-
-.Crayon {
-   position: absolute;
-   top: 250px;
-   left: 225px;
-   
-}
-.zzang1 {
-   position: absolute;
-   top: 310px;
-   left: 824px;
-   z-index:5px;
-}
-.zzang2 {
-   position: absolute;
-   top: 270px;
-   left: 454px;
-   z-index:5px;
-}
-.zzang3 {
-   position: absolute;
-   top: 170px;
-   left: 654px;
-   z-index:5px;
-}
-.Crayonz {
-   position: absolute;
-   top: 190px;
-   left: 74px;
-   z-index:5px;   
-}
-.CrayonDog {
-   position: absolute;
-   top: 250px;
-   left: 94px;
-   z-index:5px;   
-}
-/* banner */
-.right-banner { width:120px; height:480px; 
-position: absolute; top:50px; left:1322px; border-radius: 20px;
-    border: 3px solid black; text-align: center;
-}
-.right-banner > .title { font-size: 23px; 
-margin-top: -10px; margin-left:-160px; color:black; font-weight: bold;}
-
-.img { width:95px; height: 95px; border: 2px solid black; margin-bottom: 30px;
- margin-left: 10px; margin-top: 35px; border-radius: 20px; 
- background-color:white;
- }
- .container:hover .right-banner { animation: banner-ani 1s forwards; }
-    
-    @keyframes banner-ani {
-   0% { transform: translateX(0); }
-   100% { transform: translateX(-300px); }
-}
- @keyframes blink-effect {
-  50% {
-    opacity: 0;
-  }
-}
-
-.blink {
-  animation: blink-effect 1s step-end infinite;
-  color: #f33a3adb;
-    font-weight: bold;
-    position: absolute;  
-    margin-left: 15px;
-    -webkit-transform: rotate(-30deg);
-    -moz-transform: rotate(-30deg);
-    font-size: 18px;
-}
-.blink1 { position: absolute; top:96px;}
-.blink2 { position: absolute; top:230px;}
-.blink3 { position: absolute; top:363px;}
-.bannerCancel{ width:80px; height:30px; font-size:18px; margin-top:15px;}
-.Ilchonpyeong {
-   position: absolute;
-   width: 932px;
-   height: 40px;
-   background-color: lightgray;
-   left: 80px;
-   top: 420px;
-}
-
-.Ilchonpyeong>span {
-   font-size: 20px;
-   color: rgb(89, 192, 233);
-   font-weight: bold;
-   position: absolute;
-   left: 25px;
-   top: 5px;
-}
-
-.Ilchonpyeong>input {
-   width: 740px;
-   height: 25px;
-   font-size: 18px;
-   position: absolute;
-   left: 110px;
-   top: 5px;
-}
-
-.Ilchonpyeong>.Ic-registration {
-   width: 70px;
-   height: 30px;
-   position: absolute;
-   left: 858px;
-   top: 4px;
-}
-
-input::placeholder {
-   color: gray;
-   padding-left: 20px;
-}
-/* .IlchonpyeongList { width:930px; height:200px; background-color: skyblue; position:absolute;
-   top:460px; left:80px;
-} */
-.Ilchon {
-   position: relative;
-   width: 930px;
-   border-bottom: 1px solid lightgray;
-   height: 40px;
-   font-size: 18px;
-   line-height: 40px;
-   top: 400px;
-   left: 77px;
-   margin-bottom: 10px;
-}
-
-.searchList {
-   position: absolute;
-   left: 780px;
-}
-
-.searchtext {
-   position: absolute;
-   left: 850px;
-}
-
-.search {
-   position: absolute;
-   left: 1050px;
-   width: 100px;
-   top: 15px;
-   font-size: 20px;
-}
-/* music */
-.mp3 {
-   position: absolute;
-   left: 700px;
-   top: 34px;
-   height: 25px;
-}
-
-.mp3_title {
-   position: absolute;
-   left: 790px;
-   top: 0px;
-}
-
-.musicLogo {
-   width: 25px;
-   height: 25px;
-   position: absolute;
-   left: 715px;
-   top: 3px;
-}
-/* mp3 title circle  */
-.circle-container {
-   width: 200px;
-   position: relative;
-   border: 2px solid black;
-   height: 20px;
-   margin: auto;
-   text-align: center;
-   color: black;
-   background-color: rgb(235, 232, 232);
-   overflow: hidden;
-   left: -40px;
-   top: 6px;
-   border-radius: 10px;
-}
-
-.circle {
-   width: 200px;
-   left: 100%;
-   position: absolute;
-   animation: circleScale 5s linear infinite;
-}
-
-.circle1 {
-   background-color: rgb(235, 232, 232);
-   animation-delay: 0s;
-   animation-direction: normal;
-   position:absolute;
-   top:-2px;
-}
-
-@keyframes circleScale { 
-   0% {left: 100%;}
-
-100% {left:-100%;}
-}
-/* dotory*/
-.dotory {
-   position: absolute;
-   left: 720px;
-   top: 10px;
-}
-
-.dotoryBtn {
-   position: absolute;
-   width: 70px;
-   top: -3px;
-   left: 150px;
-}
 /* tabs */
 .tabs input {
    display: none;
 }
 
 .tab-btns>label {
-   width: 100px;
-   height: 55px;
-   position: relative;
-   margin-bottom: 5px;
-   background-color: rgb(40, 125, 175);
-   left: 1190px;
-   top: -720px;
-   font-size: 20px;
-   padding-left: 15px;
-   text-align: center;
-   padding-top: 25px;
-   border-radius: 0 20px 20px 0;
-   color: white;
-   border: 1px solid black;
-   display: flex;
+    margin: 30px 0;
+    width: 100px;
+    height: 55px;
+    position: relative;
+    margin-bottom: 5px;
+    background-color: rgb(40, 125, 175);
+    left: 1190px;
+    top: -875px;
+    font-size: 20px;
+    padding-left: 15px;
+    text-align: center;
+    padding-top: 25px;
+    border-radius: 0 20px 20px 0;
+    color: white;
+    border: 1px solid black;
+    display: flex;
 }
 
 .tabs>#tab1:checked ~.tab-btns>#btn1 {
@@ -1029,6 +723,136 @@ input::placeholder {
  .snowflake:nth-child(6n) {
     filter: blur(1px);
 }
+
+#chatArea {
+    position: relative;
+    width: 100%;
+    height: 90%;
+    border: 1px solid #ccc;
+    background-color: skyblue;
+    overflow-y: auto;
+}
+
+.chat {
+    clear: both;
+    padding: 8px;
+    margin: 8px;
+    border-radius: 8px;
+    max-width: 80%;
+}
+
+/* 상대방 메시지 스타일 */
+.chatTitle {
+    float: none;
+    margin: 0 auto;
+    text-align: center;
+    background-color: #f0f0f0;
+}
+
+/* 이미지 스타일 */
+.you {
+    display: flex;
+    align-items: center;
+    float: left;
+    margin-left: 25px;
+}
+
+.chatImg {
+    max-width: 50px;
+    max-height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chatMsg {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 8px;
+    border-radius: 8px;
+    background-color: #0099cc;
+    color: #fff;
+}
+
+.youStatus {
+    margin-top: 20px;
+}
+
+/* 내 메시지 스타일 - 오른쪽에 위치 */
+.me {
+    display: flex;
+    align-items: center;
+    float: right;
+    margin-right: 25px;
+}
+
+.meStatus {
+    margin-top: 20px;
+}
+
+.bottomArea {
+    display: flex;
+    height: 5%;
+    margin-top: 25px;
+}
+
+.messageArea {
+    box-sizing: border-box;
+    width: 1500px;
+    display: flex;
+    margin: 5px 0px;
+}
+
+.message {
+    border: none;
+    width: 70%;
+    height: 96.5%;
+    background: #ececec;
+    border-radius: 10px;
+    margin-right: 5px;
+    margin-left: 20px;
+}
+
+.messageSendBtn {
+    width: 25%;
+    height: 100%;
+    background-color: #87AF6E;
+    border-radius: 10px;
+    border: none;
+}
+
+.recordArea {
+    box-sizing: border-box;
+    width: 80%;
+    height: 80%
+    background: #ececec;
+    border-radius: 5px;
+    margin: 5px;
+    display: flex;
+}
+
+.recordPlayer {
+    width: 70%;
+    height: 100%;
+    float: left;
+    border-radius: 10px;
+    display: flex;
+}
+
+.recordBtn {
+    width: 10%;
+    height: 100%;
+    float: right;
+    border-radius: 10px;
+    background-color: #87AF6E;
+    border: none;
+    margin: 0px 5px;
+}
+
+#btnRecordSend {
+    margin-right: 15px;
+}
+
 /* 반응형 페이지 만들기  */
 @media (max-width: 1600px) {
     .cy_logout {
@@ -1053,8 +877,9 @@ input::placeholder {
         display: block;
         margin: 0 auto;
         margin-top: 2%;
-        margin-right: 10px;
-        height: 92%;
+        left: auto;
+        margin-bottom: 25px;
+        height: 640px;
         border-radius: 50px;
         border: 3px dashed white;
     }
@@ -1062,35 +887,40 @@ input::placeholder {
     .left-gray-background {
         display: block;
         margin: 0 auto;
-        margin-top: 1%;
-        margin-right: 20px;
-        height: 96%;
+        margin-top: 15px;
+        height: 610px;
         background-color: rgb(235, 232, 232);
         border-radius: 50px;
+        left: auto;
     }
 
     .left-aside {
         margin: 0 auto;
-        width: 93%;
+        width: 95.5%;
         background-color: white;
-        height: 86%;
+        margin-top: 2%;
+        margin-left: 2.25%;
+        height: 550px;
+        margin-bottom: 100px;
         border-radius: 30px;
-        position: relative;
-        top: 0;
-        left: 0;
+        position: absolute;
+        top: auto;
+        left: auto;
     }
 
     .right-section {
         order: 2;
         margin-bottom: 5%;
+        width: 100%;
+        height: 1000px;
     }
 
     .right-dashed-line {
         display: block;
         margin: 0 auto;
         margin-top: 2%;
-        margin-right: 30px;
-        height: 93%;
+        right: auto;
+        height: 930px;
         border-radius: 50px;
         position: static;
         border: 3px dashed white;
@@ -1100,24 +930,22 @@ input::placeholder {
         display: block;
         margin: 0 auto;
         margin-top: 1%;
-        margin-right: 15px;
-        height: 97%;
+        right: auto;
+        height: 900px;
         background-color: rgb(235, 232, 232);
         border-radius: 50px;
         position: static;
     }
 
     .right-aside {
-        margin: 0 auto;
         margin-top: 1.5%;
-        margin-bottom: -3%;
-        width: 94%;
+        margin-left: 21.5px;
         background-color: white;
-        height: 800px;
+        height: 857px;
         border-radius: 30px;
-        position: relative;
-        top: 0;
-        right: 0;
+        position: absolute;
+        top: auto;
+        right: auto;
     }
 
     .left-aside>.item {
@@ -1128,72 +956,13 @@ input::placeholder {
         display: none;
     }
 
-    .todayBanner {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: static;
-        padding: 1.2%;
+    .searchBox {
+        top: 40px;
     }
 
-    .left-image {
-        position: static;
-        display: block;
-        margin: 0 auto;
-    }
-
-    .left-textarea {
-        position: static;
-        display: block;
-        margin: 0 auto;
-        margin-top: 1%;
-    }
-
-    .history {
-        position: static;
-    }
-
-    .history>h3 {
-        position: static;
-        display: block;
-        margin: 0 auto;
-        margin-top: 2%;
-    }
-
-    .history>img {
-        display: none;
-    }
-
-    .myFriend {
-        position: static;
-        display: block;
-        margin: 0 auto;
-        margin-top: 2%;
-        margin-bottom: 15%;
-    }
-
-    #mainTitle {
-        top: 1.5%;
-    }
-
-    .miniRoomBox {
-        left: 10px;
-    }
-
-    .Ilchonpyeong {
-        left: 10px;
-    }
-
-    .bannerCancel {
-        margin-top: 22px;
-    }
-
-    .circle-container {
-        left: 100%;
-    }
-
-    .dotory {
-        position: absolute;
+    .memberBox {
+        top: 80px;
+        height: 464px;
     }
 
     .tab-btns {
@@ -1212,5 +981,61 @@ input::placeholder {
         height: 40px;
         border-radius: 20px 20px 20px 20px;
         margin-bottom: 5%;
+    }
+
+    .bottomArea {
+        display: flex;
+        height: 8%;
+        margin: 7px 0px;
+    }
+
+    .recordArea {
+        box-sizing: border-box;
+        height: 80%
+        background: #ececec;
+        border-radius: 5px;
+        margin: 5px;
+        display: flex;
+    }
+
+    .recordPlayer {
+        width: 70%;
+        height: 100%;
+        float: left;
+        border-radius: 10px;
+        display: flex;
+    }
+
+    .recordBtn {
+        width: 10%;
+        height: 100%;
+        float: right;
+        border-radius: 10px;
+        background-color: #87AF6E;
+        border: none;
+        margin: 0px 5px;
+    }
+
+    .messageArea {
+        box-sizing: border-box;
+        display: flex;
+        margin: 5px 0px;
+    }
+
+    .message {
+        border: none;
+        width: 70%;
+        height: 96.5%;
+        background: #ececec;
+        border-radius: 10px;
+        margin-right: 5px;
+    }
+
+    .messageSendBtn {
+        width: 25%;
+        height: 100%;
+        background-color: #87AF6E;
+        border-radius: 10px;
+        border: none;
     }
 }

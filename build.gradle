@@ -47,6 +47,12 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// MongoDB
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	// WebSocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	// SMTP
+	implementation group: 'org.apache.commons', name: 'commons-email', version: '1.4'
 }
 
 tasks.named('test') {

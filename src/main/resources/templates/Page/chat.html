@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>채팅</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/chatPopup.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }">
+	<div class="container">
+		<section class="left-section">
+			<div class="left-dashed-line">
+				<div class="left-gray-background">
+					<form action="/chat/chat_search" method="get">
+						<div class="searchBox">
+							<!-- 검색 유형 -->
+							<select class="chatSearchList" name="searchType">
+								<option value="name">이름</option>
+							</select>
+							<!-- 검색어 작성 -->
+							<input  class="chatSearchText" type="text" name="searchValue">
+							<!-- 검색 버튼 -->
+							<input id="btn-cover" class="chatSearch" type="button" value="검색" onclick="chatSearch(this.form)">
+						</div>
+					</form>
+					<aside class="left-aside">
+						<!-- 좌측, 우측 페이지 이어주는 스프링 디자인 -->
+						<div class="item item1"></div>
+						<div class="item item1"></div>
+						<div class="item item2"></div>
+						<div class="item item2"></div>
+
+						<div class="memberBox">
+							<div class="memberInfo">
+								<!-- 채팅방 리스트 -->
+								<th:block th:if="${ chatRoomList ne null }">
+									<div class="chatRoomList" th:each="chat : ${chatRoomList}">
+										<figure>
+											<th:block th:if="${ chat.mainPhoto eq 'noImage' }">
+												<input th:id="${ chat._id }" class="userMainPhoto" type="image" th:src="@{/images/} + ${ chat.mainPhoto } + '.jpeg'" th:value="${ chat.idx }">
+											</th:block>
+											<th:block th:if="${ chat.mainPhoto ne 'noImage' }">
+												<span class="userPhoto">
+													<input th:id="${ chat._id }" class="userMainPhoto" type="image" th:src="@{/filePath/profile/} + ${ chat.mainPhoto }" th:value="${ chat.idx }">
+												</span>
+											</th:block>
+											<span class="userName"th:text=" ${ chat.name } + ' / ' + ${ chat.email }"></span>
+										</figure>
+									</div>
+								</th:block>
+							</div>
+						</div>
+					</aside>
+				</div>
+			</div>
+		</section>
+
+		<section class="right-section">
+			<div class="right-dashed-line">
+				<div class="right-gray-background">
+					<aside class="right-aside" id="scrollBar"></aside>
+				</div>
+			</div>
+
+			<!-- 오른쪽 탭 -->
+			<div class="tabs">
+				<form>
+					<div class="tab-btns">
+						<!-- 미니홈피 유저 idx -->
+						<input id="idx" name="idx" type="hidden" th:value="${loginIdx}">
+						<!-- 로그인 유저 idx -->
+						<input id="loginIdx" type="hidden" th:value="${loginIdx}">
+						<!-- 홈 탭 -->
+						<label for="tab1" id="btn1">홈</label>
+						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{/main/{idx}(idx=${loginIdx})}'|">
+						<!-- 프로필 탭 -->
+						<label for="tab2" id="btn2">프로필</label>
+						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
+						<!-- 다이어리 탭 -->
+						<label for="tab3" id="btn3">다이어리</label>
+						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{/diary/{idx}(idx=${loginIdx})}'|">
+						<!-- 사진첩 탭 -->
+						<label for="tab4" id="btn4">사진첩</label>
+						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{/gallery/{idx}(idx=${loginIdx})}'|">
+						<!-- 방명록 탭 -->
+						<label for="tab5" id="btn5">방명록</label>
+						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{/guestbook/{idx}(idx=${loginIdx})}'|">
+						<!-- 채팅 탭 -->
+						<label for="tab6" id="btn6">채팅</label>
+						<input id="tab6" type="button" value="채팅" style="display: none;" th:onclick="|location.href='@{/chat/{idx}(idx=${loginIdx})}'|">
+					</div>
+				</form>
+			</div>
+		</section>
+	</div>
+</body>
+<!-- 반응형 JS -->
+<script src="/js/chatCss.js"></script>
+
+<!-- 검색 -->
+<script th:inline="javascript">
+	function chatSearch(f) {
+		let searchType = document.getElementsByName("searchType")[0].value;
+		let searchValue = document.getElementsByName("searchValue")[0].value;
+
+		fetch("/chat/chat_search" + "?loginUserIdx=" + [[${loginIdx}]] + "&searchType=" + searchType + "&searchValue=" + searchValue)
+			.then(response => response.json())
+			.then(data => {
+				if ( data[0].idx <= "0" ) {
+					// 로그인 에러
+					if ( data[0].idx == "0" ) {
+						alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+					if ( data[0].idx == "-4" ) {
+						alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+					if ( data[0].idx == "-99" ) {
+						alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+					if ( data[0].idx == "-100" ) {
+						alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+					if ( data[0].idx == "-1" ) {
+						alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+				} else {
+					if ( data != null ) {
+						let memberInfo = document.querySelector(".memberInfo");
+						memberInfo.innerHTML = "";
+						data.forEach(search => {
+							let inputTag = document.createElement("input");
+							inputTag.className = "userMainPhoto"; // 클래스 설정
+							inputTag.type = "image"; // 타입 설정
+							if ( search.mainPhoto == "noImage" ) {
+								inputTag.src = "/images/noImage.jpeg"; // 이미지 소스 설정
+							} else {
+								inputTag.src = "/filePath/profile/" + search.mainPhoto; // 이미지 소스 설정
+							}
+							inputTag.value = search.idx; // 값 설정
+
+							let spanTag = document.createElement("span");
+							spanTag.setAttribute("class", "userName");
+							spanTag.innerHTML = search.name + " / " + search.email;
+
+							let figureTag = document.createElement("figure");
+							figureTag.appendChild(inputTag);
+							figureTag.appendChild(spanTag);
+
+							let divTag = document.createElement("div");
+							divTag.setAttribute("class", "chatRoomList");
+							divTag.appendChild(figureTag);
+
+							memberInfo.appendChild(divTag);
+						});
+					}
+				}
+			})
+			.catch(error => console.error(error));
+	}
+</script>
+
+<!-- 채팅방 입장 -->
+<script th:inline="javascript">
+	document.querySelector(".memberInfo").addEventListener("click", function(event) {
+		// userMainPhoto를 클릭한 경우
+		if (event.target.classList.contains("userMainPhoto")) {
+			console.log(event.target.value);
+			console.log(event.target.id);
+
+			if ( event.target.id == null ) {
+				location.href = "/chat/" + [[${loginIdx}]] + "/room/" + event.target.value;
+			} else {
+				location.href = "/chat/" + [[${loginIdx}]] + "/room/" + event.target.value + "?id=" + event.target.id;
+			}
+
+			return;
+		// userName을 클릭한 경우
+		} else if (event.target.classList.contains("userName")) {
+			let inputs = event.target.parentElement.querySelectorAll("input");
+
+			inputs.forEach(function(input) {
+				console.log(input.value);
+				console.log(input.id);
+
+				if ( input.id == null ) {
+					location.href = "/chat/" + [[${loginIdx}]] + "/room/" + input.value;
+				} else {
+					location.href = "/chat/" + [[${loginIdx}]] + "/room/" + input.value + "?id=" + input.id;
+				}
+			});
+
+        	return;
+		}
+	});
+</script>
+
+<!-- 오른쪽 탭 기능 -->
+<script>
+	// 프로필 탭
+	function profile(f) {
+		let loginIdx = document.getElementById("loginIdx").value;
+		let idx = document.getElementById("idx").value;
+
+		// 타 유저 접근 불가
+		if ( loginIdx != idx ) {
+			alert("프로필은 본인만 들어갈 수 있습니다");
+			return;
+		}
+
+		f.action = "/profile";
+		f.method = "POST";
+		f.submit();
+	}
+</script>
+</html>

@@ -181,7 +181,7 @@
 			</div>
 
 			<!-- 오른쪽 탭 -->
-			<div class="tabs">
+			<div th:if="${ loginUser.idx > 0 }" class="tabs">
 				<form>
 					<div class="tab-btns">
 						<!-- 미니홈피 유저 idx -->
@@ -203,6 +203,9 @@
 						<!-- 방명록 탭 -->
 						<label for="tab5" id="btn5">방명록</label>
 						<input id="tab5" type="button" value="방명록" style="display: none;" onclick="guestbook(this.form);">
+						<!-- 채팅 탭 -->
+						<label for="tab6" id="btn6">채팅</label>
+						<input id="tab6" type="button" value="채팅" style="display: none;" onclick="chat(this.form);">
 					</div>
 				</form>
 			</div>
@@ -482,7 +485,7 @@
 	</script>
 	
 	<!-- 오른쪽 탭 기능 -->
-	<script>
+	<script th:inline="javascript">
 		// 프로필 탭
 		function profile(f) {
 			let loginIdx = document.getElementById("loginIdx").value;
@@ -510,7 +513,7 @@
 				return;
 			}
 			
-			location.href = "/diary/" + idx;
+			location.href = "/diary/" + [[${ sign.idx }]];
 		}
 		
 		// 사진첩 탭
@@ -524,7 +527,7 @@
 				return;
 			}
 			
-			location.href = "/gallery/" + idx;
+			location.href = "/gallery/" + [[${ sign.idx }]];
 		}
 		
 		// 방명록 탭
@@ -538,7 +541,21 @@
 				return;
 			}
 			
-			location.href = "/guestbook/" + idx;
+			location.href = "/guestbook/" + [[${ sign.idx }]];
+		}
+
+		// 채팅 탭
+		function chat(f) {
+			let loginIdx = document.getElementById("loginIdx").value;
+			let idx = document.getElementById("idx").value;
+
+			// 비회원인 경우
+			if ( loginIdx <= 0 ) {
+				alert("로그인후 이용 가능합니다");
+				return;
+			}
+
+			location.href = "/chat/" + [[${ loginUser.idx }]];
 		}
 	</script>
 	

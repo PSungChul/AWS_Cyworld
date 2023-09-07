@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>채팅방</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/chatPopup.css">
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+</head>
+<script th:inline="javascript">
+	window.onload = function () {
+		let errMsg = [[${errMsg}]];
+
+		if ( errMsg != null ) {
+			alert(errMsg);
+			location.href = "/logout";
+		}
+	};
+</script>
+<body th:if="${ errMsg eq null }" onunload="exit()">
+	<div class="container">
+		<section class="left-section">
+			<div class="left-dashed-line">
+				<div class="left-gray-background">
+					<form action="/chat/chat_search" method="get">
+						<div class="searchBox">
+							<!-- 검색 유형 -->
+							<select class="chatSearchList" name="searchType">
+								<option value="name">이름</option>
+							</select>
+							<!-- 검색어 작성 -->
+							<input  class="chatSearchText" type="text" name="searchValue">
+							<!-- 검색 버튼 -->
+							<input id="btn-cover" class="chatSearch" type="button" value="검색" onclick="chatSearch(this.form)">
+						</div>
+					</form>
+					<aside class="left-aside">
+						<!-- 좌측, 우측 페이지 이어주는 스프링 디자인 -->
+						<div class="item item1"></div>
+						<div class="item item1"></div>
+						<div class="item item2"></div>
+						<div class="item item2"></div>
+
+						<div class="memberBox">
+							<div class="memberInfo">
+								<!-- 채팅방 리스트 -->
+								<th:block th:if="${ chatRoomList ne null }">
+									<div class="chatRoomList" th:each="chat : ${chatRoomList}">
+										<figure>
+											<th:block th:if="${ chat.mainPhoto eq 'noImage' }">
+												<input th:id="${ chat._id }" class="userMainPhoto" type="image" th:src="@{/images/} + ${ chat.mainPhoto } + '.jpeg'" th:value="${ chat.idx }">
+											</th:block>
+											<th:block th:if="${ chat.mainPhoto ne 'noImage' }">
+												<span class="userPhoto">
+													<input th:id="${ chat._id }" class="userMainPhoto" type="image" th:src="@{/filePath/profile/} + ${ chat.mainPhoto }" th:value="${ chat.idx }">
+												</span>
+											</th:block>
+											<span class="userName"th:text=" ${ chat.name } + ' / ' + ${ chat.email }"></span>
+										</figure>
+									</div>
+								</th:block>
+							</div>
+						</div>
+					</aside>
+				</div>
+			</div>
+		</section>
+
+		<section class="right-section">
+			<div class="right-dashed-line">
+				<div class="right-gray-background">
+					<aside class="right-aside" id="scrollBar">
+						<div class="chatAreaDiv" id="chatArea">
+							<p class="chatTitle" th:text="${id}"></p>
+							<th:block th:if="${ chatMessageList ne null }">
+								<th:block th:each="chat : ${chatMessageList}">
+									<th:block th:if="${ chat.type eq 'msg' }">
+										<div th:if="${ chat.sender ne sign.name }" class="chat you">
+											<th:block th:if="${ chat.mainPhoto eq 'noImage' }">
+												<img class="chatImg" th:src="@{/images/} + ${ chat.mainPhoto } + '.jpeg'" alt="">
+											</th:block>
+											<th:block th:if="${ chat.mainPhoto ne 'noImage' }">
+												<img class="chatImg" th:src="@{/filePath/profile/} + ${ chat.mainPhoto }" alt="">
+											</th:block>
+											<b class="chatMsg" th:text="${ chat.sender + ': ' + chat.content }"></b>
+											<th:block th:if="${ chat.status eq '0' }">
+												<span class="youStatus" text=""></span>
+											</th:block>
+											<th:block th:if="${ chat.status ne '0' }">
+												<span class="youStatus" th:text="${ chat.status }"></span>
+											</th:block>
+										</div>
+
+										<div th:if="${ chat.sender eq sign.name }" class="chat me">
+											<th:block th:if="${ chat.status eq '0' }">
+												<span class="meStatus" text=""></span>
+											</th:block>
+											<th:block th:if="${ chat.status ne '0' }">
+												<span class="meStatus" th:text="${ chat.status }"></span>
+											</th:block>
+											<b class="chatMsg" th:text="${ chat.content }"></b>
+										</div>
+									</th:block>
+
+									<th:block th:if="${ chat.type eq 'rec' }">
+										<div th:if="${ chat.sender ne sign.name }" class="chat you">
+											<th:block th:if="${ chat.mainPhoto eq 'noImage' }">
+												<img class="chatImg" th:src="@{/images/} + ${ chat.mainPhoto } + '.jpeg'" alt="">
+											</th:block>
+											<th:block th:if="${ chat.mainPhoto ne 'noImage' }">
+												<img class="chatImg" th:src="@{/filePath/profile/} + ${ chat.mainPhoto }" alt="">
+											</th:block>
+											<b class="chatMsg">
+												<span th:text="${ chat.sender + ': ' }"></span>
+												<audio th:src="${ chat.content }" controls="true"></audio>
+											</b>
+											<th:block th:if="${ chat.status eq '0' }">
+												<span class="youStatus" text=""></span>
+											</th:block>
+											<th:block th:if="${ chat.status ne '0' }">
+												<span class="youStatus" th:text="${ chat.status }"></span>
+											</th:block>
+										</div>
+
+										<div th:if="${ chat.sender eq sign.name }" class="chat me">
+											<th:block th:if="${ chat.status eq '0' }">
+												<span class="meStatus" text=""></span>
+											</th:block>
+											<th:block th:if="${ chat.status ne '0' }">
+												<span class="meStatus" th:text="${ chat.status }"></span>
+											</th:block>
+											<b class="chatMsg">
+												<audio th:src="${ chat.content }" controls="true"></audio>
+											</b>
+										</div>
+									</th:block>
+								</th:block>
+							</th:block>
+						</div>
+
+						<div class="bottomArea">
+							<!-- 메시지 입력란 -->
+							<div class="messageArea">
+								<input class="message" id="message" type="text" placeholder = "채팅 입력란">
+								<input class="messageSendBtn" id="btnSend" type="button" value="보내기" onclick="send()">
+							</div>
+							<!-- 녹음 구역 -->
+							<div class="recordArea" id="recordArea">
+								<audio class="recordPlayer" id="record" controls></audio>
+								<input class="recordBtn" id="btnRecordStart" type="button" value="녹음 시작">
+								<input class="recordBtn" id="btnRecordStop" type="button" value="녹음 정지" disabled>
+								<input class="recordBtn" id="btnRecordSend" type="button" value="녹음 전송" disabled>
+							</div>
+						</div>
+					</aside>
+				</div>
+			</div>
+
+			<!-- 오른쪽 탭 -->
+			<div class="tabs">
+				<form>
+					<div class="tab-btns">
+						<!-- 미니홈피 유저 idx -->
+						<input id="idx" name="idx" type="hidden" th:value="${ sign.idx }">
+						<!-- 로그인 유저 idx -->
+						<input id="loginIdx" type="hidden" th:value="${ sign.idx }">
+						<!-- 홈 탭 -->
+						<label for="tab1" id="btn1">홈</label>
+						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{/main/{idx}(idx=${ sign.idx })}'|">
+						<!-- 프로필 탭 -->
+						<label for="tab2" id="btn2">프로필</label>
+						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
+						<!-- 다이어리 탭 -->
+						<label for="tab3" id="btn3">다이어리</label>
+						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{/diary/{idx}(idx=${ sign.idx })}'|">
+						<!-- 사진첩 탭 -->
+						<label for="tab4" id="btn4">사진첩</label>
+						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{/gallery/{idx}(idx=${ sign.idx })}'|">
+						<!-- 방명록 탭 -->
+						<label for="tab5" id="btn5">방명록</label>
+						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{/guestbook/{idx}(idx=${ sign.idx })}'|">
+						<!-- 채팅 탭 -->
+						<label for="tab6" id="btn6">채팅</label>
+						<input id="tab6" type="button" value="채팅" style="display: none;" th:onclick="|location.href='@{/chat/{idx}(idx=${ sign.idx })}'|">
+					</div>
+				</form>
+			</div>
+		</section>
+	</div>
+</body>
+<!-- 반응형 JS -->
+<script src="/js/chatCss.js"></script>
+
+<!-- SockJS 사용을 위한 js를 추가 -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<!-- Stomp 사용을 위한 js를 추가 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<!------------------------------------------------------ 채팅 구역 ------------------------------------------------------->
+<script th:inline="javascript">
+	let id = [[${id}]]; // 방 번호
+	let userIdx = [[${userIdx}]]; // 상대 유저 idx
+	let idx = [[${ sign.idx }]]; // 로그인 유저 idx
+	let participants = 1; // 참여중인 인원
+	let start = ""; // 시작 시간
+	let end = ""; // 메시지 전송 시간
+	let count = ""; // 전송된 메시지 수
+	let sendMessage = ""; // 메시지 전송 상태
+	let entryCheck = [[${entryCheck}]]; // 입장 체크 값
+	let message = document.getElementById("message"); // 메시지 작성란
+</script>
+<script src="/js/chatRoom.js"></script>
+
+<!-- 검색 -->
+<script th:inline="javascript">
+	function chatSearch(f) {
+		let searchType = document.getElementsByName("searchType")[0].value;
+		let searchValue = document.getElementsByName("searchValue")[0].value;
+
+		fetch("/chat/chat_search" + "?loginUserIdx=" + [[${ sign.idx }]] + "&searchType=" + searchType + "&searchValue=" + searchValue)
+			.then(response => response.json())
+			.then(data => {
+				if ( data[0].idx <= "0" ) {
+					// 로그인 에러
+					if ( data[0].idx == "0" ) {
+						alert("잘못된 접근입니다.\n비회원은 로그인 후 이용해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+					if ( data[0].idx == "-4" ) {
+						alert("잘못된 접근입니다.\n다시 로그인 해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+					if ( data[0].idx == "-99" ) {
+						alert("다른 곳에서 로그인이 시도되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+					if ( data[0].idx == "-100" ) {
+						alert("로그인 시간이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+					if ( data[0].idx == "-1" ) {
+						alert("세션이 만료되어 로그인 페이지로 이동합니다.\n다시 로그인 해주시기 바랍니다.");
+						location.href = "/logout";
+						return;
+					}
+				} else {
+					if ( data != null ) {
+						let memberInfo = document.querySelector(".memberInfo");
+						memberInfo.innerHTML = "";
+						data.forEach(search => {
+							let inputTag = document.createElement("input");
+							inputTag.className = "userMainPhoto"; // 클래스 설정
+							inputTag.type = "image"; // 타입 설정
+							if ( search.mainPhoto == "noImage" ) {
+								inputTag.src = "/images/noImage.jpeg"; // 이미지 소스 설정
+							} else {
+								inputTag.src = "/filePath/profile/" + search.mainPhoto; // 이미지 소스 설정
+							}
+							inputTag.value = search.idx; // 값 설정
+
+							let spanTag = document.createElement("span");
+							spanTag.setAttribute("class", "userName");
+							spanTag.innerHTML = search.name + " / " + search.email;
+
+							let figureTag = document.createElement("figure");
+							figureTag.appendChild(inputTag);
+							figureTag.appendChild(spanTag);
+
+							let divTag = document.createElement("div");
+							divTag.setAttribute("class", "chatRoomList");
+							divTag.appendChild(figureTag);
+
+							memberInfo.appendChild(divTag);
+						});
+					}
+				}
+			})
+			.catch(error => console.error(error));
+	}
+</script>
+
+<!-- 채팅방 입장 -->
+<script th:inline="javascript">
+	document.querySelector(".memberInfo").addEventListener("click", function(event) {
+		// userMainPhoto를 클릭한 경우
+		if (event.target.classList.contains("userMainPhoto")) {
+			console.log(event.target.value);
+			console.log(event.target.id);
+
+			if ( event.target.id == null ) {
+				location.href = "/chat/" + [[${ sign.idx }]] + "/room/" + event.target.value;
+			} else {
+				location.href = "/chat/" + [[${ sign.idx }]] + "/room/" + event.target.value + "?id=" + event.target.id;
+			}
+
+			return;
+		// userName을 클릭한 경우
+		} else if (event.target.classList.contains("userName")) {
+			let inputs = event.target.parentElement.querySelectorAll("input");
+
+			inputs.forEach(function(input) {
+				console.log(input.value);
+				console.log(input.id);
+
+				if ( input.id == null ) {
+					location.href = "/chat/" + [[${ sign.idx }]] + "/room/" + input.value;
+				} else {
+					location.href = "/chat/" + [[${ sign.idx }]] + "/room/" + input.value + "?id=" + input.id;
+				}
+			});
+
+        	return;
+		}
+	});
+</script>
+
+<!-- 오른쪽 탭 기능 -->
+<script>
+	// 프로필 탭
+	function profile(f) {
+		let loginIdx = document.getElementById("loginIdx").value;
+		let idx = document.getElementById("idx").value;
+
+		// 타 유저 접근 불가
+		if ( loginIdx != idx ) {
+			alert("프로필은 본인만 들어갈 수 있습니다");
+			return;
+		}
+
+		f.action = "/profile";
+		f.method = "POST";
+		f.submit();
+	}
+</script>
+</html>
