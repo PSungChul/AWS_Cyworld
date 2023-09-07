@@ -41,8 +41,10 @@ public class ChatController {
 
 	// 채팅방 첫 입장 체크용 Map
 	Map<Integer, List<Object>> enterCheckMap = new ConcurrentHashMap<>();
-	// STOMP Socket에서 메시지를 보낼 때 퇴장 메시지와 재입장(새로고침) 메시지를 구분하기 위한 재입장(새로고침) 체크용 Map
+	// 채팅방 새로고침 이후 재입장을 위한 새로고침 체크용 Map
 	Map<Integer, String> reEnterCheck = new ConcurrentHashMap<>();
+	// 채팅방 퇴장 이후 세션을 제거하기 위한 퇴장 체크용 Map
+	Map<Integer, String> exitCheckMap = new ConcurrentHashMap<>();
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 채팅 페이지
 	@RequestMapping("/{idx}")
@@ -490,19 +492,29 @@ public class ChatController {
 			session.setAttribute("id", id);
 		// 입장 체크용 세션이 존재하는 경우
 		} else {
-			// 입장 체크용 세션에 들어있는 채팅방 아이디가 입장하는 채팅방 아이디와 같은지 체크한다.
-			// 채팅방 아이디가 같은 경우
-			if ( session.getAttribute("id").equals(id) ) {
-				// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여, 입장 체크용 Map에 추가한다.
-				reEnterCheck.put(loginIdx, id);
-				// 입장 체크용 값으로 채팅방 아이디를 바인딩한다.
-				model.addAttribute("entryCheck", id);
-			// 채팅방 아이디가 다른 경우
-			} else {
+			// 퇴장 체크용 Map에 로그인 유저 idx에 해당하는 퇴장 체크 값이 존재하는지 체크한다.
+			// 퇴장 체크 값이 존재하는 경우
+			if ( exitCheckMap.get(loginIdx) != null ) {
 				// 입장 체크용 세션을 삭제한다.
 				session.removeAttribute("id");
 				// 채팅방 아이디를 가지고 다시 입장한다.
 				return "redirect:/chat/" + loginIdx + "/room/" + idx + "?id=" + id;
+			// 퇴장 체크 값이 존재하지 않는 경우
+			} else {
+				// 입장 체크용 세션에 들어있는 채팅방 아이디가 입장하는 채팅방 아이디와 같은지 체크한다.
+				// 채팅방 아이디가 같은 경우
+				if (session.getAttribute("id").equals(id)) {
+					// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여, 새로고침 체크용 Map에 추가한다.
+					reEnterCheck.put(loginIdx, id);
+					// 입장 체크용 값으로 채팅방 아이디를 바인딩한다.
+					model.addAttribute("entryCheck", id);
+					// 채팅방 아이디가 다른 경우
+				} else {
+					// 입장 체크용 세션을 삭제한다.
+					session.removeAttribute("id");
+					// 채팅방 아이디를 가지고 다시 입장한다.
+					return "redirect:/chat/" + loginIdx + "/room/" + idx + "?id=" + id;
+				}
 			}
 		}
 
