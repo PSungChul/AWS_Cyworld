@@ -77,6 +77,11 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	Sign 테이블의 컬럼들을 각각 사용처에 맞게 분리한 후 각 테이블의 고유 키값으로 접근할 수 있도록 변경하여 유저 정보 보안 강화
 	유저 로그인 정보를 담당하는 UserLogin 테이블, 유저 프로필 정보를 담당하는 UserProfile 테이블, 유저 메인 정보를 담당하는 UserMain 테이블을 각각 추가
 	CSS Media Query와 JS Resize Event를 사용하여 메인 페이지에 반응형 웹 적용
+	WebSocket과 STOMP를 사용하여 실시간 1대1 채팅 기능 구현
+	채팅 및 녹음 메시지 전송
+	메시지 읽음 / 안 읽음 구분
+	채팅 정보 저장용 MongoDB 추가
+	CSS Media Query와 JS Resize Event를 사용하여 채팅 페이지에 반응형 웹 적용
 
 #
 
@@ -89,10 +94,12 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	Oracle --> MySQL
 	먼저 왼쪽 환경으로 제작을 하였고, 이후 AWS를 통해 CyworldProject를 서버에 배포하기 위해 새로운 환경으로 재구성 하였습니다.
 	Redis - 로그인 토큰 저장용 데이터 스토어
+	MongoDB - 채팅 정보 저장용 NoSQL 데이터베이스
 
 #
 
-## 📌 Database
+## 📌 데이터베이스
+## MySQL - SQL
 ### ✔ DATABASE - Cyworld
 	# 데이터베이스 생성
 	CREATE DATABASE Cyworld DEFAULT CHARACTER SET UTF8MB4;
@@ -297,6 +304,65 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		idx INT NOT NULL, # 로그인 유저 IDX
 		name VARCHAR(50) NOT NULL # 상품 이름
 	);
+
+#
+
+## MongoDB - NoSQL
+### ✔ DATABASE - Cyworld
+	# 데이터베이스 생성 및 사용
+	USE Cyworld
+	# 데이터베이스 관리자 생성
+	db.createUser( { user: "아이디", pwd: "비밀번호", roles: [ { role: "dbOwner", db: "Cyworld" } ] } )
+	# 데이터베이스 조작자 생성
+	db.createUser( { user: "아이디", pwd: "비밀번호", roles: [ { role: "readWrite", db: "Cyworld" } ] } )
+
+### ✔ COLLECTION - Users, ChatRooms
+	# 컬렉션 생성
+	db.createCollection( "Users", { capped: true, size: 10000 } )
+	db.createCollection( "ChatRooms", { capped: true, size: 10000 } )
+
+	# 유저 정보 컬렉션
+	"Users": [
+		{
+			"_id": "유저 idx",
+			"chatRooms": [
+				{"_id": "채팅방 아이디1", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진"},
+				{"_id": "채팅방 아이디2", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진"}
+			]
+		},
+		{
+			"idx": "유저 idx",
+			"chatRooms": [
+				{"_id": "채팅방 아이디1", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진"},
+				{"_id": "채팅방 아이디3", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진"}
+			]
+		}
+	]
+
+	# 채팅방 정보 컬렉션
+	"ChatRooms": [
+		{
+			"_id": "채팅방 아이디1",
+			"messages": [
+				{"type": "메시지 타입", "idx": "전송 유저 idx", "sender": "전송 유저 이름", "mainPhoto": "전송 유저 메인 사진", "content": "메시지 내용", "status": "메시지 상태"},
+				{"type": "메시지 타입", "idx": "전송 유저 idx", "sender": "전송 유저 이름", "mainPhoto": "전송 유저 메인 사진", "content": "메시지 내용", "status": "메시지 상태"}
+			]
+		},
+		{
+			"_id": "채팅방 아이디2",
+			"messages": [
+				{"type": "메시지 타입", "idx": "전송 유저 idx", "sender": "전송 유저 이름", "mainPhoto": "전송 유저 메인 사진", "content": "메시지 내용", "status": "메시지 상태"},
+				{"type": "메시지 타입", "idx": "전송 유저 idx", "sender": "전송 유저 이름", "mainPhoto": "전송 유저 메인 사진", "content": "메시지 내용", "status": "메시지 상태"}
+			]
+		},
+		{
+			"_id": "채팅방 아이디3",
+			"messages": [
+				{"type": "메시지 타입", "idx": "전송 유저 idx", "sender": "전송 유저 이름", "mainPhoto": "전송 유저 메인 사진", "content": "메시지 내용", "status": "메시지 상태"},
+				{"type": "메시지 타입", "idx": "전송 유저 idx", "sender": "전송 유저 이름", "mainPhoto": "전송 유저 메인 사진", "content": "메시지 내용", "status": "메시지 상태"}
+			]
+		}
+	]
 
 #
 
