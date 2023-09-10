@@ -54,7 +54,7 @@ public class StompController {
 
 		// 로그인 유저 정보 Map을 생성한다.
 		HashMap<String, Object> loginUserMap = new HashMap<>();
-		// 로그인 유저 idx에 해당하는 유저 정보를 조회한다.
+		// 로그인 유저 idx에 해당하는 채팅방 페이지 유저 정보를 조회한다.
 		UserDTO loginUserDTO = userDTOService.findChatRoomByIdx(message.getIdx());
 		// id를 키로 사용하고, 채팅방 아이디를 값으로 사용하여, 로그인 유저 정보 Map에 추가한다.
 		loginUserMap.put("id", message.getId());
@@ -71,7 +71,7 @@ public class StompController {
 
 		// 상대 유저 정보 Map을 생성한다.
 		HashMap<String, Object> userMap = new HashMap<>();
-		// 상대 유저 idx에 해당하는 유저 정보를 조회한다.
+		// 상대 유저 idx에 해당하는 채팅방 페이지 유저 정보를 조회한다.
 		UserDTO userDTO = userDTOService.findChatRoomByIdx(message.getUserIdx());
 		// id를 키로 사용하고, 채팅방 아이디를 값으로 사용하여, 상대 유저 정보 Map에 추가한다.
 		userMap.put("id", message.getId());
@@ -147,7 +147,7 @@ public class StompController {
 			message.setStatus("0");
 			// 채팅방 아이디에 해당하는 채팅방 정보에 채팅 메시지를 저장한다.
 			mongoUtil.insertChatMessage(message.getId(), ChatRooms.ChatMessageList.toMessage(chatRoomMap.get(message.getIdx()).get(0), message));
-			// 로그인 유저 idx에 해당하는 유저 정보에 채팅방 정보를 삭제 후 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
+			// 로그인 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
 			mongoUtil.deleteAndInsertChatRoom(message.getIdx(), Users.ChatRoomList.toEntity(chatRoomMap.get(message.getIdx()).get(1)));
 			// 메시지 DTO 중 메시지 상태에 읽음을 나타내기 위해 아무 값도 설정하지 않는다.
 			message.setStatus("");
@@ -157,10 +157,12 @@ public class StompController {
 			message.setStatus("1");
 			// 채팅방 아이디에 해당하는 채팅방 정보에 채팅 메시지를 저장한다.
 			mongoUtil.insertChatMessage(message.getId(), ChatRooms.ChatMessageList.toMessage(chatRoomMap.get(message.getIdx()).get(0), message));
-			// 로그인 유저 idx에 해당하는 유저 정보에 채팅방 정보를 삭제 후 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
+			// 로그인 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
 			mongoUtil.deleteAndInsertChatRoom(message.getIdx(), Users.ChatRoomList.toEntity(chatRoomMap.get(message.getIdx()).get(1)));
-			// 상대 유저 idx에 해당하는 유저 정보에 채팅방 정보를 삭제 후 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
-			mongoUtil.deleteAndInsertChatRoom((int) chatRoomMap.get(message.getIdx()).get(1).get("idx"), Users.ChatRoomList.toEntity(chatRoomMap.get(message.getIdx()).get(0)));
+			// 채팅방 아이디에 해당하는 채팅방 정보 중 로그인 유저 idx에 해당하는 안 읽은 메시지 수를 구한다.
+			int count = mongoUtil.countChatStatus(message.getId(), message.getIdx());
+			// 상대 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 안 읽은 메시지 수와 함께 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
+			mongoUtil.deleteAndInsertChatRoom((int) chatRoomMap.get(message.getIdx()).get(1).get("idx"), Users.ChatRoomList.toEntity(chatRoomMap.get(message.getIdx()).get(0)), count);
 		}
 
 		// 채팅방 유저 정보 Map에서 로그인 유저 idx에 해당하는 로그인 유저 정보Map을 가져와 메시지 DTO로 변환한다.
@@ -250,7 +252,7 @@ public class StompController {
 		if ( participantsMap.get(id).get() == 2 ) {
 			// 채팅방 아이디에 해당하는 채팅방 정보에 녹음 메시지를 저장한다.
 			mongoUtil.insertChatMessage(id, ChatRooms.ChatMessageList.toRecord(chatRoomMap.get(idx).get(0), recordFile, "0"));
-			// 로그인 유저 idx에 해당하는 유저 정보에 채팅방 정보를 삭제 후 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
+			// 로그인 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
 			mongoUtil.deleteAndInsertChatRoom(idx, Users.ChatRoomList.toEntity(chatRoomMap.get(idx).get(1)));
 			// SimpMessageHeaderAccessor를 사용하여 STOMP 메시지의 native header 중 "status"에 읽음을 나타내기 위해 아무 값도 설정하지 않아서, 클라이언트 측에서 해당 메시지 상태를 인식하고 처리할 수 있도록 한다.
 			headers.setNativeHeader("status", "");
@@ -258,10 +260,12 @@ public class StompController {
 		} else if ( participantsMap.get(id).get() == 1 ) {
 			// 채팅방 아이디에 해당하는 채팅방 정보에 녹음 메시지를 저장한다.
 			mongoUtil.insertChatMessage(id, ChatRooms.ChatMessageList.toRecord(chatRoomMap.get(idx).get(0), recordFile, "1"));
-			// 로그인 유저 idx에 해당하는 유저 정보에 채팅방 정보를 삭제 후 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
+			// 로그인 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
 			mongoUtil.deleteAndInsertChatRoom(idx, Users.ChatRoomList.toEntity(chatRoomMap.get(idx).get(1)));
-			// 상대 유저 idx에 해당하는 유저 정보에 채팅방 정보를 삭제 후 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
-			mongoUtil.deleteAndInsertChatRoom((int) chatRoomMap.get(idx).get(1).get("idx"), Users.ChatRoomList.toEntity(chatRoomMap.get(idx).get(0)));
+			// 채팅방 아이디에 해당하는 채팅방 정보 중 로그인 유저 idx에 해당하는 안 읽은 메시지 수를 구한다.
+			int count = mongoUtil.countChatStatus(id, idx);
+			// 상대 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 안 읽은 메시지 수와 함께 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
+			mongoUtil.deleteAndInsertChatRoom((int) chatRoomMap.get(idx).get(1).get("idx"), Users.ChatRoomList.toEntity(chatRoomMap.get(idx).get(0)), count);
 			// SimpMessageHeaderAccessor를 사용하여 STOMP 메시지의 native header 중 "status"에 안 읽음을 의미하는 1을 설정하여, 클라이언트 측에서 해당 메시지 상태를 인식하고 처리할 수 있도록 한다.
 			headers.setNativeHeader("status", "1");
 		}

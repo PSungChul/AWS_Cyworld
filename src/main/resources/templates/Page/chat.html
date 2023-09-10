@@ -56,6 +56,7 @@
 												</span>
 											</th:block>
 											<span class="userName"th:text=" ${ chat.name } + ' / ' + ${ chat.email }"></span>
+											<span th:if="${ chat.unreadStatus != 0 }" class="unreadStatus" th:text="${ chat.unreadStatus }"></span>
 										</figure>
 									</div>
 								</th:block>

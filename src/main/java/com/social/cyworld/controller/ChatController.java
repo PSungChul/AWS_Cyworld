@@ -400,7 +400,7 @@ public class ChatController {
 			// 로그인 유저 idx와 상대 유저 idx에 해당하는 채팅방 정보를 조회한다.
 			Users user = mongoUtil.findChatRoom(loginIdx, idx);
 
-			// 조회한 채팅방 정보가 없는 경우
+			// 조회한 채팅방 정보가 존재하지 않는 경우
 			if ( user == null ) {
 				// 채팅방 첫 입장 체크용 Map에 상대 유저 idx에 해당하는 첫 입장 채팅방 정보가 존재하는지 체크한다.
 				// 첫 입장 채팅방 정보가 존재하는 경우
@@ -441,10 +441,15 @@ public class ChatController {
 
 				// 생성한 채팅방 아이디를 가지고 다시 입장한다.
 				return "redirect:/chat/" + loginIdx + "/room/" + idx + "?id=" + id;
-			// 조회한 채팅방 정보가 있는 경우
+			// 조회한 채팅방 정보가 존재하는 경우
 			} else {
 				// 조회한 채팅방 정보 중 채팅방 아이디를 가져와 id에 전달한다.
 				id = user.getChatRooms().get(0).get_id();
+
+				// 상대 유저 idx에 해당하는 채팅방 페이지 유저 정보를 조회한다.
+				UserDTO userDTO = userDTOService.findChatRoomByIdx(idx);
+				// 로그인 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
+				mongoUtil.enterDeleteAndInsertChatRoom(loginIdx, Users.ChatRoomList.toEntity(id, userDTO));
 
 				// 채팅방 아이디에 해당하는 채팅방 정보에서 상대 메시지 상태 중 안 읽음 상태를 읽음 상태로 갱신하고, 갱신한 메시지를 모두 조회하여 리스트로 가져온다.
 				List<ChatRooms.ChatMessageList> chatMessageList = mongoUtil.findAllChatMessageList(id, idx);
@@ -453,6 +458,11 @@ public class ChatController {
 			}
 		// 채팅방 리스트로 들어온 경우 - 채팅방 아이디 존재 O
 		} else {
+			// 상대 유저 idx에 해당하는 채팅방 페이지 유저 정보를 조회한다.
+			UserDTO userDTO = userDTOService.findChatRoomByIdx(idx);
+			// 로그인 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
+			mongoUtil.enterDeleteAndInsertChatRoom(loginIdx, Users.ChatRoomList.toEntity(id, userDTO));
+
 			// 채팅방 아이디에 해당하는 채팅방 정보에서 상대 메시지 상태 중 안 읽음 상태를 읽음 상태로 갱신하고, 갱신한 메시지를 모두 조회하여 리스트로 가져온다.
 			List<ChatRooms.ChatMessageList> chatMessageList = mongoUtil.findAllChatMessageList(id, idx);
 			// 가져온 메시지 리스트를 바인딩한다.
@@ -495,9 +505,9 @@ public class ChatController {
 				return "redirect:/chat/" + loginIdx + "/room/" + idx + "?id=" + id;
 			// 퇴장 체크 값이 존재하지 않는 경우
 			} else {
-				// 입장 체크용 세션에 들어있는 채팅방 아이디가 입장하는 채팅방 아이디와 같은지 체크한다.
+				// 입장 체크용 세션 값인 채팅방 아이디가 입장하는 채팅방 아이디와 같은지 체크한다.
 				// 채팅방 아이디가 같은 경우
-				if (session.getAttribute("id").equals(id)) {
+				if ( session.getAttribute("id").equals(id) ) {
 					// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여, 새로고침 체크용 Map에 추가한다.
 					reEnterCheck.put(loginIdx, id);
 					// 입장 체크용 값으로 채팅방 아이디를 바인딩한다.
