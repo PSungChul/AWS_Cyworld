@@ -40,9 +40,9 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	데이터베이스 전체 생성 및 관리
 	프로젝트 모든 파일 병합
 ### ✔ 프로젝트 이후 추가한 기능 및 History
-	휴대폰 문자 인증
-	인증번호 암호화
-	비밀번호 암호화
+	휴대폰 문자 인증 추가
+	인증번호 암호화 추가
+	비밀번호 암호화 추가
  	Token 및 Redis를 추가하여 로그인 보안 강화
   	로그인 토큰 관리에 헤더 대신 쿠키로 변경
 	유저 정보에 생년월일 컬럼 추가
@@ -82,6 +82,9 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	메시지 읽음 / 안 읽음 구분
 	채팅 정보 저장용 MongoDB 추가
 	CSS Media Query와 JS Resize Event를 사용하여 채팅 페이지에 반응형 웹 적용
+	채팅방 정보에 안 읽은 메시지 수 표시
+	Users 컬렉션의 chatRooms에 unreadStatus 추가
+	AWS를 통해 HTTPS 추가
 
 #
 
@@ -326,15 +329,15 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 		{
 			"_id": "유저 idx",
 			"chatRooms": [
-				{"_id": "채팅방 아이디1", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진"},
-				{"_id": "채팅방 아이디2", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진"}
+				{"_id": "채팅방 아이디1", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진", "unreadStatus": "안 읽은 메시지 수"},
+				{"_id": "채팅방 아이디2", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진", "unreadStatus": "안 읽은 메시지 수"}
 			]
 		},
 		{
 			"idx": "유저 idx",
 			"chatRooms": [
-				{"_id": "채팅방 아이디1", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진"},
-				{"_id": "채팅방 아이디3", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진"}
+				{"_id": "채팅방 아이디1", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진", "unreadStatus": "안 읽은 메시지 수"},
+				{"_id": "채팅방 아이디3", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진", "unreadStatus": "안 읽은 메시지 수"}
 			]
 		}
 	]
