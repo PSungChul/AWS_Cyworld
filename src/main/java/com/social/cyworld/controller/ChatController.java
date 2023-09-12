@@ -491,31 +491,31 @@ public class ChatController {
 		// 세션을 가져와 입장 체크용 세션이 존재하는지 체크한다.
 		HttpSession session = request.getSession();
 		// 입장 체크용 세션이 존재하지 않는 경우
-		if ( session.getAttribute("id") == null ) {
-			// 채팅방 아이디를 사용하여 입장 체크용 세션을 생성한다.
-			session.setAttribute("id", id);
+		if ( session.getAttribute(String.valueOf(idx)) == null ) {
+			// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여 입장 체크용 세션을 생성한다.
+			session.setAttribute(String.valueOf(idx), id);
 		// 입장 체크용 세션이 존재하는 경우
 		} else {
 			// 퇴장 체크용 Map에 로그인 유저 idx에 해당하는 퇴장 체크 값이 존재하는지 체크한다.
 			// 퇴장 체크 값이 존재하는 경우
 			if ( exitCheckMap.get(loginIdx) != null ) {
 				// 입장 체크용 세션을 삭제한다.
-				session.removeAttribute("id");
+				session.removeAttribute(String.valueOf(idx));
 				// 채팅방 아이디를 가지고 다시 입장한다.
 				return "redirect:/chat/" + loginIdx + "/room/" + idx + "?id=" + id;
 			// 퇴장 체크 값이 존재하지 않는 경우
 			} else {
-				// 입장 체크용 세션 값인 채팅방 아이디가 입장하는 채팅방 아이디와 같은지 체크한다.
+				// 로그인 유저 idx에 해당하는 입장 체크용 세션 값이 입장하는 채팅방 아이디와 같은지 체크한다.
 				// 채팅방 아이디가 같은 경우
-				if ( session.getAttribute("id").equals(id) ) {
+				if ( session.getAttribute(String.valueOf(idx)).equals(id) ) {
 					// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여, 새로고침 체크용 Map에 추가한다.
 					reEnterCheck.put(loginIdx, id);
-					// 입장 체크용 값으로 채팅방 아이디를 바인딩한다.
-					model.addAttribute("entryCheck", id);
-					// 채팅방 아이디가 다른 경우
+					// 입장 체크용 값으로 세션 값을 바인딩한다.
+					model.addAttribute("entryCheck", session.getAttribute(String.valueOf(idx)));
+				// 채팅방 아이디가 다른 경우
 				} else {
 					// 입장 체크용 세션을 삭제한다.
-					session.removeAttribute("id");
+					session.removeAttribute(String.valueOf(idx));
 					// 채팅방 아이디를 가지고 다시 입장한다.
 					return "redirect:/chat/" + loginIdx + "/room/" + idx + "?id=" + id;
 				}
