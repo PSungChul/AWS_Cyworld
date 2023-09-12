@@ -126,10 +126,10 @@ public class StompController {
 				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 정보를 삭제한다.
 				chatController.enterCheckMap.remove(message.getIdx());
 
-				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 유저 정보 Map 중 상대 유저 정보 Map에 상대 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
+				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 상대 유저 정보 Map에 상대 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
 				// 채팅방 정보가 존재하는 경우
 				if ( chatController.enterCheckMap.get((int) chatRoomMap.get(message.getIdx()).get(1).get("idx")) != null ) {
-					// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 유저 정보 Map 중 상대 유저 정보 Map에서 상대 유저 idx에 해당하는 채팅방 정보를 삭제한다.
+					// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 상대 유저 정보 Map에서 상대 유저 idx에 해당하는 채팅방 정보를 삭제한다.
 					chatController.enterCheckMap.remove((int) chatRoomMap.get(message.getIdx()).get(1).get("idx"));
 				}
 			}
@@ -206,10 +206,10 @@ public class StompController {
 				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 정보를 삭제한다.
 				chatController.enterCheckMap.remove(idx);
 
-				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 유저 정보 Map 중 상대 유저 정보 Map에 상대 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
+				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 상대 유저 정보 Map에 상대 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
 				// 채팅방 정보가 존재하는 경우
 				if ( chatController.enterCheckMap.get((int) chatRoomMap.get(idx).get(1).get("idx")) != null ) {
-					// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 유저 정보 Map 중 상대 유저 정보 Map에서 상대 유저 idx에 해당하는 채팅방 정보를 삭제한다.
+					// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 상대 유저 정보 Map에서 상대 유저 idx에 해당하는 채팅방 정보를 삭제한다.
 					chatController.enterCheckMap.remove((int) chatRoomMap.get(idx).get(1).get("idx"));
 				}
 			}
@@ -240,9 +240,9 @@ public class StompController {
 		headers.setNativeHeader("type", "record");
 		// SimpMessageHeaderAccessor를 사용하여 STOMP 메시지의 native header 중 "idx"에 헤더 정보를 추출해 전달받은 로그인 유저 idx를 설정하여, 클라이언트 측에서 해당 메시지를 보낸 유저 idx를 인식하고 처리할 수 있도록 한다.
 		headers.setNativeHeader("idx", String.valueOf(idx));
-		// SimpMessageHeaderAccessor를 사용하여 STOMP 메시지의 native header 중 "sender"에 로그인 유저 idx에 해당하는 채팅방 유저 정보 Map 중 로그인 유저 정보 Map에 로그인 유저 이름을 가져와 설정하여, 클라이언트 측에서 해당 메시지를 누가 보냈는지 인식하고 처리할 수 있도록 한다.
+		// SimpMessageHeaderAccessor를 사용하여 STOMP 메시지의 native header 중 "sender"에 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 로그인 유저 정보 Map에 로그인 유저 이름을 가져와 설정하여, 클라이언트 측에서 해당 메시지를 누가 보냈는지 인식하고 처리할 수 있도록 한다.
 		headers.setNativeHeader("sender", (String) chatRoomMap.get(idx).get(0).get("name"));
-		// SimpMessageHeaderAccessor를 사용하여 STOMP 메시지의 native header 중 "mainPhoto"에 로그인 유저 idx에 해당하는 채팅방 유저 정보 Map 중 로그인 유저 정보 Map에 로그인 유저 메인 사진을 가져와 설정하여, 클라이언트 측에서 해당 메시지 전송자의 메인 사진을 인식하고 처리할 수 있도록 한다.
+		// SimpMessageHeaderAccessor를 사용하여 STOMP 메시지의 native header 중 "mainPhoto"에 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 로그인 유저 정보 Map에 로그인 유저 메인 사진을 가져와 설정하여, 클라이언트 측에서 해당 메시지 전송자의 메인 사진을 인식하고 처리할 수 있도록 한다.
 		headers.setNativeHeader("mainPhoto", (String) chatRoomMap.get(idx).get(0).get("mainPhoto"));
 		// SimpMessageHeaderAccessor를 사용하여 STOMP 메시지의 native header 중 "participants"에 참여자 수 체크용 Map에서 채팅방 아이디에 해당하는 참여자 수를 가져와 설정하여, 클라이언트 측에서 해당 채팅방 참여자 수를 인식하고 처리할 수 있도록 한다.
 		headers.setNativeHeader("participants", String.valueOf(participantsMap.get(id).get()));

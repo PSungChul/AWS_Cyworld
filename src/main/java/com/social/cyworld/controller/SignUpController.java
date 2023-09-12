@@ -711,7 +711,7 @@ public class SignUpController {
 			// msg를 키로 사용하고, 암호화된 이메일 인증번호를 값으로 사용하여 반환용 Map에 추가한다.
 			map.put("msg", passwordEmailKey);
 
-			// 이메일 인증정보가 추가된 반환용 Map을 반환한다.
+			// 이메일 인증정보를 추가한 반환용 Map을 반환한다.
 			return map;
 		} catch (Exception e) {
 			System.out.println(e);

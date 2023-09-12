@@ -22,7 +22,7 @@ public class ApiToken {
         Calendar calendar = Calendar.getInstance(); // Calendar 클래스의 인스턴스 반환 // Calendar cal = new Calendar(); - 애러, 추상클래스는 인스턴스 생성 불가
         // 현재 시간에서 5분 후의 밀리초로 토큰의 만료 시간을 계산하여 Calendar 클래스의 인스턴스에 추가한다.
         calendar.add(Calendar.MILLISECOND, 60 * 60 * 1000); // Calendar.MILLISECOND - 1000분의 1초(0~999)
-        // Calendar 클래스의 인스턴스에 추가된 만료 시간을 가져온다.
+        // Calendar 클래스의 인스턴스에 추가한 만료 시간을 가져온다.
         Date expiryDate = calendar.getTime();
         // JWT 토큰을 생성한다.
         String token = Jwts.builder() // JWT 빌더를 생성한다.

@@ -847,13 +847,13 @@ public class MainController {
 			if ( session.getAttribute("login") != null ) {
 				// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
 				productMap.put("price", "0");
-				// 에러 코드가 추가된 Map을 반환한다.
+				// 에러 코드를 추가한 Map을 반환한다.
 				return productMap;
 			// 토큰도 세션도 존재하지 않는 경우 - 에러
 			} else {
 				// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
 				productMap.put("price", "-4");
-				// 에러 코드가 추가된 Map을 반환한다.
+				// 에러 코드를 추가한 Map을 반환한다.
 				return productMap;
 			}
 		}
@@ -864,7 +864,7 @@ public class MainController {
 		if ( loginIdx == -99 ) {
 			// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
 			productMap.put("price", "-99");
-			// 에러 코드가 추가된 Map을 반환한다.
+			// 에러 코드를 추가한 Map을 반환한다.
 			return productMap;
 		}
 		// idx가 에러 코드 -1인 경우 - 토큰 만료
@@ -877,7 +877,7 @@ public class MainController {
 				jwtUtil.logoutToken(authorization);
 				// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
 				productMap.put("price", "-1");
-				// 에러 코드가 추가된 Map을 반환한다.
+				// 에러 코드를 추가한 Map을 반환한다.
 				return productMap;
 			// 세션이 존재하는 경우 - 대기 시간 1시간 이전
 			} else {
@@ -888,7 +888,7 @@ public class MainController {
 				if ( refreshToken == null ) {
 					// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
 					productMap.put("price", "-100");
-					// 에러 코드가 추가된 Map을 반환한다.
+					// 에러 코드를 추가한 Map을 반환한다.
 					return productMap;
 				// 토큰이 재생성된 경우 - 리프레쉬 토큰 유지
 				} else {
@@ -920,7 +920,7 @@ public class MainController {
 		if ( loginIdx != idx ) {
 			// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
 			productMap.put("price", "-4");
-			// 에러 코드가 추가된 Map을 반환한다.
+			// 에러 코드를 추가한 Map을 반환한다.
 			return productMap;
 		}
 
@@ -932,7 +932,7 @@ public class MainController {
 			// price를 키로 사용하고, 에러 코드를 값으로 사용하여, 반환용 Map에 추가한다.
 			productMap.put("price", "-9");
 
-			// 에러 코드가 추가된 Map을 반환한다.
+			// 에러 코드를 추가한 Map을 반환한다.
 			return productMap;
 		}
 
@@ -945,7 +945,7 @@ public class MainController {
 		// idx를 키로 사용하고, 로그인 유저 idx를 값으로 사용하여, 반환용 Map에 추가한다.
 		productMap.put("idx", loginIdx);
 
-		// 상품 정보가 추가된 Map을 반환한다.
+		// 상품 정보를 추가한 Map을 반환한다.
 		return productMap;
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////상품 - 도토리

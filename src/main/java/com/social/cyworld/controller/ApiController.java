@@ -674,7 +674,7 @@ public class ApiController {
 			// 생성한 Map에 에러 값들을 추가한다.
 			responseMap.put("accessToken", "0"); // accessToken를 키로 사용하고, 에러 코드를 값으로 사용하여 추가한다.
 			responseMap.put("message", "Invalid Redirect URI"); // message를 키로 사용하고, 에러 메시지를 값으로 사용하여 추가한다.
-			// 에러 값들이 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+			// 에러 값들을 추가한 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 			String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 			// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.
@@ -695,7 +695,7 @@ public class ApiController {
 			// 생성한 Map에 에러 값들을 추가한다.
 			responseMap.put("accessToken", "-1"); // accessToken를 키로 사용하고, 에러 코드를 값으로 사용하여 추가한다.
 			responseMap.put("message", "Invalid Client ID Key"); // message를 키로 사용하고, 에러 메시지를 값으로 사용하여 추가한다.
-			// 에러 값들이 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+			// 에러 값들을 추가한 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 			String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 			// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.
@@ -716,7 +716,7 @@ public class ApiController {
 			// 생성한 Map에 에러 값들을 추가한다.
 			responseMap.put("accessToken", "-2"); // accessToken를 키로 사용하고, 에러 코드를 값으로 사용하여 추가한다.
 			responseMap.put("message", "Invalid Client Secret Key"); // message를 키로 사용하고, 에러 메시지를 값으로 사용하여 추가한다.
-			// 에러 값들이 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+			// 에러 값들을 추가한 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 			String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 			// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.
@@ -739,7 +739,7 @@ public class ApiController {
 			// 생성한 Map에 에러 값들을 추가한다.
 			responseMap.put("accessToken", "-3"); // accessToken를 키로 사용하고, 에러 코드를 값으로 사용하여 추가한다.
 			responseMap.put("message", "Invalid Code"); // message를 키로 사용하고, 에러 메시지를 값으로 사용하여 추가한다.
-			// 에러 값들이 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+			// 에러 값들을 추가한 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 			String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 			// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.
@@ -758,7 +758,7 @@ public class ApiController {
 		Map<String, String> responseMap = new HashMap<>();
 		// 생성한 Map에 발급받은 API AccessToken을 추가한다.
 		responseMap.put("accessToken", accessToken); // accessToken를 키로 사용하고, 발급받은 API AccessToken을 값으로 사용하여 추가한다.
-		// API AccessToken이 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+		// API AccessToken을 추가한 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 		String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 		// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.
@@ -783,7 +783,7 @@ public class ApiController {
 			Map<String, Integer> responseMap = new HashMap<>();
 			// 생성한 Map에 에러 값을 추가한다.
 			responseMap.put("user", loginIdx); // user를 키로 사용하고, 에러 코드를 값으로 사용하여 추가한다.
-			// 에러 값이 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+			// 에러 값을 추가한 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 			String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 			// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.
@@ -805,7 +805,7 @@ public class ApiController {
 			Map<String, Object> responseMap = new HashMap<>();
 			// 생성한 Map에 에러 값을 추가한다.
 			responseMap.put("user", null); // user를 키로 사용하고, null을 값으로 사용하여 추가한다.
-			// 에러 값이 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+			// 에러 값을 추가한 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 			String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 			// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.
@@ -859,7 +859,7 @@ public class ApiController {
 		} else if ( apiConsent.getEmail() == 2 ) {
 			responseMap.put("email", null); // email을 키로 사용하고, null을 값으로 사용하여 추가한다.
 		}
-		// 로그인 유저 정보가 추가된 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
+		// 로그인 유저 정보를 추가한 Map을 JSON 형식의 데이터로 직렬화(Serialize) 한다.
 		String jsonResponse = objectMapper.writeValueAsString(responseMap);
 
 		// 직렬화(Serialize)한 JSON 형식의 데이터를 반환한다.
