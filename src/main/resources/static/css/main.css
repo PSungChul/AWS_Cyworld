@@ -249,24 +249,28 @@ opacity:0; z-index:10; font-size:20px; line-height:40px; border: 3px solid black
 /* right content */
 .returnMyHome { position:absolute; top:5px; left:1560px; width:120px; height:30px;}
 .cy_logout {
-   position: absolute;
-   left: 1700px;
-   top: 5px;
-   width: 100px;
-   height: 30px;
-   font-size: 18px;
+    position: absolute;
+    left: 1700px;
+    top: 5px;
+    width: 100px;
+    height: 30px;
+    font-size: 18px;
 }
 
 .na_logout {
-   position: absolute;
-   left: 1700px;
-   top: 5px;
+    position: absolute;
+    left: 1700px;
+    top: 5px;
+    width: 100px;
+    height: 30px;
 }
 
 .ka_logout {
-   position: absolute;
-   left: 1700px;
-   top: 5px;
+    position: absolute;
+    left: 1700px;
+    top: 5px;
+    width: 100px;
+    height: 30px;
 }
 
 .title {
@@ -1032,6 +1036,14 @@ input::placeholder {
 /* 반응형 페이지 만들기  */
 @media (max-width: 1600px) {
     .cy_logout {
+        left: 90%;
+    }
+
+    .na_logout {
+        left: 90%;
+    }
+
+    .ka_logout {
         left: 90%;
     }
 
