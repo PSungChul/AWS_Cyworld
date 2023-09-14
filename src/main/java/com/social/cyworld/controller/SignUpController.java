@@ -952,12 +952,25 @@ public class SignUpController {
 		if ( loginKey == null ) {
 			// json 형식의 에러 메시지 전달
 			return "{'result':'no_id'}";
+		// 조회한 유저 정보 중 플랫폼이 소셜인 경우
+		} else if ( !loginKey.getPlatform().equals("cyworld") ) {
+			// json 형식의 에러 메시지 전달
+			return "{'result':'no_cyworld'}";
 		}
 
 		// 조회한 유저 정보가 존재하는 경우
 
-		// 조회한 유저 정보 중 유저 로그인 정보 키에 해당하는 유저 로그인 정보를 조회한다.
+		// 조회한 유저 정보 중 유저 로그인 정보 키에 해당하는 유저 로그인 정보가 존재하는지 조회하여 체크한다.
 		UserLogin login = signService.findUserLoginByIdx(loginKey.getLUid());
+		System.out.println(login);
+
+		// 조회한 유저 로그인 정보가 존재하지 않는 경우
+		if ( login == null ) {
+			// json 형식의 에러 메시지 전달
+			return "{'result':'no_id'}";
+		}
+
+		// 조회한 유저 로그인 정보가 존재하는 경우
 
 		// 조회한 유저 로그인 정보 중 암호회된 아이디와 입력한 아이디가 일치하는지 체크한다.
 		// 아이디가 일치하지 않는 경우

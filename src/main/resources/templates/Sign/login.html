@@ -26,7 +26,7 @@
 								<input name="platform" type="hidden" value="cyworld">
 								<p class="userID">ID :&nbsp;<input name="email" type="text"></p>
 								<p class="userPW">PW :&nbsp;<input name="info" type="password"> </p>
-								<p class="login"><input class="btn-cover" type="button" value="로그인" onclick="loginCheck(this.form)"></p>
+								<p class="login"><input id="btn-cover" class="btn-cover" type="button" value="로그인" onclick="loginCheck(this.form)"></p>
 							</form>
 							
 							<!-- cyworld 회원가입 -->
@@ -37,7 +37,7 @@
 							</form>
 							
 							<!-- 네이버 로그인 버튼 -->
-							<div  class="naver" id="naverIdLogin"></div>
+							<div class="naver" id="naverIdLogin"></div>
 							
 							<!-- 카카오 로그인 버튼 -->
 							<a class="kakao" href="javascript:kakaoLogin();"><img src="https://www.gb.go.kr/Main/Images/ko/member/certi_kakao_login.png" style="height: 40px; width: auto"></a>
@@ -126,11 +126,15 @@
 				var json = (new Function('return'+data))();
 				
 				if ( json.result == 'no_id' ) {
-					alert("아이디가 틀렸습니다");
+					alert("아이디가 틀렸습니다.");
+					return;
+				}
+				if ( json.result == 'no_cyworld' ) {
+					alert("소셜로 로그인 하시기 바랍니다.");
 					return;
 				}
 				if ( json.result == 'no_info' ) {
-					alert("비밀번호가 틀렸습니다");
+					alert("비밀번호가 틀렸습니다.");
 					return;
 				}
 				
