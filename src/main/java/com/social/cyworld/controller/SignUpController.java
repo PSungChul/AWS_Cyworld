@@ -962,7 +962,6 @@ public class SignUpController {
 
 		// 조회한 유저 정보 중 유저 로그인 정보 키에 해당하는 유저 로그인 정보가 존재하는지 조회하여 체크한다.
 		UserLogin login = signService.findUserLoginByIdx(loginKey.getLUid());
-		System.out.println(login);
 
 		// 조회한 유저 로그인 정보가 존재하지 않는 경우
 		if ( login == null ) {
