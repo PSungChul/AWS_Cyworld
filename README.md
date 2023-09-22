@@ -74,10 +74,10 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	미니미 구매 테이블 --> 상품 구매 테이블로 변경
 	상품 결제 테이블 추가
 	Sign 테이블 --> Sign, UserLogin, UserProfile, UserMain 테이블 정규화
-	Sign 테이블의 컬럼들을 각각 사용처에 맞게 분리한 후 각 테이블의 고유 키값으로 접근할 수 있도록 변경하여 유저 정보 보안 강화
+	Sign 테이블의 컬럼들을 각각 사용처에 맞게 분리한 후 각 테이블의 고유 키로 접근할 수 있도록 변경하여 유저 정보 보안 강화
 	유저 로그인 정보를 담당하는 UserLogin 테이블, 유저 프로필 정보를 담당하는 UserProfile 테이블, 유저 메인 정보를 담당하는 UserMain 테이블을 각각 추가
 	CSS Media Query와 JS Resize Event를 사용하여 메인 페이지에 반응형 웹 적용
-	WebSocket과 STOMP를 사용하여 실시간 1대1 채팅 기능 구현
+	WebSocket과 STOMP를 사용하여 1:1 실시간 채팅 기능 구현
 	채팅 및 녹음 메시지 전송
 	메시지 읽음 / 안 읽음 구분
 	채팅 정보 저장용 MongoDB 추가
@@ -85,6 +85,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	채팅방 정보에 안 읽은 메시지 수 표시
 	Users 컬렉션의 chatRooms에 unreadStatus 추가
 	AWS를 통해 HTTPS 추가
+	WebSocket을 사용하여 WebRTC와 Signaling Server를 통해 1:1 실시간 영상 통화 기능 구현
 
 #
 
