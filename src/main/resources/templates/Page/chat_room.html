@@ -71,8 +71,13 @@
 			<div class="right-dashed-line">
 				<div class="right-gray-background">
 					<aside class="right-aside" id="scrollBar">
+						<div class="chatTitle" id="topArea">
+							<span class="idTitle" th:text="${userName}"></span>
+							<span class="videoBtnTitle" id="videoBtnArea">
+								<input class="videoBtn" type="button" value="영상 통화" onclick="video();">
+							</span>
+						</div>
 						<div class="chatAreaDiv" id="chatArea">
-							<p class="chatTitle" th:text="${id}"></p>
 							<th:block th:if="${ chatMessageList ne null }">
 								<th:block th:each="chat : ${chatMessageList}">
 									<th:block th:if="${ chat.type eq 'msg' }">
@@ -166,22 +171,22 @@
 						<!-- 로그인 유저 idx -->
 						<input id="loginIdx" type="hidden" th:value="${ sign.idx }">
 						<!-- 홈 탭 -->
-						<label for="tab1" id="btn1">홈</label>
+						<label class="tabLabel" for="tab1" id="btn1">홈</label>
 						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{/main/{idx}(idx=${ sign.idx })}'|">
 						<!-- 프로필 탭 -->
-						<label for="tab2" id="btn2">프로필</label>
+						<label class="tabLabel" for="tab2" id="btn2">프로필</label>
 						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
 						<!-- 다이어리 탭 -->
-						<label for="tab3" id="btn3">다이어리</label>
+						<label class="tabLabel" for="tab3" id="btn3">다이어리</label>
 						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{/diary/{idx}(idx=${ sign.idx })}'|">
 						<!-- 사진첩 탭 -->
-						<label for="tab4" id="btn4">사진첩</label>
+						<label class="tabLabel" for="tab4" id="btn4">사진첩</label>
 						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{/gallery/{idx}(idx=${ sign.idx })}'|">
 						<!-- 방명록 탭 -->
-						<label for="tab5" id="btn5">방명록</label>
+						<label class="tabLabel" for="tab5" id="btn5">방명록</label>
 						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{/guestbook/{idx}(idx=${ sign.idx })}'|">
 						<!-- 채팅 탭 -->
-						<label for="tab6" id="btn6">채팅</label>
+						<label class="tabLabel" for="tab6" id="btn6">채팅</label>
 						<input id="tab6" type="button" value="채팅" style="display: none;" th:onclick="|location.href='@{/chat/{idx}(idx=${ sign.idx })}'|">
 					</div>
 				</form>
@@ -207,9 +212,9 @@
 	let count = ""; // 전송된 메시지 수
 	let sendMessage = ""; // 메시지 전송 상태
 	let entryCheck = [[${entryCheck}]]; // 입장 체크 값
-	let message = document.getElementById("message"); // 메시지 작성란
 </script>
 <script src="/js/chatRoom.js"></script>
+<script src="/js/webRtc.js"></script>
 
 <!-- 검색 -->
 <script th:inline="javascript">

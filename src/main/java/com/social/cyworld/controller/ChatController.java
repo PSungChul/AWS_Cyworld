@@ -450,6 +450,8 @@ public class ChatController {
 				UserDTO userDTO = userDTOService.findChatRoomByIdx(idx);
 				// 로그인 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
 				mongoUtil.enterDeleteAndInsertChatRoom(loginIdx, Users.ChatRoomList.toEntity(id, userDTO));
+				// 조회한 채팅방 페이지 유저 정보 DTO중 이름을 바인딩한다.
+				model.addAttribute("userName", userDTO.getName());
 
 				// 채팅방 아이디에 해당하는 채팅방 정보에서 상대 메시지 상태 중 안 읽음 상태를 읽음 상태로 갱신하고, 갱신한 메시지를 모두 조회하여 리스트로 가져온다.
 				List<ChatRooms.ChatMessageList> chatMessageList = mongoUtil.findAllChatMessageList(id, idx);
@@ -462,6 +464,8 @@ public class ChatController {
 			UserDTO userDTO = userDTOService.findChatRoomByIdx(idx);
 			// 로그인 유저 idx에 해당하는 유저 정보 중 상대 유저 정보에 해당하는 채팅방 정보를 삭제 후 새로 저장하여 현재 채팅 중인 채팅방을 최신 상태로 유지한다.
 			mongoUtil.enterDeleteAndInsertChatRoom(loginIdx, Users.ChatRoomList.toEntity(id, userDTO));
+			// 조회한 채팅방 페이지 유저 정보 DTO중 이름을 바인딩한다.
+			model.addAttribute("userName", userDTO.getName());
 
 			// 채팅방 아이디에 해당하는 채팅방 정보에서 상대 메시지 상태 중 안 읽음 상태를 읽음 상태로 갱신하고, 갱신한 메시지를 모두 조회하여 리스트로 가져온다.
 			List<ChatRooms.ChatMessageList> chatMessageList = mongoUtil.findAllChatMessageList(id, idx);
@@ -508,7 +512,7 @@ public class ChatController {
 				// 로그인 유저 idx에 해당하는 입장 체크용 세션 값이 입장하는 채팅방 아이디와 같은지 체크한다.
 				// 채팅방 아이디가 같은 경우
 				if ( session.getAttribute(String.valueOf(idx)).equals(id) ) {
-					// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여, 새로고침 체크용 Map에 추가한다.
+					// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 새로고침 체크 값으로 사용하여, 새로고침 체크용 Map에 추가한다.
 					reEnterCheck.put(loginIdx, id);
 					// 입장 체크용 값으로 세션 값을 바인딩한다.
 					model.addAttribute("entryCheck", session.getAttribute(String.valueOf(idx)));

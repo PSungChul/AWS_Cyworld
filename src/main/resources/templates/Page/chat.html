@@ -83,22 +83,22 @@
 						<!-- 로그인 유저 idx -->
 						<input id="loginIdx" type="hidden" th:value="${loginIdx}">
 						<!-- 홈 탭 -->
-						<label for="tab1" id="btn1">홈</label>
+						<label class="tabLabel" for="tab1" id="btn1">홈</label>
 						<input id="tab1" type="button" value="홈" style="display: none;" th:onclick="|location.href='@{/main/{idx}(idx=${loginIdx})}'|">
 						<!-- 프로필 탭 -->
-						<label for="tab2" id="btn2">프로필</label>
+						<label class="tabLabel" for="tab2" id="btn2">프로필</label>
 						<input id="tab2" type="button" value="프로필" style="display: none;" onclick="profile(this.form);">
 						<!-- 다이어리 탭 -->
-						<label for="tab3" id="btn3">다이어리</label>
+						<label class="tabLabel" for="tab3" id="btn3">다이어리</label>
 						<input id="tab3" type="button" value="다이어리" style="display: none;" th:onclick="|location.href='@{/diary/{idx}(idx=${loginIdx})}'|">
 						<!-- 사진첩 탭 -->
-						<label for="tab4" id="btn4">사진첩</label>
+						<label class="tabLabel" for="tab4" id="btn4">사진첩</label>
 						<input id="tab4" type="button" value="사진첩" style="display: none;" th:onclick="|location.href='@{/gallery/{idx}(idx=${loginIdx})}'|">
 						<!-- 방명록 탭 -->
-						<label for="tab5" id="btn5">방명록</label>
+						<label class="tabLabel" for="tab5" id="btn5">방명록</label>
 						<input id="tab5" type="button" value="방명록" style="display: none;" th:onclick="|location.href='@{/guestbook/{idx}(idx=${loginIdx})}'|">
 						<!-- 채팅 탭 -->
-						<label for="tab6" id="btn6">채팅</label>
+						<label class="tabLabel" for="tab6" id="btn6">채팅</label>
 						<input id="tab6" type="button" value="채팅" style="display: none;" th:onclick="|location.href='@{/chat/{idx}(idx=${loginIdx})}'|">
 					</div>
 				</form>

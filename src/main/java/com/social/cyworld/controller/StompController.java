@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Controller
@@ -39,7 +42,11 @@ public class StompController {
 	// 채팅방 유저 정보 Map
 	Map<Integer, List<HashMap<String, Object>>> chatRoomMap = new ConcurrentHashMap<>();
 	// 첫 메시지 체크용 Map
-	Map<Integer, Integer> messageCheck = new HashMap<>();
+	Map<Integer, Integer> messageCheckMap = new ConcurrentHashMap<>();
+	// 영상 통화 신청 Map
+	Map<String, Map<Integer, String>> videoMap = new ConcurrentHashMap<>();
+	// 영상 통화 신청 체크용 Map
+	Map<String, String> videoCheckMap = new ConcurrentHashMap<>();
 
 	// Client에서 전송한 SEND 요청을 처리
 	// @MessageMapping - 클라이언트에서 요청을 보낸 URI 에 대응하는 메소드로 연결을 해주는 역할을 한다.
@@ -48,7 +55,7 @@ public class StompController {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 채팅방 첫 입장
 	@MessageMapping(value = "/chat/enter")
-	public void enterStudyRoom(ChatMessageDTO message) { // 클라이언트로부터 전송된 첫 입장 정보들을 DTO로 받아온다.
+	public void enterChatRoom(ChatMessageDTO message) { // 클라이언트로부터 전송된 첫 입장 정보들을 DTO로 받아온다.
 		// 채팅방 유저 정보 List를 생성한다.
 		List<HashMap<String, Object>> userList = new ArrayList<>();
 
@@ -98,6 +105,15 @@ public class StompController {
 		} else {
 			// 채팅방 아이디에 해당하는 참여자 수를 1 증가시킨다.
 			participantsMap.get(message.getId()).incrementAndGet();
+
+			// 영상 통화 신청 Map에 채팅방 아이디 키가 존재하는지 체크한다.
+			// 채팅방 아이디 키가 존재하는 경우
+			if (videoMap.containsKey(message.getId())) {
+				// 메시지 DTO 중 로그인 유저 idx에 상대 유저 idx를 setter를 통해 전달한다.
+				message.setIdx(message.getUserIdx());
+				// 메시지 DTO 중 메시지 내용에 영상 통화 신청을 의미하는 "apply"를 setter를 통해 전달한다.
+				message.setContent("apply");
+			}
 		}
 
 		// 메시지 DTO 중 참여자 수에 참여자 수 체크용 Map에서 채팅방 아이디에 해당하는 참여자 수를 가져와 setter를 통해 전달한다.
@@ -109,25 +125,159 @@ public class StompController {
 		template.convertAndSend("/sub/chat/" + message.getId(), message);
 	}
 
+	// 채팅방 첫 입장 이후 재입장 - 첫 입장 이후 모든 재입장은 이곳으로 들어온다.
+	@MessageMapping(value = "/chat/reenter")
+	public void reEnterChatRoom(ChatMessageDTO message) { // 클라이언트로부터 전송된 재입장(새로고침) 정보들을 DTO로 받아온다.
+		// 채팅방 유저 정보 Map에 로그인 유저 idx 키가 존재하는지 체크한다.
+		// 로그인 유저 idx 키가 존재하지 않는 경우 - 첫 입장 에러
+		if (!chatRoomMap.containsKey(message.getIdx())) {
+			// 첫 입장 에러로 다시 첫 입장 메소드에 메시지 DTO를 가지고 이동한다.
+			enterChatRoom(message);
+		// 로그인 유저 idx 키가 존재하는 경우 - 정상
+		} else {
+			// 영상 통화 신청 Map에 채팅방 아이디 키가 존재하는지 체크한다.
+			// 채팅방 아이디 키가 존재하는 경우
+			if (videoMap.containsKey(message.getId())) {
+				// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에 로그인 유저 idx 키가 존재하는지 체크한다.
+				// 로그인 유저 idx 키가 존재하지 않는 경우
+				if (!videoMap.get(message.getId()).containsKey(message.getIdx())) {
+					// 메시지 DTO 중 로그인 유저 idx에 상대 유저 idx를 setter를 통해 전달한다.
+					message.setIdx(message.getUserIdx());
+				}
+
+				// 메시지 DTO 중 메시지 내용에 영상 통화 신청을 의미하는 "apply"를 setter를 통해 전달한다.
+				message.setContent("apply");
+			}
+		}
+
+		// SimpMessagingTemplate를 통해 해당 path를 SUBSCRIBE하는 Client에게 파라미터로 받아온 메시지 DTO를 다시 전달한다.
+		// path : StompWebSocketConfig에서 설정한 enableSimpleBroker와 DTO를 전달할 경로와 파라미터로 받아온 메시지 DTO 중 채팅방 아이디가 병합된다.
+		// "/sub" + "/chat/" + id = "/sub/chat/1"
+		template.convertAndSend("/sub/chat/" + message.getId(), message);
+	}
+
+	// 채팅방 영상 통화
+	@MessageMapping(value = "/chat/video")
+	public void videoChatRoom(ChatMessageDTO message) { // 클라이언트로부터 전송된 채팅 정보들을 DTO로 받아온다.
+		// 메시지 내용이 존재하는지 체크한다.
+		// 메시지 내용이 존재하지 않는 경우
+		if ( message.getContent() == null ) {
+			// 영상 통화 신청 Map에 채팅방 아이디 키가 존재하는지 체크한다.
+			// 채팅방 아이디 키가 존재하지 않는 경우
+			if (!videoMap.containsKey(message.getId())) {
+				// 채팅방 아이디 + ":" + 현재 시간으로 영상 통화 아이디를 생성한다.
+				String videoId = message.getId() + ":" + System.currentTimeMillis();
+				// 영상 통화 신청자 Map을 생성한다.
+				Map<Integer, String> videoApplyMap = new ConcurrentHashMap<>();
+				// 로그인 유저 idx를 키로 사용하고, 생성한 영상 통화 아이디를 값으로 사용하여, 영상 통화 신청자 Map에 추가한다.
+				videoApplyMap.put(message.getIdx(), videoId);
+				// 채팅방 아이디를 키로 사용하고, 생성한 영상 통화 아이디를 값으로 사용하여, 영상 통화 신청 Map에 추가한다.
+				videoMap.put(message.getId(), videoApplyMap);
+
+				// 60초 후에 실행할 작업을 정의한다.
+				Runnable sendDelayedMessage = () -> {
+					// 영상 통화 신청 체크용 Map에 생성한 영상 통화 아이디 키가 존재하는지 체크한다.
+					// 영상 통화 아이디 키가 존재하는 경우
+					if (videoCheckMap.containsKey(videoId)) {
+						// 영상 통화 신청 체크용 Map에서 영상 통화 아이디에 해당하는 영상 통화 신청 체크 값을 삭제한다.
+						videoCheckMap.remove(videoId);
+					// 영상 통화 아이디 키가 존재하지 않는 경우
+					} else {
+						// 영상 통화 신청 Map에 채팅방 아이디 키가 존재하는지 체크한다.
+						// 채팅방 아이디 키가 존재하는 경우
+						if (videoMap.containsKey(message.getId())) {
+							// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에 로그인 유저 idx 키가 존재하는지 체크한다.
+							// 로그인 유저 idx 키가 존재하는 경우
+							if (videoMap.get(message.getId()).containsKey(message.getIdx())) {
+								// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에서 로그인 유저 idx에 해당하는 영상 통화 아이디가 생성한 영상 통화 아아디와 일치하는지 체크한다.
+								// 영상 통화 아이디가 일치하는 경우
+								if (videoMap.get(message.getId()).get(message.getIdx()).equals(videoId)) {
+									// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map을 삭제한다.
+									videoMap.remove(message.getId());
+
+									// 메시지 DTO 중 메시지 내용에 영상 통화 신청 시간 초과를 의미하는 "timeout"을 setter를 통해 전달한다.
+									message.setContent("timeout");
+
+									// SimpMessagingTemplate를 통해 해당 path를 SUBSCRIBE하는 Client에게 메시지 파라미터로 받아온 메시지 DTO를 다시 전달한다.
+									// path : StompWebSocketConfig에서 설정한 enableSimpleBroker와 DTO를 전달할 경로와 파라미터로 받아온 메시지 DTO 중 채팅방 아이디가 병합된다.
+									// "/sub" + "/chat/" + id = "/sub/chat/1"
+									template.convertAndSend("/sub/chat/" + message.getId(), message);
+								}
+							}
+						}
+					}
+				};
+
+				// ScheduledExecutorService를 생성한다.
+				ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+				// 생성한 ScheduledExecutorService로 60초 후에 정의한 작업을 실행한다.
+				scheduler.schedule(sendDelayedMessage, 60, TimeUnit.SECONDS);
+
+				// 메시지 DTO 중 메시지 내용에 영상 통화 신청을 의미하는 "apply"를 setter를 통해 전달한다.
+				message.setContent("apply");
+
+				// SimpMessagingTemplate를 통해 해당 path를 SUBSCRIBE하는 Client에게 메시지 파라미터로 받아온 메시지 DTO를 다시 전달한다.
+				// path : StompWebSocketConfig에서 설정한 enableSimpleBroker와 DTO를 전달할 경로와 파라미터로 받아온 메시지 DTO 중 채팅방 아이디가 병합된다.
+				// "/sub" + "/chat/" + id = "/sub/chat/1"
+				template.convertAndSend("/sub/chat/" + message.getId(), message);
+			}
+		// 메시지 내용이 존재하는 경우
+		} else {
+			// 메시지 내용을 체크한다.
+			// 메시지 내용이 "accept"인 경우
+			if ( message.getContent().equals("accept") ) {
+				// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에서 상대 유저 idx에 해당하는 영상 통화 아이디를 키로 사용하고, 채팅방 아이디를 영상 통화 신청 체크 값으로 사용하여 영상 통화 신청 체크용 Map에 추가한다.
+				videoCheckMap.put(videoMap.get(message.getId()).get(message.getUserIdx()), message.getId());
+				// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map을 삭제한다.
+				videoMap.remove(message.getId());
+
+				// SimpMessagingTemplate를 통해 해당 path를 SUBSCRIBE하는 Client에게 메시지 파라미터로 받아온 메시지 DTO를 다시 전달한다.
+				// path : StompWebSocketConfig에서 설정한 enableSimpleBroker와 DTO를 전달할 경로와 파라미터로 받아온 메시지 DTO 중 채팅방 아이디가 병합된다.
+				// "/sub" + "/chat/" + id = "/sub/chat/1"
+				template.convertAndSend("/sub/chat/" + message.getId(), message);
+			// 메시지 내용이 "refuse"인 경우
+			} else if ( message.getContent().equals("refuse") ) {
+				// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에 로그인 유저 idx 키가 존재하는지 체크한다.
+				// 로그인 유저 idx 키가 존재하는 경우 - 신청자에 의한 통화 취소
+				if (videoMap.get(message.getId()).containsKey(message.getIdx())) {
+					// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에서 로그인 유저 idx에 해당하는 영상 통화 아이디를 키로 사용하고, 채팅방 아이디를 영상 통화 신청 체크 값으로 사용하여 영상 통화 신청 체크용 Map에 추가한다.
+					videoCheckMap.put(videoMap.get(message.getId()).get(message.getIdx()), message.getId());
+				// 로그인 유저 idx 키가 존재하지 않는 경우 - 수신자에 의한 거절
+				} else {
+					// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에서 상대 유저 idx에 해당하는 영상 통화 아이디를 키로 사용하고, 채팅방 아이디를 영상 통화 신청 체크 값으로 사용하여 영상 통화 신청 체크용 Map에 추가한다.
+					videoCheckMap.put(videoMap.get(message.getId()).get(message.getUserIdx()), message.getId());
+				}
+
+				// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map을 삭제한다.
+				videoMap.remove(message.getId());
+
+				// SimpMessagingTemplate를 통해 해당 path를 SUBSCRIBE하는 Client에게 메시지 파라미터로 받아온 메시지 DTO를 다시 전달한다.
+				// path : StompWebSocketConfig에서 설정한 enableSimpleBroker와 DTO를 전달할 경로와 파라미터로 받아온 메시지 DTO 중 채팅방 아이디가 병합된다.
+				// "/sub" + "/chat/" + id = "/sub/chat/1"
+				template.convertAndSend("/sub/chat/" + message.getId(), message);
+			}
+		}
+	}
+
 	// 채팅방 채팅
 	@MessageMapping(value = "/chat/message")
-	public void messageStudyRoom(ChatMessageDTO message) { // 클라이언트로부터 전송된 채팅 정보들을 DTO로 받아온다.
+	public void messageChatRoom(ChatMessageDTO message) { // 클라이언트로부터 전송된 채팅 정보들을 DTO로 받아온다.
 		// 첫 메시지 체크용 Map에 첫 메시지 체크 값이 존재하는지 체크한다.
 		// 첫 메시지 체크 값이 존재하지 않는 경우
-		if ( messageCheck.get(message.getIdx()) == null ) {
+		if ( messageCheckMap.get(message.getIdx()) == null ) {
 			// 채팅방 아이디에 해당하는 채팅방 정보가 존재하는지 체크하여 존재하지 않는다면 저장한다.
 			mongoUtil.insertFirstChatMessage(message.getId());
-			// 채팅방 아이디를 키로 사용하고, 1을 값으로 사용하여, 첫 메시지 체크용 Map에 추가한다.
-			messageCheck.put(message.getIdx(), 1);
+			// 채팅방 아이디를 키로 사용하고, 1을 첫 메시지 체크 값으로 사용하여, 첫 메시지 체크용 Map에 추가한다.
+			messageCheckMap.put(message.getIdx(), 1);
 
 			// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
-			// 채팅방 정보가 존재하는 경우
+			// 로그인 유저 idx에 해당하는 채팅방 정보가 존재하는 경우
 			if ( chatController.enterCheckMap.get(message.getIdx()) != null ) {
 				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 정보를 삭제한다.
 				chatController.enterCheckMap.remove(message.getIdx());
 
 				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 상대 유저 정보 Map에 상대 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
-				// 채팅방 정보가 존재하는 경우
+				// 상대 유저 idx에 해당하는 채팅방 정보가 존재하는 경우
 				if ( chatController.enterCheckMap.get((int) chatRoomMap.get(message.getIdx()).get(1).get("idx")) != null ) {
 					// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 상대 유저 정보 Map에서 상대 유저 idx에 해당하는 채팅방 정보를 삭제한다.
 					chatController.enterCheckMap.remove((int) chatRoomMap.get(message.getIdx()).get(1).get("idx"));
@@ -176,7 +326,7 @@ public class StompController {
 
 	// 스터디룸 녹음
 	@MessageMapping(value = "/chat/record")
-	public void recordStudyRoom(@Payload String recordFile, SimpMessageHeaderAccessor accessor) { // 클라이언트로부터 전송된 녹음된 오디오 데이터를 @Payload로 받아온다.
+	public void recordChatRoom(@Payload String recordFile, SimpMessageHeaderAccessor accessor) { // 클라이언트로부터 전송된 녹음된 오디오 데이터를 @Payload로 받아온다.
 		/***************************************************************************************************************
 		 @Payload - Spring 프레임워크에서 메시지 페이로드를 메소드 파라미터와 매핑할 때 사용되는 어노테이션이다.
 		 			@Payload가 붙은 파라미터는 메시지 페이로드 자체를 나타내며, Spring은 메시지 변환기(MessageConverter)를 사용하여 해당 객체로 변환한다.
@@ -194,20 +344,20 @@ public class StompController {
 
 		// 첫 메시지 체크용 Map에 첫 메시지 체크 값이 존재하는지 체크한다.
 		// 첫 메시지 체크 값이 존재하지 않는 경우
-		if ( messageCheck.get(idx) == null ) {
+		if ( messageCheckMap.get(idx) == null ) {
 			// 채팅방 아이디에 해당하는 채팅방 정보가 존재하는지 체크하여 존재하지 않는다면 저장한다.
 			mongoUtil.insertFirstChatMessage(id);
-			// 채팅방 아이디를 키로 사용하고, 1을 값으로 사용하여, 첫 메시지 체크용 Map에 추가한다.
-			messageCheck.put(idx, 1);
+			// 채팅방 아이디를 키로 사용하고, 1을 첫 메시지 체크 값으로 사용하여, 첫 메시지 체크용 Map에 추가한다.
+			messageCheckMap.put(idx, 1);
 
 			// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
-			// 채팅방 정보가 존재하는 경우
+			// 로그인 유저 idx에 해당하는 채팅방 정보가 존재하는 경우
 			if ( chatController.enterCheckMap.get(idx) != null ) {
 				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 정보를 삭제한다.
 				chatController.enterCheckMap.remove(idx);
 
 				// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 상대 유저 정보 Map에 상대 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
-				// 채팅방 정보가 존재하는 경우
+				// 상대 유저 idx에 해당하는 채팅방 정보가 존재하는 경우
 				if ( chatController.enterCheckMap.get((int) chatRoomMap.get(idx).get(1).get("idx")) != null ) {
 					// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에서 로그인 유저 idx에 해당하는 채팅방 유저 정보 List 중 상대 유저 정보 Map에서 상대 유저 idx에 해당하는 채팅방 정보를 삭제한다.
 					chatController.enterCheckMap.remove((int) chatRoomMap.get(idx).get(1).get("idx"));
@@ -228,7 +378,7 @@ public class StompController {
 		/***************************************************************************************************************
 		 setLeaveMutable(true) - SimpMessageHeaderAccessor 객체가 생성될 때 생성되는 내부 MessageHeaders 객체를 변경 가능하게 설정하는 메소드이다.
 		 MessageHeaders 객체에는 메시지 헤더와 관련된 정보가 들어있으며, 이 정보들을 변경할 수 있도록 하기 위해 setLeaveMutable() 메소드를 호출하여 변경 가능하게 설정한다.
-		 이후 SimpMessageHeaderAccessor 객체를 사용하여 메시지 헤더에 정보를 추가하거나 제거할 수 있다.
+		 이후 SimpMessageHeaderAccessor 객체를 사용하여 메시지 헤더에 정보를 추가하거나 삭제할 수 있다.
 		 ***************************************************************************************************************/
 		headers.setLeaveMutable(true);
 
@@ -278,7 +428,7 @@ public class StompController {
 
 	// 채팅방 퇴장
 	@MessageMapping(value = "/chat/exit")
-	public void exitStudyRoom(ChatMessageDTO message) { // 클라이언트로부터 전송된 퇴장 정보들을 DTO로 받아온다.
+	public void exitChatRoom(ChatMessageDTO message) { // 클라이언트로부터 전송된 퇴장 정보들을 DTO로 받아온다.
 		/***************************************************************************************************************
 		 새로고침이 서버를 거치는 순서가 ChatController의 채팅방 입장 메소드를 통해 재입장을 한 뒤에 여기 StompController의 채팅방 퇴장 메소드에 도달한다.
 		 이를 이용하여 새로고침으로 재입장할때 입장 메소드에서 새로고침 체크 값을 넣어두면 여기서 확인이 가능하기에,
@@ -289,7 +439,7 @@ public class StompController {
 		// ChatController에 존재하는 새로고침 체크용 Map에 로그인 유저 idx에 해당하는 새로고침 체크 값이 존재하는지 체크한다.
 		// 새로고침 체크 값이 존재하는 경우 - 재입장
 		if ( chatController.reEnterCheck.get(message.getIdx()) != null ) {
-			// ChatController에 존재하는 새로고침 체크용 Map에서 로그인 유저 idx에 해당하는 새로고침 체크 값을 제거해 다시 새로고침 할 경우 새로고침 체크 값을 받을 수 있게 만든다.
+			// ChatController에 존재하는 새로고침 체크용 Map에서 로그인 유저 idx에 해당하는 새로고침 체크 값을 삭제해 다시 새로고침 할 경우 새로고침 체크 값을 받을 수 있게 만든다.
 			chatController.reEnterCheck.remove(message.getIdx());
 		// 새로고침 체크 값이 존재하지 않는 경우 - 퇴장
 		} else {
@@ -300,6 +450,32 @@ public class StompController {
 			} else {
 				// 메시지 DTO 중 참여자 수에 참여자 수 체크용 Map에서 채팅방 아이디에 해당하는 참여자 수를 가져와 setter를 통해 전달한다.
 				message.setParticipants(participantsMap.get(message.getId()).get());
+			}
+
+			// 영상 통화 신청 Map에 채팅방 아이디 키가 존재하는지 체크한다.
+			// 채팅방 아이디 키가 존재하는 경우
+			if (videoMap.containsKey(message.getId())) {
+				// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에 로그인 유저 idx 키가 존재하는지 체크한다.
+				// 로그인 유저 idx 키가 존재하는 경우 - 신청자
+				if (videoMap.get(message.getId()).containsKey(message.getIdx())) {
+					// 영상 통화 신청 체크용 Map에 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에서 로그인 유저 idx에 해당하는 영상 통화 아이디가 키로 존재하는지 체크한다.
+					// 영상 통화 아이디가 키로 존재하는 경우
+					if (videoCheckMap.containsKey(videoMap.get(message.getId()).get(message.getIdx()))) {
+						// 영상 통화 신청 체크용 Map에서 영상 통화 아이디에 해당하는 영상 통화 신청 체크 값을 삭제한다.
+						videoCheckMap.remove(videoMap.get(message.getId()).get(message.getIdx()));
+					}
+
+					// 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map을 삭제한다.
+					videoMap.remove(message.getId());
+				// 로그인 유저 idx 키가 존재하지 않는 경우 - 수신자
+				} else {
+					// 영상 통화 신청 체크용 Map에 영상 통화 신청 Map에서 채팅방 아이디에 해당하는 영상 통화 신청자 Map에서 상대 유저 idx에 해당하는 영상 통화 아이디가 키로 존재하는지 체크한다.
+					// 영상 통화 아이디가 키로 존재하는 경우
+					if (videoCheckMap.containsKey(videoMap.get(message.getId()).get(message.getUserIdx()))) {
+						// 영상 통화 신청 체크용 Map에서 영상 통화 아이디에 해당하는 영상 통화 신청 체크 값을 삭제한다.
+						videoCheckMap.remove(videoMap.get(message.getId()).get(message.getIdx()));
+					}
+				}
 			}
 
 			// ChatController에 존재하는 채팅방 첫 입장 체크용 Map에 로그인 유저 idx에 해당하는 채팅방 정보가 존재하는지 체크한다.
@@ -318,9 +494,9 @@ public class StompController {
 
 			// 첫 메시지 체크용 Map에 첫 메시지 체크 값이 존재하는지 체크한다.
 			// 첫 메시지 체크 값이 존재하지 않는 경우
-			if ( messageCheck.get(message.getIdx()) != null ) {
+			if ( messageCheckMap.get(message.getIdx()) != null ) {
 				// 첫 메시지 체크용 Map에서 로그인 유저 idx에 해당하는 첫 메시지 체크 값을 삭제한다.
-				messageCheck.remove(message.getIdx());
+				messageCheckMap.remove(message.getIdx());
 			}
 
 			// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여, 퇴장 체크용 Map에 추가한다.

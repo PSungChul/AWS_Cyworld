@@ -1,19 +1,20 @@
+let videoBtnArea = document.getElementById("videoBtnArea"); // 영상 통화 버튼 구역
+let chatArea = document.getElementById("chatArea"); // 채팅 구역
+let message = document.getElementById("message"); // 메시지 작성란
 //////////////////////////////////////////////////// 소켓 구역 ////////////////////////////////////////////////////
 // 1. SockJS를 생성한다. (StompWebSocketConfig에서 설정한 Endpoint와 동일하게 맞춰준다.)
 let sockJs = new SockJS("/ws/chat");
 // 2. 생성된 SockJS를 Stomp에 전달한다.
 let stomp = Stomp.over(sockJs);
+// 2-1. Stomp가 생성되면 Stomp 디버그 출력을 막는다.
+stomp.debug = null;
 
 // 3. connect가 이뤄지면 실행한다.
 stomp.connect({}, function () {
-    // connect가 이뤄지면 콘솔에 로그를 찍는다.
-    console.log("STOMP Connection");
-
     // 5. subscribe(path, callback)으로 메시지를 받을 수 있다.
     //    StompChatController에서 SimpMessagingTemplate를 통해 전달한 DTO를 여기서 콜백 메소드 파라미터로 전달 받는다.
     stomp.subscribe("/sub/chat/" + id, function (chat) {
         // 5-1. 채팅에 필요한 것들
-        let chatArea = document.getElementById("chatArea"); // 메시지가 작성될 채팅 구역
         let msg = ""; // 메시지 코드가 작성될 변수
         // 6. 5에서 전달받은 메시지의 headers에서 type 값이 "record"인지 체크한다.
         // 6-1. type 값이 "record"인 경우
@@ -154,12 +155,12 @@ stomp.connect({}, function () {
             // 7-1. 변환된 DTO를 사용하기 편하게 각각 변수에 나눠놓는다.
             let chatIdx = chatMessage.idx; // 전송자 idx
             let sender = chatMessage.sender; // 전송자 닉네임
-            let content = chatMessage.content; // 메시지
+            let content = chatMessage.content; // 메시지 내용
             let recipient = chatMessage.recipient; // 수신자 닉네임
             let mainPhoto = chatMessage.mainPhoto; // 프로필 사진
             let status = chatMessage.status; // 읽음 / 안 읽음 상태
             let chatParticipants = chatMessage.participants; // 참여중인 인원
-            let metaType = chatMessage.type; // 메시지 타입
+            let chatType = chatMessage.type; // 메시지 타입
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // 8. 참여중인 인원이 바뀌는 경우
             if ( participants != chatParticipants ) {
@@ -179,15 +180,152 @@ stomp.connect({}, function () {
                 }
             }
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // 10. 메시지 타입 값에 따라 나눈다.
+            // 9. 메시지 타입 값에 따라 나눈다.
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // 10-1. 메시지 타입이 "enter"일 경우
-            if ( metaType == "enter" ) {
-                // 메시지 전체 읽음 표시
+            // 9-1. 메시지 타입이 "enter" or "reEnter"인 경우
+            if ( chatType == "enter" || chatType == "reEnter" ) {
+                // 메시지가 구역을 넘어간다면 해당 구역에 스크롤이 생성되는데 스크롤을 언제나 가장 아래에 위치하게 만든다.
+                chatArea.scrollTop = chatArea.scrollHeight - chatArea.clientHeight;
+
+                // 메시지 내용이 존재하는지 체크한다.
+                // 메시지 내용이 존재하는 경우 - 영상 통화 신청 중
+                if ( content == "apply" ) {
+                    // 전송자 idx와 로그인 유저 idx가 같은지 체크한다.
+                    // 전송자 idx와 로그인 유저가 idx가 다른 경우
+                    if ( chatIdx != idx ) {
+                        // 영상 통화 버튼 구역을 비운다.
+                        videoBtnArea.innerHTML = "";
+
+                        // 수락 input 태그를 생성한다.
+                        let acceptInputTag = document.createElement("input");
+                        // 수락 input 태그의 class를 설정한다.
+                        acceptInputTag.setAttribute("class", "acceptBtn");
+                        // 수락 input 태그의 타입을 설정한다.
+                        acceptInputTag.type = "button";
+                        // 수락 input 태그의 값을 설정한다.
+                        acceptInputTag.value = "수락";
+                        // 수락 input 태그의 onclick을 설정한다.
+                        acceptInputTag.onclick = function() {
+                            accept();
+                        };
+
+                        // 거절 input 태그를 생성한다.
+                        let refuseInputTag = document.createElement("input");
+                        // 거절 input 태그의 class를 설정한다.
+                        refuseInputTag.setAttribute("class", "refuseBtn");
+                        // 거절 input 태그의 타입을 설정한다.
+                        refuseInputTag.type = "button";
+                        // 거절 input 태그의 값을 설정한다.
+                        refuseInputTag.value = "거절";
+                        // 거절 input 태그의 onclick을 설정한다.
+                        refuseInputTag.onclick = function() {
+                            refuse();
+                        };
+
+                        // 영상 통화 버튼 구역에 수락 input 태그를 올린다.
+                        videoBtnArea.appendChild(acceptInputTag);
+                        // 영상 통화 버튼 구역에 거절 input 태그를 올린다.
+                        videoBtnArea.appendChild(refuseInputTag);
+                    // 전송자 idx와 로그인 유저가 idx가 다른 경우
+                    } else {
+                        // 영상 통화 버튼 구역을 비운다.
+                        videoBtnArea.innerHTML = "";
+
+                        // 취소 input 태그를 생성한다.
+                        let cancelInputTag = document.createElement("input");
+                        // 취소 input 태그의 class를 설정한다.
+                        cancelInputTag.setAttribute("class", "videoBtn");
+                        // 취소 input 태그의 id를 설정한다.
+                        cancelInputTag.setAttribute("id", "cancelBtn");
+                        // 취소 input 태그의 타입을 설정한다.
+                        cancelInputTag.type = "button";
+                        // 취소 input 태그의 값을 설정한다.
+                        cancelInputTag.value = "통화 취소";
+                        // 취소 input 태그의 onclick을 설정한다.
+                        cancelInputTag.onclick = function() {
+                            refuse();
+                        };
+
+                        // 영상 통화 버튼 구역에 취소 input 태그를 올린다.
+                        videoBtnArea.appendChild(cancelInputTag);
+                    }
+                }
             } // enter
+            ////////////////////////////////////////////////// 영상 통화 //////////////////////////////////////////////////
+            // 9-2. 메시지 타입이 "video"인 경우
+            if ( chatType == "video" ) {
+                // 메시지 내용을 체크한다.
+                // 메시지 내용이 "apply"인 경우 - 신청
+                if ( content == "apply" ) {
+                    if ( chatIdx != idx ) {
+                        // 영상 통화 버튼 구역을 비운다.
+                        videoBtnArea.innerHTML = "";
+
+                        // 수락 input 태그를 생성한다.
+                        let acceptInputTag = document.createElement("input");
+                        // 수락 input 태그의 class를 설정한다.
+                        acceptInputTag.setAttribute("class", "acceptBtn");
+                        // 수락 input 태그의 타입을 설정한다.
+                        acceptInputTag.type = "button";
+                        // 수락 input 태그의 값을 설정한다.
+                        acceptInputTag.value = "수락";
+                        // 수락 input 태그의 onclick을 설정한다.
+                        acceptInputTag.onclick = function() {
+                            accept();
+                        };
+
+                        // 거절 input 태그를 생성한다.
+                        let refuseInputTag = document.createElement("input");
+                        // 거절 input 태그의 class를 설정한다.
+                        refuseInputTag.setAttribute("class", "refuseBtn");
+                        // 거절 input 태그의 타입을 설정한다.
+                        refuseInputTag.type = "button";
+                        // 거절 input 태그의 값을 설정한다.
+                        refuseInputTag.value = "거절";
+                        // 거절 input 태그의 onclick을 설정한다.
+                        refuseInputTag.onclick = function() {
+                            refuse();
+                        };
+
+                        // 영상 통화 버튼 구역에 수락 input 태그를 올린다.
+                        videoBtnArea.appendChild(acceptInputTag);
+                        // 영상 통화 버튼 구역에 거절 input 태그를 올린다.
+                        videoBtnArea.appendChild(refuseInputTag);
+                    }
+                }
+                // 메시지 내용이 "accept"인 경우 - 수락
+                if ( content == "accept" ) {
+                    // 전송자 idx와 로그인 유저가 idx랑 다른 경우
+                    if ( chatIdx != idx ) {
+                        // webRtc.js에 있는 영상 통화 시작 메소드를 실행한다.
+                        startVideo();
+                    }
+                }
+                // 메시지 내용이 "refuse" or "timeout"인 경우 - 거절 or 시간 초과
+                if ( content == "refuse" || content == "timeout" ) {
+                    // 영상 통화 버튼 구역을 비운다.
+                    videoBtnArea.innerHTML = "";
+
+                    // 통화 input 태그를 생성한다.
+                    let videoInputTag = document.createElement("input");
+                    // 통화 input 태그의 class를 설정한다.
+                    videoInputTag.setAttribute("class", "videoBtn");
+                    // 통화 input 태그의 타입을 설정한다.
+                    videoInputTag.type = "button";
+                    // 통화 input 태그의 값을 설정한다.
+                    videoInputTag.value = "영상 통화";
+                    // 통화 input 태그의 onclick을 설정한다.
+                    videoInputTag.onclick = function() {
+                        video();
+                    };
+
+                    // 영상 통화 버튼 구역에 통화 input 태그를 올린다.
+                    videoBtnArea.appendChild(videoInputTag);
+                }
+            }
             //////////////////////////////////////////////////// 채팅 ////////////////////////////////////////////////////
-            // 10-4. 메시지 타입이 "chat"일 경우
-            if ( metaType == "chat" ) {
+            // 9-3. 메시지 타입이 "chat"인 경우
+            if ( chatType == "chat" ) {
                 if ( chatIdx == idx ) {
                     // 메시지 코드를 작성한다.
                     msg = '<div class="chat me">';
@@ -250,8 +388,61 @@ stomp.connect({}, function () {
         //    JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
         //    여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
         stomp.send('/pub/chat/enter', {}, JSON.stringify({type: "enter", id: id, idx: idx, userIdx: userIdx}));
+    } else {
+        // 4번이 5번보다 아래에 위치한 이유 - 위에 있을경우 간혹 4번에서 전송한 메시지를 제대로 전달받지 못하는 경우가 존재한다.
+        // 4. send(path, header, message)로 입장 메시지를 전송한다. (첫 입장 이후 모든 재입장(새로고침)은 여기서 입장 메시지를 전송한다.)
+        //    JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
+        //    여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
+        stomp.send('/pub/chat/reenter', {}, JSON.stringify({type: "reEnter", id: id, idx: idx, userIdx: userIdx}));
     }
 });
+////////////////////////////////////////////////// 영상 통화 구역 //////////////////////////////////////////////////
+// 영상 통화 신청 메소드
+function video() {
+    // 영상 통화 버튼 구역을 비운다.
+    videoBtnArea.innerHTML = "";
+
+    // 취소 input 태그를 생성한다.
+    let cancelInputTag = document.createElement("input");
+    // 취소 input 태그의 class를 설정한다.
+    cancelInputTag.setAttribute("class", "videoBtn");
+    // 취소 input 태그의 id를 설정한다.
+    cancelInputTag.setAttribute("id", "cancelBtn");
+    // 취소 input 태그의 타입을 설정한다.
+    cancelInputTag.type = "button";
+    // 취소 input 태그의 값을 설정한다.
+    cancelInputTag.value = "통화 취소";
+    // 취소 input 태그의 onclick을 설정한다.
+    cancelInputTag.onclick = function() {
+        refuse();
+    };
+
+    // 영상 통화 버튼 구역에 취소 input 태그를 올린다.
+    videoBtnArea.appendChild(cancelInputTag);
+
+    // send(path, header, message)로 영상 통화 신청 메시지를 전송한다. (모든 영상 통화 신청은 여기서 메시지를 전송한다.)
+    // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
+    // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
+    stomp.send('/pub/chat/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx}));
+}
+
+// 영상 통화 수락 메소드
+function accept() {
+    // webRtc.js에 있는 영상 통화 시작 메소드를 실행한다.
+    startVideo();
+    // send(path, header, message)로 영상 통화 신청 메시지를 전송한다. (모든 영상 통화 수락은 여기서 메시지를 전송한다.)
+    // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
+    // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
+    stomp.send('/pub/chat/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx, content: 'accept'}));
+}
+
+// 영상 통화 거절 메소드
+function refuse() {
+    // send(path, header, message)로 영상 통화 신청 메시지를 전송한다. (모든 영상 통화 거절은 여기서 메시지를 전송한다.)
+    // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
+    // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
+    stomp.send('/pub/chat/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx, content: 'refuse'}));
+}
 //////////////////////////////////////////////////// 채팅 구역 ////////////////////////////////////////////////////
 // input 텍스트 태그에서 "keypress" 이벤트가 발생하면 해당 이벤트를 처리하는 콜백 메소드를 등록한다.
 // keypress - 웹 페이지에서 키보드를 눌렀을 때 발생한다.
@@ -595,5 +786,5 @@ function exit() {
     // send(path, header, message)로 퇴장 메시지를 전송한다. (퇴장할때 딱 한번만 전송한다.)
     // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
     // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
-    stomp.send('/pub/chat/exit', {}, JSON.stringify({type: "exit", id: id, idx: idx}));
+    stomp.send('/pub/chat/exit', {}, JSON.stringify({type: "exit", id: id, idx: idx, userIdx: userIdx}));
 }

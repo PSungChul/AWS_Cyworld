@@ -13,7 +13,7 @@ import java.util.HashMap;
 @ToString
 public class ChatMessageDTO {
     private String type; // 메시지 타입
-    private String id; // 방 아이디
+    private String id; // 채팅방 아이디
 
     // 로그인 유저 정보
     private int idx; // 유저 idx
