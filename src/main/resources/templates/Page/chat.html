@@ -43,20 +43,20 @@
 
 						<div class="memberBox">
 							<div class="memberInfo">
-								<!-- 채팅방 리스트 -->
+								<!-- 채팅방 목록 -->
 								<th:block th:if="${ chatRoomList ne null }">
-									<div class="chatRoomList" th:each="chat : ${chatRoomList}">
+									<div th:each="i : ${#numbers.sequence(chatRoomList.size()-1, 0, -1)}" class="chatRoomList" th:name="${ chatRoomList[i]._id }">
 										<figure>
-											<th:block th:if="${ chat.mainPhoto eq 'noImage' }">
-												<input th:id="${ chat._id }" class="userMainPhoto" type="image" th:src="@{/images/} + ${ chat.mainPhoto } + '.jpeg'" th:value="${ chat.idx }">
+											<th:block th:if="${ chatRoomList[i].mainPhoto eq 'noImage' }">
+												<input class="userMainPhoto" th:id="${ chatRoomList[i]._id }" type="image" th:src="@{/images/} + ${ chatRoomList[i].mainPhoto } + '.jpeg'" th:value="${ chatRoomList[i].idx }">
 											</th:block>
-											<th:block th:if="${ chat.mainPhoto ne 'noImage' }">
+											<th:block th:if="${ chatRoomList[i].mainPhoto ne 'noImage' }">
 												<span class="userPhoto">
-													<input th:id="${ chat._id }" class="userMainPhoto" type="image" th:src="@{/filePath/profile/} + ${ chat.mainPhoto }" th:value="${ chat.idx }">
+													<input th:id="${ chatRoomList[i]._id }" class="userMainPhoto" type="image" th:src="@{/filePath/profile/} + ${ chatRoomList[i].mainPhoto }" th:value="${ chatRoomList[i].idx }">
 												</span>
 											</th:block>
-											<span class="userName"th:text=" ${ chat.name } + ' / ' + ${ chat.email }"></span>
-											<span th:if="${ chat.unreadStatus != 0 }" class="unreadStatus" th:text="${ chat.unreadStatus }"></span>
+											<span class="userName"th:text=" ${ chatRoomList[i].name } + ' / ' + ${ chatRoomList[i].email }"></span>
+											<span th:if="${ chatRoomList[i].unreadStatus != 0 }" class="unreadStatus" th:text="${ chatRoomList[i].unreadStatus }"></span>
 										</figure>
 									</div>
 								</th:block>
@@ -109,6 +109,17 @@
 <!-- 반응형 JS -->
 <script src="/js/chatCss.js"></script>
 
+<!-- SockJS 사용을 위한 js를 추가 -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<!-- Stomp 사용을 위한 js를 추가 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<!------------------------------------------------------ 채팅 구역 ------------------------------------------------------->
+<script th:inline="javascript">
+	let idx = [[${loginIdx}]]; // 로그인 유저 idx
+	let searchCheck = 0; // 검색 체크 값
+</script>
+<script src="/js/chat.js"></script>
+
 <!-- 검색 -->
 <script th:inline="javascript">
 	function chatSearch(f) {
@@ -147,18 +158,19 @@
 					}
 				} else {
 					if ( data != null ) {
+						searchCheck = 1;
 						let memberInfo = document.querySelector(".memberInfo");
 						memberInfo.innerHTML = "";
 						data.forEach(search => {
 							let inputTag = document.createElement("input");
-							inputTag.className = "userMainPhoto"; // 클래스 설정
-							inputTag.type = "image"; // 타입 설정
+							inputTag.setAttribute("class", "userMainPhoto");
+							inputTag.type = "image";
 							if ( search.mainPhoto == "noImage" ) {
-								inputTag.src = "/images/noImage.jpeg"; // 이미지 소스 설정
+								inputTag.src = "/images/noImage.jpeg";
 							} else {
-								inputTag.src = "/filePath/profile/" + search.mainPhoto; // 이미지 소스 설정
+								inputTag.src = "/filePath/profile/" + search.mainPhoto;
 							}
-							inputTag.value = search.idx; // 값 설정
+							inputTag.value = search.idx;
 
 							let spanTag = document.createElement("span");
 							spanTag.setAttribute("class", "userName");
@@ -186,9 +198,6 @@
 	document.querySelector(".memberInfo").addEventListener("click", function(event) {
 		// userMainPhoto를 클릭한 경우
 		if (event.target.classList.contains("userMainPhoto")) {
-			console.log(event.target.value);
-			console.log(event.target.id);
-
 			if ( event.target.id == null ) {
 				location.href = "/chat/" + [[${loginIdx}]] + "/room/" + event.target.value;
 			} else {
@@ -201,9 +210,6 @@
 			let inputs = event.target.parentElement.querySelectorAll("input");
 
 			inputs.forEach(function(input) {
-				console.log(input.value);
-				console.log(input.id);
-
 				if ( input.id == null ) {
 					location.href = "/chat/" + [[${loginIdx}]] + "/room/" + input.value;
 				} else {

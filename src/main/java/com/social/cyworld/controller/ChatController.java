@@ -39,11 +39,11 @@ public class ChatController {
 	@Autowired
 	UserDTOService userDTOService;
 
-	// 채팅방 첫 입장 체크용 Map
+	// 채팅방 첫 입장 체크 Map
 	Map<Integer, List<Object>> enterCheckMap = new ConcurrentHashMap<>();
-	// 채팅방 새로고침 이후 재입장을 위한 새로고침 체크용 Map
+	// 채팅방 새로고침 이후 재입장을 위한 새로고침 체크 Map
 	Map<Integer, String> reEnterCheck = new ConcurrentHashMap<>();
-	// 채팅방 퇴장 이후 세션을 제거하기 위한 퇴장 체크용 Map
+	// 채팅방 퇴장 이후 세션을 제거하기 위한 퇴장 체크 Map
 	Map<Integer, String> exitCheckMap = new ConcurrentHashMap<>();
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 채팅 페이지
@@ -402,7 +402,7 @@ public class ChatController {
 
 			// 조회한 채팅방 정보가 존재하지 않는 경우
 			if ( user == null ) {
-				// 채팅방 첫 입장 체크용 Map에 상대 유저 idx에 해당하는 첫 입장 채팅방 정보가 존재하는지 체크한다.
+				// 채팅방 첫 입장 체크 Map에 상대 유저 idx에 해당하는 첫 입장 채팅방 정보가 존재하는지 체크한다.
 				// 첫 입장 채팅방 정보가 존재하는 경우
 				if ( enterCheckMap.get(idx) != null ) {
 					// 첫 입장 채팅방 정보 중 유저 idx가 로그인 유저 idx와 같은지 체크한다.
@@ -417,7 +417,7 @@ public class ChatController {
 						enterCheckList.add(idx);
 						// 첫 입장 채팅방 정보 List에 전달받은 채팅방 아이디를 추가한다.
 						enterCheckList.add(id);
-						// 로그인 유저 idx를 키로 사용하고, 첫 입장 채팅방 정보 List를 값으로 사용하여, 채팅방 첫 입장 체크용 Map에 추가한다.
+						// 로그인 유저 idx를 키로 사용하고, 첫 입장 채팅방 정보 List를 값으로 사용하여, 채팅방 첫 입장 체크 Map에 추가한다.
 						enterCheckMap.put(loginIdx, enterCheckList);
 
 						// 전달받은 채팅방 아이디를 가지고 다시 입장한다.
@@ -436,7 +436,7 @@ public class ChatController {
 				enterCheckList.add(idx);
 				// 첫 입장 채팅방 정보 List에 생성한 채팅방 아이디를 추가한다.
 				enterCheckList.add(id);
-				// 로그인 유저 idx를 키로 사용하고, 첫 입장 채팅방 정보 List를 값으로 사용하여, 채팅방 첫 입장 체크용 Map에 추가한다.
+				// 로그인 유저 idx를 키로 사용하고, 첫 입장 채팅방 정보 List를 값으로 사용하여, 채팅방 첫 입장 체크 Map에 추가한다.
 				enterCheckMap.put(loginIdx, enterCheckList);
 
 				// 생성한 채팅방 아이디를 가지고 다시 입장한다.
@@ -492,33 +492,33 @@ public class ChatController {
 		// 채팅방 아이디를 바인딩한다.
 		model.addAttribute("id", id);
 
-		// 세션을 가져와 입장 체크용 세션이 존재하는지 체크한다.
+		// 세션을 가져와 입장 체크 세션이 존재하는지 체크한다.
 		HttpSession session = request.getSession();
-		// 입장 체크용 세션이 존재하지 않는 경우
+		// 입장 체크 세션이 존재하지 않는 경우
 		if ( session.getAttribute(String.valueOf(idx)) == null ) {
-			// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여 입장 체크용 세션을 생성한다.
+			// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 값으로 사용하여 입장 체크 세션을 생성한다.
 			session.setAttribute(String.valueOf(idx), id);
-		// 입장 체크용 세션이 존재하는 경우
+		// 입장 체크 세션이 존재하는 경우
 		} else {
-			// 퇴장 체크용 Map에 로그인 유저 idx에 해당하는 퇴장 체크 값이 존재하는지 체크한다.
+			// 퇴장 체크 Map에 로그인 유저 idx에 해당하는 퇴장 체크 값이 존재하는지 체크한다.
 			// 퇴장 체크 값이 존재하는 경우
 			if ( exitCheckMap.get(loginIdx) != null ) {
-				// 입장 체크용 세션을 삭제한다.
+				// 입장 체크 세션을 삭제한다.
 				session.removeAttribute(String.valueOf(idx));
 				// 채팅방 아이디를 가지고 다시 입장한다.
 				return "redirect:/chat/" + loginIdx + "/room/" + idx + "?id=" + id;
 			// 퇴장 체크 값이 존재하지 않는 경우
 			} else {
-				// 로그인 유저 idx에 해당하는 입장 체크용 세션 값이 입장하는 채팅방 아이디와 같은지 체크한다.
+				// 로그인 유저 idx에 해당하는 입장 체크 세션 값이 입장하는 채팅방 아이디와 같은지 체크한다.
 				// 채팅방 아이디가 같은 경우
 				if ( session.getAttribute(String.valueOf(idx)).equals(id) ) {
-					// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 새로고침 체크 값으로 사용하여, 새로고침 체크용 Map에 추가한다.
+					// 로그인 유저 idx를 키로 사용하고, 채팅방 아이디를 새로고침 체크 값으로 사용하여, 새로고침 체크 Map에 추가한다.
 					reEnterCheck.put(loginIdx, id);
-					// 입장 체크용 값으로 세션 값을 바인딩한다.
+					// 입장 체크 값으로 세션 값을 바인딩한다.
 					model.addAttribute("entryCheck", session.getAttribute(String.valueOf(idx)));
 				// 채팅방 아이디가 다른 경우
 				} else {
-					// 입장 체크용 세션을 삭제한다.
+					// 입장 체크 세션을 삭제한다.
 					session.removeAttribute(String.valueOf(idx));
 					// 채팅방 아이디를 가지고 다시 입장한다.
 					return "redirect:/chat/" + loginIdx + "/room/" + idx + "?id=" + id;

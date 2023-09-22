@@ -13,7 +13,7 @@ stomp.debug = null;
 stomp.connect({}, function () {
     // 5. subscribe(path, callback)으로 메시지를 받을 수 있다.
     //    StompChatController에서 SimpMessagingTemplate를 통해 전달한 DTO를 여기서 콜백 메소드 파라미터로 전달 받는다.
-    stomp.subscribe("/sub/chat/" + id, function (chat) {
+    stomp.subscribe("/sub/chat/room/" + id, function (chat) {
         // 5-1. 채팅에 필요한 것들
         let msg = ""; // 메시지 코드가 작성될 변수
         // 6. 5에서 전달받은 메시지의 headers에서 type 값이 "record"인지 체크한다.
@@ -153,14 +153,19 @@ stomp.connect({}, function () {
             //    JSON.parse(변환 대상) - JSON 문자열을 JavaScript 값이나 객체로 변환한다.
             let chatMessage = JSON.parse(chat.body);
             // 7-1. 변환된 DTO를 사용하기 편하게 각각 변수에 나눠놓는다.
-            let chatIdx = chatMessage.idx; // 전송자 idx
-            let sender = chatMessage.sender; // 전송자 닉네임
-            let content = chatMessage.content; // 메시지 내용
-            let recipient = chatMessage.recipient; // 수신자 닉네임
-            let mainPhoto = chatMessage.mainPhoto; // 프로필 사진
-            let status = chatMessage.status; // 읽음 / 안 읽음 상태
             let chatParticipants = chatMessage.participants; // 참여중인 인원
             let chatType = chatMessage.type; // 메시지 타입
+            let chatId = chatMessage.id; // 채팅방 아이디
+            let content = chatMessage.content; // 메시지 내용
+            let status = chatMessage.status; // 읽음 / 안 읽음 상태
+            let chatUnreadStatus = chatMessage.unreadStatus; // 안 읽은 메시지 수
+            let chatIdx = chatMessage.idx; // 전송자 idx
+            let sender = chatMessage.sender; // 전송자 이름
+            let chatMainPhoto = chatMessage.mainPhoto; // 전송자 프로필 사진
+            let chatUserIdx = chatMessage.userIdx; // 수신자 idx
+            let userSender = chatMessage.userSender; // 수신자 이름
+            let chatUserEmail = chatMessage.userEmail; // 수신자 이메일
+            let chatUserMainPhoto = chatMessage.userMainPhoto; // 수신자 메인 사진
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // 8. 참여중인 인원이 바뀌는 경우
             if ( participants != chatParticipants ) {
@@ -181,7 +186,7 @@ stomp.connect({}, function () {
             }
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // 9. 메시지 타입 값에 따라 나눈다.
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////// 입장 or 재입장 ////////////////////////////////////////////////
             // 9-1. 메시지 타입이 "enter" or "reEnter"인 경우
             if ( chatType == "enter" || chatType == "reEnter" ) {
                 // 메시지가 구역을 넘어간다면 해당 구역에 스크롤이 생성되는데 스크롤을 언제나 가장 아래에 위치하게 만든다.
@@ -257,6 +262,8 @@ stomp.connect({}, function () {
                 // 메시지 내용을 체크한다.
                 // 메시지 내용이 "apply"인 경우 - 신청
                 if ( content == "apply" ) {
+                    // 전송자 idx와 로그인 유저 idx가 같은지 체크한다.
+                    // 전송자 idx와 로그인 유저가 idx가 다른 경우
                     if ( chatIdx != idx ) {
                         // 영상 통화 버튼 구역을 비운다.
                         videoBtnArea.innerHTML = "";
@@ -326,6 +333,8 @@ stomp.connect({}, function () {
             //////////////////////////////////////////////////// 채팅 ////////////////////////////////////////////////////
             // 9-3. 메시지 타입이 "chat"인 경우
             if ( chatType == "chat" ) {
+                // 전송자 idx와 로그인 유저 idx가 같은지 체크한다.
+                // 전송자 idx와 로그인 유저가 idx가 같은 경우
                 if ( chatIdx == idx ) {
                     // 메시지 코드를 작성한다.
                     msg = '<div class="chat me">';
@@ -342,13 +351,14 @@ stomp.connect({}, function () {
                     chatArea.insertAdjacentHTML("beforeend", msg);
                     // 메시지가 구역을 넘어간다면 해당 구역에 스크롤이 생성되는데 스크롤을 언제나 가장 아래에 위치하게 만든다.
                     chatArea.scrollTop = chatArea.scrollHeight - chatArea.clientHeight;
+                // 전송자 idx와 로그인 유저가 idx가 다른 경우
                 } else {
                     // 메시지 코드를 작성한다.
                     msg = '<div class="chat you">';
-                    if ( mainPhoto == "noImage" ) {
-                        msg += '<img class="chatImg" src="/images/' + mainPhoto + '.jpeg" alt="">';
+                    if ( chatMainPhoto == "noImage" ) {
+                        msg += '<img class="chatImg" src="/images/' + chatMainPhoto + '.jpeg" alt="">';
                     } else {
-                        msg += '<img class="chatImg" src="/filePath/profile/' + mainPhoto + '" alt="">';
+                        msg += '<img class="chatImg" src="/filePath/profile/' + chatMainPhoto + '" alt="">';
                     }
                     msg += '<b class="chatMsg">' + sender + ': ' + content + '</b>';
                     msg += '<span class="youStatus">' + status + '</span>'
@@ -365,6 +375,90 @@ stomp.connect({}, function () {
                     chatArea.scrollTop = chatArea.scrollHeight - chatArea.clientHeight;
                 }
             } // chat
+            ///////////////////////////////////////////////// 채팅방 상태 /////////////////////////////////////////////////
+            // 9-4 메시지 타입이 "status"인 경우
+            if ( chatType == "status" ) {
+                // 전송자 idx와 로그인 유저 idx가 같은지 체크한다.
+                // 전송자 idx와 로그인 유저가 idx가 같은 경우
+                if ( chatIdx == idx ) {
+                    // 검색 체크 값으로 검색 중인지 체크한다.
+                    // 검색 중이지 않은 경우
+                    if ( searchCheck == 0 ) {
+                        // 채팅방 목록 구역을 가져온다.
+                        let memberInfo = document.querySelector(".memberInfo");
+
+                        // 채팅방 아이디에 해당하는 채팅방 요소를 가져와 존재하는지 체크한다.
+                        let chatRoom = document.getElementsByName(chatId)[0];
+                        // 가져온 채팅방 요소가 존재하는 경우
+                        if ( chatRoom != null ) {
+                            // 가져온 채팅방 요소를 삭제한다.
+                            chatRoom.remove();
+                        }
+
+                        // input 태그를 생성한다.
+                        let inputTag = document.createElement("input");
+                        // input 태그의 class를 설정한다.
+                        inputTag.setAttribute("class", "userMainPhoto");
+                        // input 태그의 id를 설정한다.
+                        inputTag.setAttribute("id", chatId);
+                        // input 태그의 타입을 설정한다.
+                        inputTag.type = "image";
+                        // 상대 유저 메인 사진이 존재하는지 체크한다.
+                        // 메인 사진이 존재하지 않는 경우
+                        if ( chatUserMainPhoto == "noImage" ) {
+                            // input 태그의 src를 기본 메인 사진으로 설정한다.
+                            inputTag.src = "/images/noImage.jpeg";
+                        // 메인 사진이 존재하는 경우
+                        } else {
+                            // input 태그의 src를 상대 유저 메인 사진으로 설정한다.
+                            inputTag.src = "/filePath/profile/" + chatUserMainPhoto;
+                        }
+                        // input 태그의 값을 설정한다.
+                        inputTag.value = chatUserIdx;
+
+                        // 위쪽 span 태그를 생성한다.
+                        let topSpanTag = document.createElement("span");
+                        // 위쪽 span 태그의 class를 설정한다.
+                        topSpanTag.setAttribute("class", "userName");
+                        // 위쪽 span 태그의 내용을 작성한다.
+                        topSpanTag.innerHTML = userSender + " / " + chatUserEmail;
+
+                        // 아래쪽 span 태그를 생성한다.
+                        let bottomSpanTag = document.createElement("span");
+                        // 아래쪽 span 태그의 class를 설정한다.
+                        bottomSpanTag.setAttribute("class", "unreadStatus");
+                        // 아래쪽 span 태그의 내용을 작성한다.
+                        bottomSpanTag.innerHTML = chatUnreadStatus;
+
+                        // figure 태그를 생성한다.
+                        let figureTag = document.createElement("figure");
+                        // figure 태그에 input 태그를 전달한다.
+                        figureTag.appendChild(inputTag);
+                        // figure 태그에 위쪽 span 태그를 전달한다.
+                        figureTag.appendChild(topSpanTag);
+                        // figure 태그에 아래쪽 span 태그를 전달한다.
+                        figureTag.appendChild(bottomSpanTag);
+
+                        // div 태그를 생성한다.
+                        let divTag = document.createElement("div");
+                        // div 태그의 class를 설정한다.
+                        divTag.setAttribute("class", "chatRoomList");
+                        // div 태그의 name을 채팅방 아이디로 설정한다.
+                        divTag.setAttribute("name", chatId);
+                        // div 태그에 figure 태그를 전달한다.
+                        divTag.appendChild(figureTag);
+
+                        // 새로 생성한 채팅방 요소를 채팅방 목록 구역에 올린다.
+                        // insertAdjacentHTML( position, html ) - position에 따른 위치에 html 요소를 추가 한다.
+                        // position에는 총 4가지의 옵션이 있다.
+                        // 1. beforebegin : 타겟 요소 전(형제 요소)에 생성한다. - 시작 태그의 앞 (형제 요소)
+                        // 2. afterbegin : 타겟 요소 다음(자식 요소)에 생성한다. - 시작 태그의 뒤 (자식 요소)
+                        // 3. beforeend : 타겟 요소 '끝나는 태그' 바로 직전(자식 요소)에 요소를 생성한다. - 종료 태그 앞 (자식 요소)
+                        // 4. afterend : 타겟 요소의 '끝나는 태그' 바로 다음(형제 요소)에 요소를 생성한다. - 종료 태그 뒤 (형제 요소)
+                        memberInfo.insertAdjacentHTML("afterbegin", divTag.outerHTML);
+                    }
+                }
+            } // status
         } // record
     }); // stomp
     ////////////////////////////////////////////////// 입장 구역 //////////////////////////////////////////////////
@@ -387,13 +481,13 @@ stomp.connect({}, function () {
         // 4. send(path, header, message)로 입장 메시지를 전송한다. (첫 입장할때 딱 한번만 여기서 입장 메시지를 전송한다.)
         //    JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
         //    여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
-        stomp.send('/pub/chat/enter', {}, JSON.stringify({type: "enter", id: id, idx: idx, userIdx: userIdx}));
+        stomp.send('/pub/chat/room/enter', {}, JSON.stringify({type: "enter", id: id, idx: idx, userIdx: userIdx}));
     } else {
         // 4번이 5번보다 아래에 위치한 이유 - 위에 있을경우 간혹 4번에서 전송한 메시지를 제대로 전달받지 못하는 경우가 존재한다.
         // 4. send(path, header, message)로 입장 메시지를 전송한다. (첫 입장 이후 모든 재입장(새로고침)은 여기서 입장 메시지를 전송한다.)
         //    JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
         //    여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
-        stomp.send('/pub/chat/reenter', {}, JSON.stringify({type: "reEnter", id: id, idx: idx, userIdx: userIdx}));
+        stomp.send('/pub/chat/room/reenter', {}, JSON.stringify({type: "reEnter", id: id, idx: idx, userIdx: userIdx}));
     }
 });
 ////////////////////////////////////////////////// 영상 통화 구역 //////////////////////////////////////////////////
@@ -423,7 +517,7 @@ function video() {
     // send(path, header, message)로 영상 통화 신청 메시지를 전송한다. (모든 영상 통화 신청은 여기서 메시지를 전송한다.)
     // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
     // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
-    stomp.send('/pub/chat/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx}));
+    stomp.send('/pub/chat/room/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx}));
 }
 
 // 영상 통화 수락 메소드
@@ -433,7 +527,7 @@ function accept() {
     // send(path, header, message)로 영상 통화 신청 메시지를 전송한다. (모든 영상 통화 수락은 여기서 메시지를 전송한다.)
     // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
     // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
-    stomp.send('/pub/chat/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx, content: 'accept'}));
+    stomp.send('/pub/chat/room/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx, content: 'accept'}));
 }
 
 // 영상 통화 거절 메소드
@@ -441,7 +535,7 @@ function refuse() {
     // send(path, header, message)로 영상 통화 신청 메시지를 전송한다. (모든 영상 통화 거절은 여기서 메시지를 전송한다.)
     // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
     // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
-    stomp.send('/pub/chat/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx, content: 'refuse'}));
+    stomp.send('/pub/chat/room/video', {}, JSON.stringify({type: "video", id: id, idx: idx, userIdx: userIdx, content: 'refuse'}));
 }
 //////////////////////////////////////////////////// 채팅 구역 ////////////////////////////////////////////////////
 // input 텍스트 태그에서 "keypress" 이벤트가 발생하면 해당 이벤트를 처리하는 콜백 메소드를 등록한다.
@@ -457,9 +551,7 @@ message.addEventListener("keypress", function(event) {
 
 // 채팅 메시지 전송 메소드
 function send() {
-    // id를 통해 작성한 메시지를 가져온다.
-    let message = document.getElementById("message");
-    // 가져온 메시지의 값을 체크한다.
+    // 작성한 메시지를 가져와 값을 체크한다.
     // 가져온 메시지의 값이 비어있을 경우
     if ( message.value == "" ) {
         // 먼저 경고 알림창을 띄워준다.
@@ -522,7 +614,7 @@ function send() {
                 // send(path, header, message)로 채팅 메시지를 전송한다. (입장 이후 작성되는 모든 메시지는 여기서 전송한다.)
                 // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
                 // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
-                stomp.send('/pub/chat/message', {}, JSON.stringify({type: "chat", id: id, idx: idx, content: message.value}));
+                stomp.send('/pub/chat/room/message', {}, JSON.stringify({type: "chat", id: id, idx: idx, content: message.value}));
                 message.value = ""; // 메시지를 전송한 뒤 공백 상태로 만든다.
                 // 먼저 전송된 메시지 수를 1 증가시킨다.
                 count++;
@@ -654,7 +746,7 @@ async function sendRecording() {
     // send(path, header, message)를 사용하여 녹음된 오디오 데이터를 메시지로 전송한다. (모든 녹음된 오디오 데이터는 여기서 메시지를 전송한다.)
     // {id: id, idx: idx} - 전송할 메시지의 Header로, Header를 통해 id와 idx를 전송한다.
     // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 파라미터를 통해 받는다.
-    stomp.send('/pub/chat/record', {id: id, idx: idx}, base64Data);
+    stomp.send('/pub/chat/room/record', {id: id, idx: idx}, base64Data);
     // recordedChunks 배열을 초기화한다.
     recordedChunks = [];
     // 오디오 태그에 작성되있는 소스를 초기화한다.
@@ -786,5 +878,5 @@ function exit() {
     // send(path, header, message)로 퇴장 메시지를 전송한다. (퇴장할때 딱 한번만 전송한다.)
     // JSON.stringify({json형식}) - JavaScript 값이나 객체를 JSON 문자열로 변환한다.
     // 여기서 전송한 메시지를 StompChatController에 @MessageMapping이 DTO를 통해 받는다.
-    stomp.send('/pub/chat/exit', {}, JSON.stringify({type: "exit", id: id, idx: idx, userIdx: userIdx}));
+    stomp.send('/pub/chat/room/exit', {}, JSON.stringify({type: "exit", id: id, idx: idx, userIdx: userIdx}));
 }

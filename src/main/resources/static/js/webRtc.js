@@ -96,7 +96,8 @@ async function startVideo() {
             localVideo.srcObject = localStream;
         } catch (error) {
             console.error('Error getting media:', error);
-            alert('영상 통화에 오류가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
+            // 영상 통화 에러 알림창을 띄운다.
+            alert('영상 통화에 에러가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
             return;
         }
     }
@@ -174,7 +175,8 @@ async function createOffer() {
         await sendOffer(peerConnection.localDescription);
     } catch (error) {
         console.error('Error creating and sending offer:', error);
-        alert('영상 통화에 오류가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
+        // 영상 통화 에러 알림창을 띄운다.
+        alert('영상 통화에 에러가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
         return;
     }
 }
@@ -247,7 +249,8 @@ function handleOffer(offer) {
         })
         .catch(error => {
             console.error('Error handling offer:', error);
-            alert('영상 통화에 오류가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
+            // 영상 통화 에러 알림창을 띄운다.
+            alert('영상 통화에 에러가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
             return;
         });
 }
@@ -276,7 +279,8 @@ function handleAnswer(answer) {
     peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
         .catch(error => {
             console.error('Error handling answer:', error);
-            alert('영상 통화에 오류가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
+            // 영상 통화 에러 알림창을 띄운다.
+            alert('영상 통화에 에러가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
             return;
         });
 }
@@ -300,7 +304,8 @@ function handleCandidate(candidate) {
                 peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
                     .catch(error => {
                         console.error('Error adding ICE candidate:', error);
-                        alert('영상 통화에 오류가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
+                        // 영상 통화 에러 알림창을 띄운다.
+                        alert('영상 통화에 에러가 발생하였습니다.\n채팅방에 다시 입장 후 재시도해주시기 바랍니다.');
                         return;
                     });
         }
