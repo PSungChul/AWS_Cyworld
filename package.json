@@ -1,0 +1,22 @@
+{
+  "name": "mate",
+  "version": "1.0.0",
+  "description": "WebRTC Signaling Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "/"
+  },
+  "keywords": [
+    "WebRTC"
+  ],
+  "author": "PSungChul",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.0"
+  }
+}
