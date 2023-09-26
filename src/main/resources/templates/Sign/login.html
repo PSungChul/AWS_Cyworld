@@ -24,37 +24,44 @@
 							<form id="ff">
 								<!-- 로그인을 구별할 플랫폼 -->
 								<input name="platform" type="hidden" value="cyworld">
-								<p class="userID">ID :&nbsp;<input name="email" type="text"></p>
+								<p class="userID">&nbsp;&nbsp;ID :&nbsp;<input name="email" type="text"></p>
 								<p class="userPW">PW :&nbsp;<input name="info" type="password"> </p>
-								<p class="login"><input id="btn-cover" class="btn-cover" type="button" value="로그인" onclick="loginCheck(this.form)"></p>
+								<p class="login"><input class="login-input" id="btn-cover" type="button" value="로그인" onclick="loginCheck(this.form)"></p>
 							</form>
-							
-							<!-- cyworld 회원가입 -->
-							<form action="login_authentication" method="POST">
-								<!-- 회원가입을 구별할 플랫폼 -->
-								<input name="platform" type="hidden" value="cyworld">
-								<p class="join"><input id="btn-cover" type="submit" value="회원가입"></p>
-							</form>
-							
-							<!-- 네이버 로그인 버튼 -->
-							<div class="naver" id="naverIdLogin"></div>
-							
-							<!-- 카카오 로그인 버튼 -->
-							<a class="kakao" href="javascript:kakaoLogin();"><img src="https://www.gb.go.kr/Main/Images/ko/member/certi_kakao_login.png" style="height: 40px; width: auto"></a>
-							
+
+							<div class="btn-social">
+								<!-- 네이버 로그인 버튼 -->
+								<div class="naver" id="naverIdLogin"><img id="naver-img" src="/images/naver_login.png"></div>
+								<!-- 카카오 로그인 버튼 -->
+								<a class="kakao" href="javascript:kakaoLogin();"><img id="kakao-img" src="/images/kakao_login_medium_wide.png"></a>
+							</div>
+
 							<!-- 카카오 회원가입 -->
 							<form id="kf" action="kakao_join_form" method="POST">
 								<input name="platform" type="hidden" value="kakao">
 								<input name="email" id="email" type="hidden">
 								<input name="gender" id="gender" type="hidden">
 							</form>
-							
-							<!-- ID 찾기 -->
-							<input id="btn-cover" class="findID" type="button" value="아이디 찾기" onclick="find_id();">
-							<!-- PW 찾기 -->
-							<input id="btn-cover" class="findPW" type="button" value="비밀번호 찾기" onclick="find_pw();">
-							<!-- 비회원 로그인 -->
-							<input id="btn-cover" class="none-join" type="button" value="비회원으로 입장" onclick="nmain();">
+
+							<!-- 하단 버튼들 -->
+							<div class="btn-group">
+								<div class="top-btn-group">
+									<!-- ID 찾기 -->
+									<input id="btn-cover" class="findID" type="button" value="아이디 찾기" onclick="find_id();">
+									<!-- PW 찾기 -->
+									<input id="btn-cover" class="findPW" type="button" value="비밀번호 찾기" onclick="find_pw();">
+								</div>
+								<div class="bottom-btn-group">
+									<!-- cyworld 회원가입 -->
+									<form action="login_authentication" method="POST">
+										<!-- 회원가입을 구별할 플랫폼 -->
+										<input name="platform" type="hidden" value="cyworld">
+										<input class="join" id="btn-cover" type="submit" value="회원가입">
+									</form>
+									<!-- 비회원 로그인 -->
+									<input id="btn-cover" class="none-join" type="button" value="비회원으로 입장" onclick="nmain();">
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -62,6 +69,8 @@
 		</section>
 	</div>
 <!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -->
+	<script src="/js/loginCss.js"></script>
+
 	<!-- 비회원 접속 -->
 	<script>
 		function nmain() {
@@ -99,11 +108,14 @@
 			// 이메일 형식 체크 패턴
 			let pattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+/;
 
-			// 아이디가 이메일 형식에 맞는지 체크한다.
-			// 이메일 형식이 아닌 경우
-			if (!pattern.test(email)) {
-				alert('아이디 형식을 다시 확인해주세요\n ex) abc@naver.com');
-				return;
+			// 아이디가 관리자나 테스터가 아닌 경우
+			if ( email != 'admin' && email != 'tester' ) {
+				// 아이디가 이메일 형식에 맞는지 체크한다.
+				// 이메일 형식이 아닌 경우
+				if (!pattern.test(email)) {
+					alert('아이디 형식을 다시 확인해주세요\n ex) abc@naver.com');
+					return;
+				}
 			}
 
 			if ( info == '' ) {
@@ -154,13 +166,13 @@
 	<script th:inline="javascript">
 		// 네이버 로그인 정보
 		const naverLogin = new naver.LoginWithNaverId(
-				{
-					clientId: [[${naverClientId}]], // 네이버에서 발급받은 API 사용 ID
-					callbackUrl: "http://localhost:9999/login_naver_callback", // 로그인을 하고 정보동의 후 이동할 페이지 - 네이버에서 미리 등록해야한다.
-					loginButton: {color: "green", type: 3, height: 40}, // 위에 작성한 <div>태그에 만들어줄 로그인 버튼 모양 설정
-					isPopup: false, // callbackUrl을 팝업창으로 열건지 선택 - true : 팝업 / false : 다음 페이지 
-					callbackHandle: true // 콜백메소드에 핸들메소드 사용여부
-				}
+			{
+				clientId: [[${naverClientId}]], // 네이버에서 발급받은 API 사용 ID
+				callbackUrl: "http://localhost:9999/login_naver_callback", // 로그인을 하고 정보동의 후 이동할 페이지 - 네이버에서 미리 등록해야한다.
+				loginButton: {color: "green", type: 3, height: 40}, // 위에 작성한 <div>태그에 만들어줄 로그인 버튼 모양 설정
+				isPopup: false, // callbackUrl을 팝업창으로 열건지 선택 - true : 팝업 / false : 다음 페이지
+				callbackHandle: true // 콜백메소드에 핸들메소드 사용여부
+			}
 		);
 		// 로그인 정보동의 시작
 		naverLogin.init();
