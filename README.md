@@ -87,6 +87,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 	AWS를 통해 HTTPS 추가
 	WebSocket을 사용하여 WebRTC와 Signaling Server를 통해 1:1 실시간 영상 통화 기능 구현
 	안 읽은 메시지 수에 따라 실시간 채팅방 상태 갱신 기능 구현
+	CSS Media Query와 JS Resize Event를 사용하여 로그인 페이지에 반응형 웹 적용
 
 #
 
