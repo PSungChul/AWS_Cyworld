@@ -23,10 +23,20 @@ function adjustImageSize() {
 
     const tabLabel = document.getElementsByClassName("tabLabel");
 
-    // 페이지 크기가 1600px 보다 작거나 같은 경우
+    // 페이지 넓이가 1600px 보다 작거나 같은 경우
     if ( windowWidth <= 1600 ) {
-        container.style.height = "";
-
+        // 페이지 길이가 1800px 보다 작거나 같은 경우
+        if ( windowHeight < 1800 ) {
+            // 전체 컨테이너
+            container.style.height = ( windowHeight - 50 ) + "px";
+            container.style.overflowY = "scroll";
+        // 페이지 길이가 1800px 보다 큰 경우
+        } else {
+            // 전체 컨테이너
+            container.style.height = "";
+            container.style.overflowY = "";
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         leftDashedLine.style.height = "";
         leftGrayBackground.style.height = "";
         leftAside.style.height = "";
@@ -54,8 +64,11 @@ function adjustImageSize() {
         rightDashedLine.style.width = windowWidth - 145 + "px";
         rightGrayBackground.style.width = windowWidth - 175 + "px";
         rightAside.style.width = 1383.2 - ( 1600 - windowWidth ) + "px";
-    // 페이지 크기가 1600px 보다 큰 경우
+    // 페이지 넓이가 1600px 보다 큰 경우
     } else {
+        container.style.height = "";
+        container.style.overflowY = "";
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         container.style.height = windowHeight - 40 + "px";
 
         leftDashedLine.style.height = windowHeight - 110 + "px";

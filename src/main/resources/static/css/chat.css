@@ -222,7 +222,6 @@ background: rgba(141, 184, 244, 0.481);  /*스크롤바 뒷 배경 색상*/
 }
 
 .tab-btns>label {
-    margin: 30px 0;
     width: 100px;
     height: 55px;
     position: relative;
@@ -1050,6 +1049,5 @@ background: rgba(141, 184, 244, 0.481);  /*스크롤바 뒷 배경 색상*/
         margin-right: 5%;
         height: 40px;
         border-radius: 20px 20px 20px 20px;
-        margin-bottom: 5%;
     }
 }

@@ -3,6 +3,9 @@ function adjustImageSize() {
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // 전체 컨테이너
+    const container = document.getElementsByClassName("container")[0];
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // 왼쪽 섹션
     const leftSection = document.getElementsByClassName("left-section")[0];
     const leftDashedLine = document.getElementsByClassName("left-dashed-line")[0];
@@ -57,6 +60,18 @@ function adjustImageSize() {
 
     // 페이지 크기가 1600px 보다 작거나 같은 경우
     if ( windowWidth <= 1600 ) {
+        // 페이지 길이가 1800px 보다 작거나 같은 경우
+        if ( windowHeight < 1800 ) {
+            // 전체 컨테이너
+            container.style.height = ( windowHeight - 75 ) + "px";
+            container.style.overflowY = "scroll";
+        // 페이지 길이가 1800px 보다 큰 경우
+        } else {
+            // 전체 컨테이너
+            container.style.height = "";
+            container.style.overflowY = "";
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // 왼쪽 섹션
         leftSection.style.width = windowWidth - 80 + "px";
         leftDashedLine.style.width = windowWidth - 145 + "px";
@@ -134,6 +149,9 @@ function adjustImageSize() {
         img3.style.width = 90 - ( 1600 - windowWidth ) / 24 + "px";
     // 페이지 크기가 1600px 보다 큰 경우
     } else {
+        container.style.height = "";
+        container.style.overflowY = "";
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         leftSection.style = "";
         leftDashedLine.style = "";
         leftGrayBackground.style = "";
