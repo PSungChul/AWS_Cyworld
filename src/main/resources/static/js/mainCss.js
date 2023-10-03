@@ -26,6 +26,9 @@ function adjustImageSize() {
     const rightDashedLine = document.getElementsByClassName("right-dashed-line")[0];
     const rightGrayBackground = document.getElementsByClassName("right-gray-background")[0];
 
+    // 메인 타이틀
+    const mainTitle = document.getElementById("mainTitle");
+
     // bgm
     const musicLogo = document.getElementsByClassName("musicLogo")[0];
     const mp3Title = document.getElementsByClassName("mp3_title")[0];
@@ -57,6 +60,7 @@ function adjustImageSize() {
     const img1 = document.getElementById("img1");
     const img2 = document.getElementById("img2");
     const img3 = document.getElementById("img3");
+    const bannerCancel = document.getElementsByClassName("bannerCancel")[0];
 
     // 페이지 크기가 1600px 보다 작거나 같은 경우
     if ( windowWidth <= 1600 ) {
@@ -94,17 +98,30 @@ function adjustImageSize() {
         rightDashedLine.style.width = windowWidth - 145 + "px";
         rightGrayBackground.style.width = windowWidth - 175 + "px";
 
-        // bgm
-        musicLogo.style.top = 47 - ( 1600 - windowWidth ) / 21.5 + "px";
-        musicLogo.style.left = 1024 - ( 1600 - windowWidth ) / 1.15 + "px";
-        mp3Title.style.top = 43 - ( 1600 - windowWidth ) / 21.5 + "px";
-        mp3Title.style.left = 860 - ( 1600 - windowWidth ) / 1.15 + "px";
-        bgm.style.top = 74 - ( 1600 - windowWidth ) / 21.5 + "px";
-        bgm.style.left = 1004 - ( 1600 - windowWidth ) / 1.15 + "px";
+        // 메인 타이틀
+        mainTitle.style.left = 43 - ( 1600 - windowWidth ) / 33.33 + "px";
+
+        if ( windowWidth < 1000 ) {
+            // bgm
+            musicLogo.style.top = -35 - ( 1000 - windowWidth ) / 50 + "px";
+            musicLogo.style.left = 465 - ( 1000 - windowWidth ) / 1.3 + "px";
+            mp3Title.style.top = -39 - ( 1000 - windowWidth ) / 50 + "px";
+            mp3Title.style.left = 301 - ( 1000 - windowWidth ) / 1.3 + "px";
+            bgm.style.top = -7 - ( 1000 - windowWidth ) / 50 + "px";
+            bgm.style.left = 445 - ( 1000 - windowWidth ) / 1.3 + "px";
+        } else {
+            // bgm
+            musicLogo.style.top = 47 - ( 1600 - windowWidth ) / 21.5 + "px";
+            musicLogo.style.left = 1024 - ( 1600 - windowWidth ) / 1.073 + "px";
+            mp3Title.style.top = 43 - ( 1600 - windowWidth ) / 21.5 + "px";
+            mp3Title.style.left = 860 - ( 1600 - windowWidth ) / 1.073 + "px";
+            bgm.style.top = 74 - ( 1600 - windowWidth ) / 21.5 + "px";
+            bgm.style.left = 1004 - ( 1600 - windowWidth ) / 1.073 + "px";
+        }
 
         // 검색
         search.style.top = 48 - ( 1600 - windowWidth ) / 33.4 + "px";
-        search.style.left = 1330 - ( 1600 - windowWidth ) / 1.11 + "px";
+        search.style.left = 1330 - ( 1600 - windowWidth ) / 1.03 + "px";
 
         // 도토리
         dotory.style.top = 10 + "px";
@@ -147,6 +164,9 @@ function adjustImageSize() {
         img3.style.marginTop = 5 + ( 1600 - windowWidth ) / 24 + "px";
         img3.style.marginLeft = 0 - ( 1600 - windowWidth ) / 75 + "px";
         img3.style.width = 90 - ( 1600 - windowWidth ) / 24 + "px";
+
+        bannerCancel.style.marginTop = 15 + ( 1600 - windowWidth ) / 24 + "px";
+        bannerCancel.style.marginLeft = -( ( 1600 - windowWidth ) / 24 ) + "px";
     // 페이지 크기가 1600px 보다 큰 경우
     } else {
         container.style.height = "";

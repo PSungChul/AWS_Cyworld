@@ -532,21 +532,21 @@ input::placeholder {
 }
 
 .tab-btns>label {
-   width: 100px;
-   height: 55px;
-   position: relative;
-   margin-bottom: 5px;
-   background-color: rgb(40, 125, 175);
-   left: 1190px;
-   top: -720px;
-   font-size: 20px;
-   padding-left: 15px;
-   text-align: center;
-   padding-top: 25px;
-   border-radius: 0 20px 20px 0;
-   color: white;
-   border: 1px solid black;
-   display: flex;
+    width: 100px;
+    height: 55px;
+    position: relative;
+    margin-bottom: 5px;
+    background-color: rgb(40, 125, 175);
+    left: 1190px;
+    top: -720px;
+    font-size: 20px;
+    padding-left: 15px;
+    text-align: center;
+    padding-top: 25px;
+    border-radius: 0 20px 20px 0;
+    color: white;
+    border: 1px solid black;
+    display: flex;
 }
 
 .tabs>#tab1:checked ~.tab-btns>#btn1 {
@@ -1194,10 +1194,6 @@ input::placeholder {
 
     .Ilchonpyeong {
         left: 10px;
-    }
-
-    .bannerCancel {
-        margin-top: 22px;
     }
 
     .circle-container {
