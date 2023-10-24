@@ -38,6 +38,7 @@
 						</div>
 						<!-- 좌측 프로필 사진 및 프로필 소개글 수정 -->
 						<form method="POST" enctype="multipart/form-data" th:object="${leftProfileDTO}">
+							<input th:field="*{idx}" type="hidden">
 							<!-- 기존 프로필 사진 -->
 							<div class="left-image">
 								<th:block th:if="${ leftProfileDTO.mainPhoto eq 'noImage' }">
