@@ -337,7 +337,7 @@ AWS를 통해 CyworldProject를 서버에 배포<br>
 			]
 		},
 		{
-			"idx": "유저 idx",
+			"_id": "유저 idx",
 			"chatRooms": [
 				{"_id": "채팅방 아이디1", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진", "unreadStatus": "안 읽은 메시지 수"},
 				{"_id": "채팅방 아이디3", "idx": "상대 유저 idx", "email": "상대 유저 이메일", "name": "상대 유저 이름", "mainPhoto": "상대 유저 메인 사진", "unreadStatus": "안 읽은 메시지 수"}
